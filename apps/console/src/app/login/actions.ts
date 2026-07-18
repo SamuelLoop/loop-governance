@@ -1,27 +1,38 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
 
 export async function devLogin(
-  _prev: { error: string; url: string },
+  _prev: { error: string },
   formData: FormData
-): Promise<{ error: string; url: string }> {
+): Promise<{ error: string }> {
   const email = formData.get("email") as string;
-  if (!email) return { error: "Email is required.", url: "" };
+  if (!email) return { error: "Email is required." };
 
   const admin = createServiceClient();
 
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "magiclink",
+  // Set a temporary password and sign in with it
+  const { data: users } = await admin.auth.admin.listUsers();
+  const user = users?.users.find((u) => u.email === email);
+
+  if (!user) {
+    return { error: "No account found for this email." };
+  }
+
+  const tempPass = `dev_${Date.now()}`;
+  await admin.auth.admin.updateUserById(user.id, { password: tempPass });
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
     email,
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://console.loopcmbntr.live"}/auth/callback`,
-    },
+    password: tempPass,
   });
 
   if (error) {
-    return { error: error.message, url: "" };
+    return { error: error.message };
   }
 
-  return { error: "", url: data.properties.action_link };
+  redirect("/");
 }
