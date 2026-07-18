@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient, createServiceClient } from "@/lib/supabase-server";
+import { createServiceClient } from "@/lib/supabase-server";
 
 export type EnrollmentState = {
   step: number;
@@ -21,7 +21,6 @@ export async function submitEnrollment(
   const communityName = formData.get("communityName") as string;
 
   if (step === 1) {
-    const supabase = await createClient();
     const email = formData.get("email") as string;
     const displayName = formData.get("displayName") as string;
     const location = formData.get("location") as string;
@@ -30,25 +29,21 @@ export async function submitEnrollment(
       return { step: 1, error: "Name and email are required.", communityId, communityName };
     }
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email,
       password: crypto.randomUUID(),
-      options: {
-        data: { display_name: displayName },
-      },
+      email_confirm: true,
+      user_metadata: { display_name: displayName },
     });
 
     if (authError) {
-      if (authError.message.includes("already registered")) {
-        return { step: 1, error: "This email is already registered. Please sign in instead.", communityId, communityName };
+      if (authError.message.includes("already been registered")) {
+        return { step: 1, error: "This email is already registered.", communityId, communityName };
       }
       return { step: 1, error: authError.message, communityId, communityName };
     }
 
-    const authId = authData.user?.id;
-    if (!authId) {
-      return { step: 1, error: "Failed to create account.", communityId, communityName };
-    }
+    const authId = authData.user.id;
 
     const { error: userError } = await admin
       .from("users")
