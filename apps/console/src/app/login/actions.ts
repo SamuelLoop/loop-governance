@@ -1,14 +1,13 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase-server";
-import { redirect } from "next/navigation";
 
 export async function devLogin(
-  _prev: { error: string },
+  _prev: { error: string; url: string },
   formData: FormData
-): Promise<{ error: string }> {
+): Promise<{ error: string; url: string }> {
   const email = formData.get("email") as string;
-  if (!email) return { error: "Email is required." };
+  if (!email) return { error: "Email is required.", url: "" };
 
   const admin = createServiceClient();
 
@@ -21,9 +20,8 @@ export async function devLogin(
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: error.message, url: "" };
   }
 
-  const url = new URL(data.properties.action_link);
-  redirect(url.toString());
+  return { error: "", url: data.properties.action_link };
 }

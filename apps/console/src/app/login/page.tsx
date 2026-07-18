@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [devState, devAction] = useActionState(devLogin, { error: "" });
+  const [devState, devAction] = useActionState(devLogin, { error: "", url: "" });
   const supabase = createClient();
 
   async function handleLogin(e: React.FormEvent) {
@@ -81,15 +81,27 @@ export default function LoginPage() {
                   {devState.error}
                 </div>
               )}
-              <form action={devAction}>
-                <input type="hidden" name="email" value={email} />
-                <button
-                  type="submit"
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-sm text-neutral-400 transition hover:border-neutral-600 hover:text-neutral-300"
-                >
-                  Instant sign in (dev)
-                </button>
-              </form>
+              {devState.url ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-green-400">Link generated. Click to sign in:</p>
+                  <a
+                    href={devState.url}
+                    className="block w-full rounded-md bg-green-600 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-green-500"
+                  >
+                    Sign in now
+                  </a>
+                </div>
+              ) : (
+                <form action={devAction}>
+                  <input type="hidden" name="email" value={email} />
+                  <button
+                    type="submit"
+                    className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-sm text-neutral-400 transition hover:border-neutral-600 hover:text-neutral-300"
+                  >
+                    Instant sign in (dev)
+                  </button>
+                </form>
+              )}
             </div>
           </>
         )}
