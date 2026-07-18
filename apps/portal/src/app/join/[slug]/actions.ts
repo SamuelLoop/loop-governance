@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createServiceClient } from "@/lib/supabase-server";
 
 export type EnrollmentState = {
   step: number;
@@ -15,6 +15,7 @@ export async function submitEnrollment(
   formData: FormData
 ): Promise<EnrollmentState> {
   const supabase = await createClient();
+  const admin = createServiceClient();
   const step = Number(formData.get("step"));
   const communityId = formData.get("communityId") as string;
   const communityName = formData.get("communityName") as string;
@@ -48,7 +49,7 @@ export async function submitEnrollment(
       return { step: 1, error: "Failed to create account.", communityId, communityName };
     }
 
-    const { error: userError } = await supabase
+    const { error: userError } = await admin
       .from("users")
       .insert({
         auth_id: authId,
@@ -73,7 +74,7 @@ export async function submitEnrollment(
     }
 
     if (interests.length > 0) {
-      await supabase
+      await admin
         .from("users")
         .update({ subject_expertise: interests })
         .eq("auth_id", user.id);
@@ -88,7 +89,7 @@ export async function submitEnrollment(
       return { step: 3, error: "Session expired. Please start over.", communityId, communityName };
     }
 
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("users")
       .select("id")
       .eq("auth_id", user.id)
@@ -98,7 +99,7 @@ export async function submitEnrollment(
       return { step: 3, error: "Profile not found.", communityId, communityName };
     }
 
-    const { error: memberError } = await supabase
+    const { error: memberError } = await admin
       .from("community_memberships")
       .insert({
         user_id: profile.id,
