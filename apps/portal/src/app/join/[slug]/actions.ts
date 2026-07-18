@@ -8,19 +8,20 @@ export type EnrollmentState = {
   success?: boolean;
   communityId?: string;
   communityName?: string;
+  authId?: string;
 };
 
 export async function submitEnrollment(
   _prev: EnrollmentState,
   formData: FormData
 ): Promise<EnrollmentState> {
-  const supabase = await createClient();
   const admin = createServiceClient();
   const step = Number(formData.get("step"));
   const communityId = formData.get("communityId") as string;
   const communityName = formData.get("communityName") as string;
 
   if (step === 1) {
+    const supabase = await createClient();
     const email = formData.get("email") as string;
     const displayName = formData.get("displayName") as string;
     const location = formData.get("location") as string;
@@ -62,41 +63,42 @@ export async function submitEnrollment(
       return { step: 1, error: userError.message, communityId, communityName };
     }
 
-    return { step: 2, communityId, communityName };
+    return { step: 2, communityId, communityName, authId };
   }
 
   if (step === 2) {
     const interests = formData.getAll("interests") as string[];
+    const authId = formData.get("authId") as string;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { step: 2, error: "Session expired. Please start over.", communityId, communityName };
+    if (!authId) {
+      return { step: 1, error: "Session lost. Please start over.", communityId, communityName };
     }
 
     if (interests.length > 0) {
       await admin
         .from("users")
         .update({ subject_expertise: interests })
-        .eq("auth_id", user.id);
+        .eq("auth_id", authId);
     }
 
-    return { step: 3, communityId, communityName };
+    return { step: 3, communityId, communityName, authId };
   }
 
   if (step === 3) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { step: 3, error: "Session expired. Please start over.", communityId, communityName };
+    const authId = formData.get("authId") as string;
+
+    if (!authId) {
+      return { step: 1, error: "Session lost. Please start over.", communityId, communityName };
     }
 
     const { data: profile } = await admin
       .from("users")
       .select("id")
-      .eq("auth_id", user.id)
+      .eq("auth_id", authId)
       .single();
 
     if (!profile) {
-      return { step: 3, error: "Profile not found.", communityId, communityName };
+      return { step: 3, error: "Profile not found.", communityId, communityName, authId };
     }
 
     const { error: memberError } = await admin
@@ -108,7 +110,7 @@ export async function submitEnrollment(
       });
 
     if (memberError && !memberError.message.includes("duplicate")) {
-      return { step: 3, error: memberError.message, communityId, communityName };
+      return { step: 3, error: memberError.message, communityId, communityName, authId };
     }
 
     return { step: 4, success: true, communityId, communityName };

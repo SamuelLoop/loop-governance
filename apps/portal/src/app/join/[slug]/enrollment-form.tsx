@@ -121,9 +121,11 @@ function StepDetails({
 function StepInterests({
   communityId,
   communityName,
+  authId,
 }: {
   communityId: string;
   communityName: string;
+  authId: string;
 }) {
   return (
     <div className="space-y-5">
@@ -140,6 +142,7 @@ function StepInterests({
       <input type="hidden" name="step" value="2" />
       <input type="hidden" name="communityId" value={communityId} />
       <input type="hidden" name="communityName" value={communityName} />
+      <input type="hidden" name="authId" value={authId} />
 
       <div className="grid grid-cols-2 gap-2">
         {SUBJECT_TAGS.map((tag) => (
@@ -171,9 +174,11 @@ function StepInterests({
 function StepConfirm({
   communityId,
   communityName,
+  authId,
 }: {
   communityId: string;
   communityName: string;
+  authId: string;
 }) {
   return (
     <div className="space-y-5">
@@ -191,6 +196,7 @@ function StepConfirm({
       <input type="hidden" name="step" value="3" />
       <input type="hidden" name="communityId" value={communityId} />
       <input type="hidden" name="communityName" value={communityName} />
+      <input type="hidden" name="authId" value={authId} />
 
       <div className="rounded-md border border-neutral-700 bg-neutral-800/30 p-4 text-sm text-neutral-400">
         <p className="mb-3 font-medium text-neutral-200">
@@ -285,12 +291,14 @@ export function EnrollmentForm({
           <StepInterests
             communityId={state.communityId!}
             communityName={state.communityName!}
+            authId={state.authId!}
           />
         )}
         {state.step === 3 && (
           <StepConfirm
             communityId={state.communityId!}
             communityName={state.communityName!}
+            authId={state.authId!}
           />
         )}
         {state.step === 4 && (
