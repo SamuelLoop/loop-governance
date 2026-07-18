@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm turbo build --filter=@loop/console",
+  "outputDirectory": "apps/console/.next",
+  "installCommand": "pnpm install"
+}

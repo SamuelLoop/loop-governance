@@ -44,7 +44,7 @@ export default async function ProposalPage({
   const { data: allVotes } = await admin
     .from("votes")
     .select(`
-      id, choice, cast_at,
+      id, choice, weight, cast_at,
       users!votes_voter_id_fkey(display_name)
     `)
     .eq("proposal_id", id)
@@ -172,6 +172,11 @@ export default async function ProposalPage({
                   >
                     {v.choice}
                   </span>
+                  {v.weight > 1 && (
+                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-400">
+                      {v.weight}x
+                    </span>
+                  )}
                   <span className="text-xs text-neutral-600">
                     {new Date(v.cast_at).toLocaleString()}
                   </span>

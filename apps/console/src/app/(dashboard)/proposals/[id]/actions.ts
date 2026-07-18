@@ -21,7 +21,7 @@ export async function castVote(
 
   const { data: proposal } = await admin
     .from("proposals")
-    .select("status")
+    .select("status, community_id, communities(subject_tags)")
     .eq("id", proposalId)
     .single();
 
@@ -29,10 +29,41 @@ export async function castVote(
     return { error: "This proposal is not open for voting." };
   }
 
+  // Check the voter hasn't already delegated on this subject
+  const subjectTags =
+    (proposal as any).communities?.subject_tags ?? [];
+
+  const { data: activeDelegation } = await admin
+    .from("delegations")
+    .select("id, delegate:users!delegations_delegate_id_fkey(display_name)")
+    .eq("delegator_id", userId)
+    .eq("community_id", proposal.community_id)
+    .in("subject_tag", subjectTags.length > 0 ? subjectTags : ["__none__"])
+    .eq("active", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (activeDelegation) {
+    const delegateName = (activeDelegation as any).delegate?.display_name ?? "your delegate";
+    return {
+      error: `You have delegated your vote on this subject to ${delegateName}. Revoke the delegation first to vote directly.`,
+    };
+  }
+
+  // Compute vote weight from delegation chain
+  const { data: weight } = await admin.rpc("compute_vote_weight", {
+    p_voter_id: userId,
+    p_community_id: proposal.community_id,
+    p_subject_tags: subjectTags.length > 0 ? subjectTags : [],
+  });
+
+  const voteWeight = weight ?? 1;
+
   const { error: voteError } = await admin.from("votes").insert({
     proposal_id: proposalId,
     voter_id: userId,
     choice,
+    weight: voteWeight,
   });
 
   if (voteError) {
@@ -43,9 +74,15 @@ export async function castVote(
   }
 
   if (choice === "for") {
-    await admin.rpc("increment_votes_for", { p_id: proposalId });
+    await admin.rpc("increment_votes_for", {
+      p_id: proposalId,
+      p_weight: voteWeight,
+    });
   } else if (choice === "against") {
-    await admin.rpc("increment_votes_against", { p_id: proposalId });
+    await admin.rpc("increment_votes_against", {
+      p_id: proposalId,
+      p_weight: voteWeight,
+    });
   }
 
   revalidatePath(`/proposals/${proposalId}`);
