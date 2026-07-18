@@ -29,6 +29,8 @@ export async function submitEnrollment(
       return { step: 1, error: "Name and email are required.", communityId, communityName };
     }
 
+    let authId: string;
+
     const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email,
       password: crypto.randomUUID(),
@@ -37,24 +39,38 @@ export async function submitEnrollment(
     });
 
     if (authError) {
-      if (authError.message.includes("already been registered")) {
-        return { step: 1, error: "This email is already registered.", communityId, communityName };
+      if (!authError.message.includes("already been registered")) {
+        return { step: 1, error: authError.message, communityId, communityName };
       }
-      return { step: 1, error: authError.message, communityId, communityName };
+      const { data: existing } = await admin
+        .from("users")
+        .select("auth_id")
+        .eq("email", email)
+        .single();
+      if (existing) {
+        authId = existing.auth_id;
+      } else {
+        const { data: { users } } = await admin.auth.admin.listUsers();
+        const found = users.find((u) => u.email === email);
+        if (!found) {
+          return { step: 1, error: "Could not find account.", communityId, communityName };
+        }
+        authId = found.id;
+      }
+    } else {
+      authId = authData.user.id;
     }
-
-    const authId = authData.user.id;
 
     const { error: userError } = await admin
       .from("users")
-      .insert({
+      .upsert({
         auth_id: authId,
         display_name: displayName,
         email,
         location_name: location || null,
-      });
+      }, { onConflict: "auth_id" });
 
-    if (userError && !userError.message.includes("duplicate")) {
+    if (userError) {
       return { step: 1, error: userError.message, communityId, communityName };
     }
 
