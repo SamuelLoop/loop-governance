@@ -1,0 +1,5 @@
+{
+  "name": "@loop/config",
+  "private": true,
+  "files": ["tsconfig.*.json"]
+}
