@@ -19,7 +19,7 @@ export default async function ProposalPage({
     .select(`
       *,
       users!proposals_author_id_fkey(display_name, email),
-      communities!proposals_community_id_fkey(name, slug)
+      communities!proposals_community_id_fkey(name, slug, quorum_size)
     `)
     .eq("id", id)
     .single();
@@ -50,8 +50,28 @@ export default async function ProposalPage({
     .eq("proposal_id", id)
     .order("cast_at", { ascending: false });
 
+  // Evaluate proposal if voting period has expired
+  if (
+    proposal.status === "open" &&
+    proposal.closes_at &&
+    new Date(proposal.closes_at) <= new Date()
+  ) {
+    await admin.rpc("evaluate_proposal", { p_id: id });
+    // Re-fetch to get updated status
+    const { data: updated } = await admin
+      .from("proposals")
+      .select("status")
+      .eq("id", id)
+      .single();
+    if (updated) proposal.status = updated.status;
+  }
+
   const total = proposal.votes_for + proposal.votes_against;
   const forPct = total > 0 ? (proposal.votes_for / total) * 100 : 0;
+  const voterCount = allVotes?.length ?? 0;
+  const quorumSize = (proposal as any).communities?.quorum_size ?? 10;
+  const quorumMet = voterCount >= quorumSize;
+  const quorumPct = Math.min((voterCount / quorumSize) * 100, 100);
 
   return (
     <div className="max-w-3xl">
@@ -114,37 +134,62 @@ export default async function ProposalPage({
         </div>
       )}
 
-      <div className="mb-6 rounded-md border border-neutral-800 bg-neutral-900/50 p-5">
-        <p className="mb-3 font-mono text-xs uppercase tracking-wider text-neutral-500">
-          Votes ({total} cast)
-        </p>
-        <div className="mb-2 flex gap-4 font-mono text-sm">
-          <span className="text-green-500">
-            For: {proposal.votes_for}
-          </span>
-          <span className="text-red-400">
-            Against: {proposal.votes_against}
-          </span>
+      <div className="mb-6 grid grid-cols-2 gap-4">
+        <div className="rounded-md border border-neutral-800 bg-neutral-900/50 p-5">
+          <p className="mb-3 font-mono text-xs uppercase tracking-wider text-neutral-500">
+            Votes ({total} weighted)
+          </p>
+          <div className="mb-2 flex gap-4 font-mono text-sm">
+            <span className="text-green-500">
+              For: {proposal.votes_for}
+            </span>
+            <span className="text-red-400">
+              Against: {proposal.votes_against}
+            </span>
+          </div>
+          {total > 0 && (
+            <div className="h-2 overflow-hidden rounded-full bg-red-500/30">
+              <div
+                className="h-full rounded-full bg-green-500"
+                style={{ width: `${forPct}%` }}
+              />
+            </div>
+          )}
         </div>
-        {total > 0 && (
-          <div className="h-2 overflow-hidden rounded-full bg-red-500/30">
-            <div
-              className="h-full rounded-full bg-green-500"
-              style={{ width: `${forPct}%` }}
-            />
-          </div>
-        )}
 
-        {proposal.status === "open" && profile && (
-          <div className="mt-4 border-t border-neutral-800 pt-4">
-            <VoteButtons
-              proposalId={proposal.id}
-              userId={profile.id}
-              existingChoice={existingVote?.choice ?? null}
+        <div className="rounded-md border border-neutral-800 bg-neutral-900/50 p-5">
+          <p className="mb-3 font-mono text-xs uppercase tracking-wider text-neutral-500">
+            Quorum ({voterCount} / {quorumSize} voters)
+          </p>
+          <div className="mb-2 text-sm">
+            {quorumMet ? (
+              <span className="text-green-400">Quorum reached</span>
+            ) : (
+              <span className="text-neutral-400">
+                {quorumSize - voterCount} more voter{quorumSize - voterCount !== 1 ? "s" : ""} needed
+              </span>
+            )}
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-neutral-800">
+            <div
+              className={`h-full rounded-full transition-all ${
+                quorumMet ? "bg-green-500" : "bg-amber-500"
+              }`}
+              style={{ width: `${quorumPct}%` }}
             />
           </div>
-        )}
+        </div>
       </div>
+
+      {proposal.status === "open" && profile && (
+        <div className="mb-6 rounded-md border border-neutral-800 bg-neutral-900/50 p-5">
+          <VoteButtons
+            proposalId={proposal.id}
+            userId={profile.id}
+            existingChoice={existingVote?.choice ?? null}
+          />
+        </div>
+      )}
 
       {allVotes && allVotes.length > 0 && (
         <div>
