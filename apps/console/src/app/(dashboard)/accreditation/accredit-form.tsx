@@ -1,27 +1,31 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { giveAccreditation } from "./actions";
 
 type Member = { id: string; display_name: string };
-type Community = { id: string; name: string; subject_tags: string[] | null };
+type Community = { id: string; name: string; subject: string; level: string };
+
+const LEVEL_LABELS: Record<string, string> = {
+  global: "Global",
+  continental: "Continental",
+  national: "National",
+  city: "City",
+  local: "Local",
+};
 
 export function AccreditForm({
   giverId,
   members,
   communities,
+  activeSubject,
 }: {
   giverId: string;
   members: Member[];
   communities: Community[];
+  activeSubject: string;
 }) {
   const [state, formAction] = useActionState(giveAccreditation, { error: "", success: false });
-  const [selectedCommunity, setSelectedCommunity] = useState(
-    communities[0]?.id ?? ""
-  );
-
-  const tags =
-    communities.find((c) => c.id === selectedCommunity)?.subject_tags ?? [];
 
   return (
     <form action={formAction} className="space-y-4">
@@ -37,8 +41,9 @@ export function AccreditForm({
       )}
 
       <input type="hidden" name="giverId" value={giverId} />
+      <input type="hidden" name="subjectTag" value={activeSubject} />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
             Peer
@@ -64,30 +69,12 @@ export function AccreditForm({
           <select
             name="communityId"
             required
-            value={selectedCommunity}
-            onChange={(e) => setSelectedCommunity(e.target.value)}
             className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
           >
+            <option value="">Select a community</option>
             {communities.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-            Subject
-          </label>
-          <select
-            name="subjectTag"
-            required
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
-          >
-            {tags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
+                {c.name} ({LEVEL_LABELS[c.level] ?? c.level})
               </option>
             ))}
           </select>

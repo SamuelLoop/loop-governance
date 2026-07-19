@@ -1,8 +1,11 @@
-import { createServiceClient } from "@/lib/supabase-server";
+import { createServiceClient, createClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DashboardChat } from "./dashboard-chat";
+import { sendMessage } from "./communities/[id]/chat/actions";
 
 const SUBJECT_LABELS: Record<string, string> = {
   governance: "Governance",
@@ -19,14 +22,68 @@ const SUBJECT_LABELS: Record<string, string> = {
 
 export default async function DashboardPage() {
   const admin = createServiceClient();
+  const supabase = await createClient();
   const activeSubject = await getActiveSubject();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await admin
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+
+  const userId = profile?.id;
 
   const { data: subjectCommunities } = await admin
     .from("communities")
-    .select("id")
+    .select("id, name, level")
     .eq("subject", activeSubject);
-  const ids = (subjectCommunities ?? []).map((c: any) => c.id);
+  const allCommunities = subjectCommunities ?? [];
+  const ids = allCommunities.map((c: any) => c.id);
   const safeIds = ids.length > 0 ? ids : ["none"];
+
+  // Get communities the user is a member of
+  let userCommunities: { id: string; name: string; level: string }[] = [];
+  if (userId) {
+    const { data: memberships } = await admin
+      .from("community_memberships")
+      .select("community_id")
+      .eq("user_id", userId);
+
+    const memberCommunityIds = new Set(
+      (memberships ?? []).map((m: any) => m.community_id)
+    );
+    userCommunities = allCommunities.filter((c: any) =>
+      memberCommunityIds.has(c.id)
+    );
+  }
+
+  // Load messages for user's communities
+  let chatMessages: any[] = [];
+  const firstCommunityId =
+    userCommunities.length > 0 ? userCommunities[0].id : null;
+
+  if (firstCommunityId) {
+    const { data: msgs } = await admin
+      .from("messages")
+      .select(
+        `id, content, channel, created_at,
+        author:users!messages_author_id_fkey(id, display_name)`
+      )
+      .eq("community_id", firstCommunityId)
+      .order("created_at", { ascending: true })
+      .limit(100);
+
+    chatMessages = (msgs ?? []).map((m: any) => ({
+      ...m,
+      community_name: userCommunities.find((c) => c.id === firstCommunityId)
+        ?.name,
+    }));
+  }
 
   const [
     { count: communityCount },
@@ -73,10 +130,11 @@ export default async function DashboardPage() {
         {SUBJECT_LABELS[activeSubject] ?? activeSubject}
       </h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Overview for the {activeSubject} subject
+        Join the conversation and shape {activeSubject} governance
       </p>
 
-      <div className="mb-8 grid grid-cols-4 gap-4">
+      {/* Stats row */}
+      <div className="mb-6 grid grid-cols-4 gap-4">
         {stats.map((s) => (
           <Card key={s.label}>
             <CardHeader className="pb-2">
@@ -91,6 +149,33 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+      {/* Chat - the main feature */}
+      {userCommunities.length > 0 ? (
+        <div className="mb-6">
+          <DashboardChat
+            communities={userCommunities}
+            initialMessages={chatMessages}
+            initialCommunityId={firstCommunityId}
+            sendMessageAction={sendMessage}
+          />
+        </div>
+      ) : (
+        <Card className="mb-6">
+          <CardContent className="py-8 text-center">
+            <p className="mb-2 text-sm text-muted-foreground">
+              Join a community to see conversations here
+            </p>
+            <Link
+              href="/communities"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Browse communities
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent proposals */}
       <div>
         <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Recent proposals

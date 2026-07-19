@@ -13,9 +13,14 @@ export async function devLogin(
 
   const admin = createServiceClient();
 
-  // Set a temporary password and sign in with it
-  const { data: users } = await admin.auth.admin.listUsers();
-  const user = users?.users.find((u) => u.email === email);
+  let user: { id: string; email?: string } | undefined;
+  let page = 1;
+  while (!user) {
+    const { data } = await admin.auth.admin.listUsers({ page, perPage: 50 });
+    if (!data?.users?.length) break;
+    user = data.users.find((u) => u.email === email);
+    page++;
+  }
 
   if (!user) {
     return { error: "No account found for this email." };

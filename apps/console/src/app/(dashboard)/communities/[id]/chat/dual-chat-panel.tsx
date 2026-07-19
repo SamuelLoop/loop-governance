@@ -4,7 +4,8 @@ import { useActionState, useRef, useEffect, useState } from "react";
 import { sendMessage, type Message } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquareQuote, Send, X, Shield, Users } from "lucide-react";
+import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 function MessageBubble({
   message,
@@ -55,6 +56,23 @@ function MessageBubble({
         <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
           {message.content}
         </p>
+
+        {message.metadata?.reference && (
+          <a
+            href={message.metadata.reference.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1.5 transition hover:border-primary/40"
+          >
+            {message.metadata.reference.type === "proposal" && <FileText className="h-3 w-3 text-blue-400" />}
+            {message.metadata.reference.type === "election" && <Vote className="h-3 w-3 text-purple-400" />}
+            {message.metadata.reference.type === "campaign" && <Megaphone className="h-3 w-3 text-amber-400" />}
+            {message.metadata.reference.type === "treasury" && <Coins className="h-3 w-3 text-green-400" />}
+            {message.metadata.reference.type === "power" && <Star className="h-3 w-3 text-red-400" />}
+            <span className="truncate text-[10px] font-medium">{message.metadata.reference.title}</span>
+            <Badge variant="outline" className="shrink-0 text-[7px]">{message.metadata.reference.type}</Badge>
+          </a>
+        )}
       </div>
     </div>
   );

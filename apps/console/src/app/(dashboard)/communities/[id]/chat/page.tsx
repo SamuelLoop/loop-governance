@@ -4,7 +4,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { getMessages } from "./actions";
+import { getQuestions } from "./question-actions";
 import { DualChatPanel } from "./dual-chat-panel";
+import { QuestionPanel } from "./question-panel";
 
 export default async function ChatPage({
   params,
@@ -47,8 +49,11 @@ export default async function ChatPage({
 
   const isQuorum = ["quorum", "admin"].includes(membership.role);
 
-  const communityMessages = await getMessages(id, "community");
-  const quorumMessages = await getMessages(id, "quorum");
+  const [communityMessages, quorumMessages, questions] = await Promise.all([
+    getMessages(id, "community"),
+    getMessages(id, "quorum"),
+    getQuestions(id),
+  ]);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
@@ -63,17 +68,30 @@ export default async function ChatPage({
         <div className="ml-3">
           <h1 className="text-sm font-medium">{community.name}</h1>
           <p className="text-xs text-muted-foreground">
-            Community + Quorum (glass room)
+            Community + Quorum (glass room) + Questions
           </p>
         </div>
       </div>
 
-      <DualChatPanel
-        communityId={id}
-        communityMessages={communityMessages}
-        quorumMessages={quorumMessages}
-        isQuorum={isQuorum}
-      />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Chat panels take 2/3 */}
+        <div className="flex flex-[2] overflow-hidden">
+          <DualChatPanel
+            communityId={id}
+            communityMessages={communityMessages}
+            quorumMessages={quorumMessages}
+            isQuorum={isQuorum}
+          />
+        </div>
+        {/* Question panel takes 1/3 */}
+        <div className="flex w-80 shrink-0 flex-col border-l">
+          <QuestionPanel
+            communityId={id}
+            questions={questions}
+            isQuorum={isQuorum}
+          />
+        </div>
+      </div>
     </div>
   );
 }

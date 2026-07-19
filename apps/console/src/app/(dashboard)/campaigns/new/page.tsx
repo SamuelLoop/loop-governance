@@ -1,6 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
+import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
@@ -17,19 +18,36 @@ export default async function NewCampaignPage() {
 
   const { data: profile } = await admin
     .from("users")
-    .select("id")
+    .select("id, display_name, platform_role")
     .eq("auth_id", user.id)
     .single();
 
   if (!profile) redirect("/");
 
-  const { data: memberships } = await admin
-    .from("community_memberships")
-    .select("community_id, communities(id, name, level, subject)")
-    .eq("user_id", profile.id);
+  const activeSubject = await getActiveSubject();
+  const isPlatformAdmin = profile.platform_role === "platform_admin";
 
-  const communities =
-    memberships?.map((m: any) => m.communities).filter(Boolean) ?? [];
+  let communities: { id: string; name: string; level: string; subject: string; slug: string }[];
+
+  if (isPlatformAdmin) {
+    const { data } = await admin
+      .from("communities")
+      .select("id, name, level, subject, slug")
+      .eq("subject", activeSubject)
+      .order("name");
+    communities = data ?? [];
+  } else {
+    const { data: memberships } = await admin
+      .from("community_memberships")
+      .select(
+        "community_id, communities!community_memberships_community_id_fkey(id, name, level, subject, slug)"
+      )
+      .eq("user_id", profile.id);
+
+    communities = (memberships ?? [])
+      .map((m: any) => m.communities)
+      .filter((c: any) => c && c.subject === activeSubject);
+  }
 
   const { data: existingCampaigns } = await admin
     .from("campaigns")
@@ -42,11 +60,11 @@ export default async function NewCampaignPage() {
   );
 
   const availableCommunities = communities.filter(
-    (c: any) => !usedCommunityIds.has(c.id)
+    (c) => !usedCommunityIds.has(c.id)
   );
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <Button
         variant="ghost"
         size="sm"
@@ -58,35 +76,29 @@ export default async function NewCampaignPage() {
       </Button>
 
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
-        Create campaign
+        Create a campaign
       </h1>
-      <p className="mb-6 text-sm text-muted-foreground">
-        Tell your community why they should delegate their vote to you. A
-        compelling pitch helps people understand your vision for leadership.
+      <p className="mb-6 max-w-2xl text-sm text-muted-foreground">
+        Build a digital poster to rally support. Choose a template, customise
+        it with your message, embed a video pitch, and publish. Your poster
+        gets a shareable link that works on any device.
       </p>
 
       {availableCommunities.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              You already have active campaigns in all your communities.
+              You already have active campaigns in all your communities, or you
+              are not a member of any {activeSubject} communities yet.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Your campaign pitch
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CampaignForm
-              userId={profile.id}
-              communities={availableCommunities}
-            />
-          </CardContent>
-        </Card>
+        <CampaignForm
+          userId={profile.id}
+          userName={profile.display_name ?? "Candidate"}
+          communities={availableCommunities}
+        />
       )}
     </div>
   );

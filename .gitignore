@@ -9,3 +9,7 @@ dist/
 *.tsbuildinfo
 supabase/
 .vercel
+
+# Hardhat
+packages/contracts/artifacts/
+packages/contracts/cache/

@@ -14,6 +14,15 @@ export type Message = {
     content: string;
     author: { display_name: string } | null;
   } | null;
+  metadata: {
+    reference?: {
+      type: string;
+      id: string;
+      title: string;
+      subtitle?: string;
+      url: string;
+    };
+  } | null;
 };
 
 export async function getMessages(
@@ -25,7 +34,7 @@ export async function getMessages(
   let query = admin
     .from("messages")
     .select(
-      `id, content, channel, created_at, referenced_message_id,
+      `id, content, channel, created_at, referenced_message_id, metadata,
       author:users!messages_author_id_fkey(id, display_name, email)`
     )
     .eq("community_id", communityId)
@@ -65,6 +74,7 @@ export async function getMessages(
     referenced_message: m.referenced_message_id
       ? refMap[m.referenced_message_id] ?? null
       : null,
+    metadata: m.metadata ?? null,
   }));
 }
 
@@ -77,8 +87,16 @@ export async function sendMessage(
   const channel = (formData.get("channel") as string) || "community";
   const referencedMessageId =
     (formData.get("referenced_message_id") as string) || null;
+  const referenceJson = formData.get("reference") as string;
 
   if (!content?.trim()) return { error: "Message cannot be empty" };
+
+  let metadata: any = null;
+  if (referenceJson) {
+    try {
+      metadata = { reference: JSON.parse(referenceJson) };
+    } catch {}
+  }
 
   const supabase = await createClient();
   const {
@@ -113,6 +131,7 @@ export async function sendMessage(
     content: content.trim(),
     channel,
     referenced_message_id: referencedMessageId,
+    metadata,
   });
 
   if (error) return { error: error.message };

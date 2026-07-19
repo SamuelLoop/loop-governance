@@ -31,6 +31,9 @@ import {
   Vote,
   Map,
   Megaphone,
+  Coins,
+  Wallet,
+  Shield,
   LogOut,
   ChevronUp,
   User2,
@@ -38,7 +41,10 @@ import {
 import { SubjectSwitcher } from "./subject-switcher";
 
 const PERSONAL_NAV = [
+  { href: "/account", label: "My Account", icon: User2 },
+  { href: "/badge", label: "My Badge", icon: Shield },
   { href: "/accreditation", label: "My Power", icon: Star },
+  { href: "/earnings", label: "Earnings", icon: Wallet },
   { href: "/delegations", label: "Delegations", icon: ArrowLeftRight },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
 ];
@@ -50,14 +56,19 @@ const COMMUNITY_NAV = [
   { href: "/communities", label: "Communities", icon: Globe },
   { href: "/map", label: "Map", icon: Map },
   { href: "/members", label: "Members", icon: Users },
+  { href: "/treasury", label: "Treasury", icon: Coins },
 ];
 
 export function AppSidebar({
   userEmail,
+  userName,
+  userAvatar,
   subjects,
   activeSubject,
 }: {
   userEmail: string;
+  userName: string;
+  userAvatar: string | null;
   subjects: string[];
   activeSubject: string;
 }) {
@@ -97,12 +108,13 @@ export function AppSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-mono text-sm font-bold">
-            L
-          </div>
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <img src="/logo.png" alt="Loop_cmbntr" className="h-8 w-8 rounded-md" />
           <div>
-            <p className="text-sm font-semibold">Loop</p>
+            <p className="text-sm font-semibold tracking-tight">
+              Loop<span className="text-muted-foreground">_</span>
+              <span className="text-red-500">cmbntr</span>
+            </p>
             <p className="text-xs text-muted-foreground">Console</p>
           </div>
         </div>
@@ -125,8 +137,18 @@ export function AppSidebar({
               <DropdownMenuTrigger
                 render={
                   <SidebarMenuButton>
-                    <User2 className="h-4 w-4" />
-                    <span className="truncate text-xs">{userEmail}</span>
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="h-5 w-5 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px] font-medium text-primary">
+                        {userName[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span className="truncate text-xs">{userName}</span>
                     <ChevronUp className="ml-auto h-4 w-4" />
                   </SidebarMenuButton>
                 }

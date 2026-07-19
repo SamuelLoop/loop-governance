@@ -173,7 +173,8 @@ export default async function AccreditationPage() {
 
   const { data: communities } = await admin
     .from("communities")
-    .select("id, name, subject_tags")
+    .select("id, name, subject, level")
+    .eq("subject", activeSubject)
     .order("level");
 
   return (
@@ -326,6 +327,7 @@ export default async function AccreditationPage() {
             giverId={profile.id}
             members={members ?? []}
             communities={communities ?? []}
+            activeSubject={activeSubject}
           />
         </CardContent>
       </Card>

@@ -122,9 +122,11 @@ export default async function Home() {
         </div>
 
         <div className="relative z-10 max-w-3xl text-center">
-          <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-amber-500/80">
-            Loop Governance Protocol
-          </p>
+          <img
+            src="/logo.png"
+            alt="Loop_cmbntr"
+            className="mx-auto mb-8 h-16 w-16 rounded-xl"
+          />
 
           <h1 className="mb-6 text-5xl font-light leading-[1.1] tracking-tight text-neutral-50 sm:text-6xl">
             Would you like to
@@ -547,9 +549,23 @@ export default async function Home() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-neutral-800/50 px-6 py-10 text-center text-xs text-neutral-600">
-        <p>Loop Governance Protocol</p>
-        <p className="mt-1">
-          Connecting, rewarding, and empowering communities.
+        <div className="mb-3 flex items-center justify-center gap-2">
+          <img src="/logo.png" alt="Loop_cmbntr" className="h-6 w-6 rounded" />
+          <span className="font-medium text-neutral-500">
+            Loop<span className="text-neutral-600">_</span>
+            <span className="text-red-500/60">cmbntr</span>
+          </span>
+        </div>
+        <p>Connecting, rewarding, and empowering communities.</p>
+        <p className="mt-2 text-neutral-700">
+          Part of the{" "}
+          <a
+            href="https://www.loopcmbntr.live"
+            className="text-neutral-500 underline decoration-neutral-700 transition hover:text-neutral-300"
+          >
+            Loop_cmbntr
+          </a>{" "}
+          network
         </p>
       </footer>
     </main>

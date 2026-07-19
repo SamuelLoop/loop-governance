@@ -38,10 +38,16 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-6">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground font-mono text-lg font-bold">
-            L
-          </div>
-          <CardTitle className="text-xl">Loop Console</CardTitle>
+          <img
+            src="/logo.png"
+            alt="Loop_cmbntr"
+            className="mx-auto mb-2 h-12 w-12 rounded-lg"
+          />
+          <CardTitle className="text-xl">
+            Loop<span className="text-muted-foreground">_</span>
+            <span className="text-red-500">cmbntr</span>{" "}
+            <span className="font-normal text-muted-foreground">Console</span>
+          </CardTitle>
           <p className="text-sm text-muted-foreground">Sign in to continue</p>
         </CardHeader>
         <CardContent>

@@ -5,7 +5,7 @@ import { sendMessage, type Message } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquareQuote, Send, X, Shield } from "lucide-react";
+import { MessageSquareQuote, Send, X, Shield, Link2, FileText, Vote, Megaphone, Coins, Star } from "lucide-react";
 
 function MessageBubble({
   message,
@@ -75,6 +75,29 @@ function MessageBubble({
         <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
           {message.content}
         </p>
+
+        {message.metadata?.reference && (
+          <a
+            href={message.metadata.reference.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1.5 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 transition hover:border-primary/40"
+          >
+            {message.metadata.reference.type === "proposal" && <FileText className="h-3.5 w-3.5 text-blue-400" />}
+            {message.metadata.reference.type === "election" && <Vote className="h-3.5 w-3.5 text-purple-400" />}
+            {message.metadata.reference.type === "campaign" && <Megaphone className="h-3.5 w-3.5 text-amber-400" />}
+            {message.metadata.reference.type === "treasury" && <Coins className="h-3.5 w-3.5 text-green-400" />}
+            {message.metadata.reference.type === "power" && <Star className="h-3.5 w-3.5 text-red-400" />}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium">{message.metadata.reference.title}</p>
+              {message.metadata.reference.subtitle && (
+                <p className="truncate text-[10px] text-muted-foreground">{message.metadata.reference.subtitle}</p>
+              )}
+            </div>
+            <Badge variant="outline" className="shrink-0 text-[8px]">{message.metadata.reference.type}</Badge>
+            <Link2 className="h-3 w-3 shrink-0 text-muted-foreground" />
+          </a>
+        )}
       </div>
     </div>
   );
