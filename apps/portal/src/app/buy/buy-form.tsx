@@ -2,14 +2,20 @@
 
 import { useState } from "react";
 
-const PRICE_USD = 1.0;
+type Currency = "usd" | "gbp" | "eur";
+
+const PRICES: Record<Currency, number> = { usd: 1.0, gbp: 0.8, eur: 0.9 };
+const SYMBOLS: Record<Currency, string> = { usd: "$", gbp: "£", eur: "€" };
+const LABELS: Record<Currency, string> = { usd: "USD", gbp: "GBP", eur: "EUR" };
 
 export function BuyForm() {
   const [amount, setAmount] = useState(10);
+  const [currency, setCurrency] = useState<Currency>("usd");
   const [step, setStep] = useState<"select" | "method" | "wallet" | "processing">("select");
   const [loading, setLoading] = useState(false);
 
-  const totalCost = amount * PRICE_USD;
+  const totalCost = amount * PRICES[currency];
+  const symbol = SYMBOLS[currency];
   const impactTokens = amount / 2;
   const allocationTokens = amount / 2;
   const totalMinted = amount + impactTokens + allocationTokens;
@@ -22,7 +28,7 @@ export function BuyForm() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ amount, currency }),
       });
       const data = await res.json();
       if (data.url) {
@@ -40,6 +46,22 @@ export function BuyForm() {
           <h3 className="mb-4 text-sm font-medium text-neutral-300">
             How many LOOP tokens?
           </h3>
+
+          <div className="mb-4 flex gap-2">
+            {(Object.keys(PRICES) as Currency[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => setCurrency(c)}
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                  currency === c
+                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                }`}
+              >
+                {SYMBOLS[c]} {LABELS[c]}
+              </button>
+            ))}
+          </div>
 
           <div className="mb-4 grid grid-cols-4 gap-2 sm:grid-cols-7">
             {presets.map((p) => (
@@ -78,7 +100,7 @@ export function BuyForm() {
             <div className="flex justify-between">
               <span className="text-neutral-400">You pay</span>
               <span className="font-medium text-neutral-100">
-                ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {LABELS[currency]}
               </span>
             </div>
             <div className="flex justify-between">
@@ -104,7 +126,7 @@ export function BuyForm() {
             onClick={() => setStep("method")}
             className="w-full rounded-lg bg-amber-500 px-6 py-3.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
           >
-            Buy {amount.toLocaleString()} LOOP for ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            Buy {amount.toLocaleString()} LOOP for {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </button>
         </>
       )}
@@ -115,7 +137,7 @@ export function BuyForm() {
             How would you like to pay?
           </h3>
           <p className="mb-6 text-center text-sm text-neutral-400">
-            {amount.toLocaleString()} LOOP for ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {amount.toLocaleString()} LOOP for {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
 
           <div className="space-y-3">
