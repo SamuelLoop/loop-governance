@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@loop/portal",
+  "installCommand": "cd ../.. && pnpm install"
+}

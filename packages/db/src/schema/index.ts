@@ -6,3 +6,6 @@ export * from "./governance";
 export * from "./trading";
 export * from "./enrollment";
 export * from "./delegations";
+export * from "./elections";
+export * from "./messages";
+export * from "./campaigns";

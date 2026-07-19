@@ -6,6 +6,7 @@ import {
   integer,
   boolean,
   jsonb,
+  numeric,
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -47,9 +48,21 @@ export const communities = pgTable(
       .notNull()
       .default(90),
     dunbarLimit: integer("dunbar_limit").notNull().default(150),
+    maxDelegationDepth: integer("max_delegation_depth").notNull().default(10),
+    delegationDecay: numeric("delegation_decay", { precision: 4, scale: 3 })
+      .notNull()
+      .default("1.000"),
     votingAnonymous: boolean("voting_anonymous").notNull().default(true),
     allowCandidates: boolean("allow_candidates").notNull().default(false),
 
+    quorumThresholdPct: numeric("quorum_threshold_pct", {
+      precision: 5,
+      scale: 2,
+    })
+      .notNull()
+      .default("10.00"),
+
+    subject: text("subject").notNull(),
     subjectTags: jsonb("subject_tags").$type<string[]>().default([]),
 
     // Fund balance tracked here, transactions in community_fund_transactions

@@ -1,7 +1,32 @@
 import { createServiceClient } from "@/lib/supabase-server";
+import { getActiveSubject } from "@/lib/subject";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+const SUBJECT_LABELS: Record<string, string> = {
+  governance: "Governance",
+  economics: "Economics",
+  ecology: "Ecology",
+  health: "Health",
+  technology: "Technology",
+  education: "Education",
+  culture: "Culture",
+  infrastructure: "Infrastructure",
+  justice: "Justice",
+  energy: "Energy",
+};
 
 export default async function DashboardPage() {
   const admin = createServiceClient();
+  const activeSubject = await getActiveSubject();
+
+  const { data: subjectCommunities } = await admin
+    .from("communities")
+    .select("id")
+    .eq("subject", activeSubject);
+  const ids = (subjectCommunities ?? []).map((c: any) => c.id);
+  const safeIds = ids.length > 0 ? ids : ["none"];
 
   const [
     { count: communityCount },
@@ -9,15 +34,29 @@ export default async function DashboardPage() {
     { count: proposalCount },
     { count: openProposalCount },
   ] = await Promise.all([
-    admin.from("communities").select("*", { count: "exact", head: true }),
-    admin.from("community_memberships").select("*", { count: "exact", head: true }),
-    admin.from("proposals").select("*", { count: "exact", head: true }),
-    admin.from("proposals").select("*", { count: "exact", head: true }).eq("status", "open"),
+    admin
+      .from("communities")
+      .select("*", { count: "exact", head: true })
+      .eq("subject", activeSubject),
+    admin
+      .from("community_memberships")
+      .select("*", { count: "exact", head: true })
+      .in("community_id", safeIds),
+    admin
+      .from("proposals")
+      .select("*", { count: "exact", head: true })
+      .in("community_id", safeIds),
+    admin
+      .from("proposals")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "open")
+      .in("community_id", safeIds),
   ]);
 
   const { data: recentProposals } = await admin
     .from("proposals")
     .select("id, title, status, created_at, votes_for, votes_against")
+    .in("community_id", safeIds)
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -30,70 +69,74 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-light tracking-tight">Dashboard</h1>
+      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+        {SUBJECT_LABELS[activeSubject] ?? activeSubject}
+      </h1>
+      <p className="mb-6 text-sm text-muted-foreground">
+        Overview for the {activeSubject} subject
+      </p>
 
       <div className="mb-8 grid grid-cols-4 gap-4">
         {stats.map((s) => (
-          <div
-            key={s.label}
-            className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-5"
-          >
-            <p className="mb-1 font-mono text-xs uppercase tracking-wider text-neutral-500">
-              {s.label}
-            </p>
-            <p className="text-3xl font-light text-neutral-100">{s.value}</p>
-          </div>
+          <Card key={s.label}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {s.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{s.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       <div>
-        <h2 className="mb-3 font-mono text-xs uppercase tracking-wider text-neutral-500">
+        <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Recent proposals
         </h2>
         {recentProposals && recentProposals.length > 0 ? (
           <div className="space-y-2">
             {recentProposals.map((p) => (
-              <a
-                key={p.id}
-                href={`/proposals/${p.id}`}
-                className="group flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900/50 px-5 py-3 transition hover:border-amber-500/30"
-              >
-                <div>
-                  <p className="text-sm text-neutral-100 group-hover:text-amber-400">
-                    {p.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-neutral-500">
-                    {new Date(p.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-green-500">
-                    +{p.votes_for}
-                  </span>
-                  <span className="font-mono text-xs text-red-400">
-                    -{p.votes_against}
-                  </span>
-                  <span
-                    className={`rounded px-2 py-0.5 text-[11px] ${
-                      p.status === "open"
-                        ? "bg-amber-500/10 text-amber-400"
-                        : p.status === "approved"
-                          ? "bg-green-500/10 text-green-400"
-                          : p.status === "rejected"
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-neutral-800 text-neutral-500"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </div>
-              </a>
+              <Link key={p.id} href={`/proposals/${p.id}`}>
+                <Card className="transition hover:border-primary/30">
+                  <CardContent className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="text-sm font-medium">{p.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {new Date(p.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-green-500">
+                        +{p.votes_for}
+                      </span>
+                      <span className="font-mono text-xs text-red-400">
+                        -{p.votes_against}
+                      </span>
+                      <Badge
+                        variant={
+                          p.status === "open"
+                            ? "default"
+                            : p.status === "approved"
+                              ? "secondary"
+                              : "destructive"
+                        }
+                      >
+                        {p.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">
-            No proposals yet. Create one to get started.
-          </p>
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No proposals yet. Create one to get started.
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

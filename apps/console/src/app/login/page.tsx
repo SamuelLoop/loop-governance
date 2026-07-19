@@ -3,6 +3,11 @@
 import { useState, useActionState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { devLogin } from "./actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,69 +36,66 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <p className="mb-1 font-mono text-xs uppercase tracking-widest text-amber-500">
-          Loop Console
-        </p>
-        <h1 className="mb-8 text-2xl font-light tracking-tight">Sign in</h1>
-
-        {sent ? (
-          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
-            Check your email for a magic link to sign in.
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground font-mono text-lg font-bold">
+            L
           </div>
-        ) : (
-          <>
-            <form onSubmit={handleLogin} className="space-y-4">
-              {error && (
-                <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
-                  {error}
+          <CardTitle className="text-xl">Loop Console</CardTitle>
+          <p className="text-sm text-muted-foreground">Sign in to continue</p>
+        </CardHeader>
+        <CardContent>
+          {sent ? (
+            <div className="rounded-md border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+              Check your email for a magic link to sign in.
+            </div>
+          ) : (
+            <>
+              <form onSubmit={handleLogin} className="space-y-4">
+                {error && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@example.com"
+                  />
                 </div>
-              )}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400"
-                >
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-md bg-amber-600 px-4 py-2.5 font-medium text-white transition hover:bg-amber-500"
-              >
-                Send magic link
-              </button>
-            </form>
+                <Button type="submit" className="w-full">
+                  Send magic link
+                </Button>
+              </form>
 
-            <div className="mt-6 border-t border-neutral-800 pt-4">
+              <div className="relative my-6">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                  or
+                </span>
+              </div>
+
               {devState.error && (
-                <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+                <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
                   {devState.error}
                 </div>
               )}
               <form action={devAction}>
                 <input type="hidden" name="email" value={email} />
-                <button
-                  type="submit"
-                  className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-sm text-neutral-400 transition hover:border-neutral-600 hover:text-neutral-300"
-                >
+                <Button type="submit" variant="outline" className="w-full">
                   Instant sign in (dev)
-                </button>
+                </Button>
               </form>
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -1,75 +1,95 @@
 import { createServiceClient } from "@/lib/supabase-server";
+import { getActiveSubject } from "@/lib/subject";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default async function MembersPage() {
   const admin = createServiceClient();
+  const activeSubject = await getActiveSubject();
+
+  const { data: subjectCommunities } = await admin
+    .from("communities")
+    .select("id")
+    .eq("subject", activeSubject);
+  const subjectCommunityIds = (subjectCommunities ?? []).map((c: any) => c.id);
 
   const { data: memberships } = await admin
     .from("community_memberships")
-    .select(`
-      id, role, joined_at,
+    .select(
+      `id, role, joined_at,
       users!community_memberships_user_id_fkey(id, display_name, email, location_name, subject_expertise),
-      communities!community_memberships_community_id_fkey(name, slug)
-    `)
+      communities!community_memberships_community_id_fkey(name, slug)`
+    )
+    .in("community_id", subjectCommunityIds.length > 0 ? subjectCommunityIds : ["none"])
     .order("joined_at", { ascending: false });
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-light tracking-tight">Members</h1>
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Members</h1>
 
       {memberships && memberships.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-neutral-800 font-mono text-xs uppercase tracking-wider text-neutral-500">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Community</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Location</th>
-                <th className="px-4 py-3">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Community</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Joined</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {memberships.map((m: any) => (
-                <tr
-                  key={m.id}
-                  className="border-b border-neutral-800/50 transition hover:bg-neutral-900/50"
-                >
-                  <td className="px-4 py-3 text-neutral-100">
+                <TableRow key={m.id}>
+                  <TableCell className="font-medium">
                     {m.users?.display_name}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-400">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {m.users?.email}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-400">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {m.communities?.name}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded px-2 py-0.5 text-[11px] ${
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
                         m.role === "admin"
-                          ? "bg-amber-500/10 text-amber-400"
+                          ? "default"
                           : m.role === "quorum"
-                            ? "bg-blue-500/10 text-blue-400"
-                            : "bg-neutral-800 text-neutral-500"
-                      }`}
+                            ? "secondary"
+                            : "outline"
+                      }
                     >
                       {m.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {m.users?.location_name ?? "-"}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(m.joined_at).toLocaleDateString()}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       ) : (
-        <p className="text-sm text-neutral-500">No members yet.</p>
+        <Card>
+          <div className="py-10 text-center text-muted-foreground">
+            No members yet.
+          </div>
+        </Card>
       )}
     </div>
   );
