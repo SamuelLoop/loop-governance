@@ -95,24 +95,40 @@ export async function GET(
           </div>
 
           {/* Avatar */}
-          <div
-            style={{
-              width: "100px",
-              height: "100px",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "40px",
-              fontWeight: 700,
-              color: stats.tierColor,
-              backgroundColor: `${stats.tierColor}20`,
-              border: `3px solid ${stats.tierColor}50`,
-              marginBottom: "16px",
-            }}
-          >
-            {stats.userName[0]?.toUpperCase() ?? "?"}
-          </div>
+          {stats.avatarUrl ? (
+            <img
+              src={stats.avatarUrl}
+              width={100}
+              height={100}
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: `3px solid ${stats.tierColor}50`,
+                marginBottom: "16px",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "40px",
+                fontWeight: 700,
+                color: stats.tierColor,
+                backgroundColor: `${stats.tierColor}20`,
+                border: `3px solid ${stats.tierColor}50`,
+                marginBottom: "16px",
+              }}
+            >
+              {stats.userName[0]?.toUpperCase() ?? "?"}
+            </div>
+          )}
 
           {/* Name */}
           <h1
