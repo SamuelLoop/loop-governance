@@ -1,5 +1,5 @@
 import { getAllSubjects } from "@/lib/subjects";
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createServiceClient } from "@/lib/supabase-server";
 import Link from "next/link";
 
 async function getSubjectStats(supabase: any, subject: string) {
@@ -82,17 +82,18 @@ async function getTopLeaders(supabase: any) {
 
 export default async function Home() {
   const supabase = await createClient();
+  const admin = createServiceClient();
   const subjects = getAllSubjects();
 
-  const { count: totalMembers } = await supabase
+  const { count: totalMembers } = await admin
     .from("users")
     .select("id", { count: "exact", head: true });
 
-  const { count: totalProposals } = await supabase
+  const { count: totalProposals } = await admin
     .from("proposals")
     .select("id", { count: "exact", head: true });
 
-  const { count: totalCommunities } = await supabase
+  const { count: totalCommunities } = await admin
     .from("communities")
     .select("id", { count: "exact", head: true });
 
@@ -101,10 +102,10 @@ export default async function Home() {
     { members: number; proposals: number; leaders: number; communities: number }
   > = {};
   for (const s of subjects) {
-    subjectStats[s.slug] = await getSubjectStats(supabase, s.slug);
+    subjectStats[s.slug] = await getSubjectStats(admin, s.slug);
   }
 
-  const topLeaders = await getTopLeaders(supabase);
+  const topLeaders = await getTopLeaders(admin);
 
   const SUBJECT_LABELS: Record<string, string> = {};
   for (const s of subjects) {
@@ -187,6 +188,91 @@ export default async function Home() {
               {subjects.length}
             </span>
             subjects
+          </div>
+        </div>
+      </section>
+
+      {/* ── LOOP is tradeable ── */}
+      <section className="border-y border-neutral-800/50 bg-gradient-to-b from-neutral-900/60 to-transparent px-6 py-20">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/5 px-4 py-1.5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              <span className="text-xs font-medium text-green-400">
+                Now live on Base L2
+              </span>
+            </div>
+            <h2 className="mb-3 text-3xl font-light tracking-tight text-neutral-100">
+              LOOP is tradeable
+            </h2>
+            <p className="mx-auto max-w-lg text-base text-neutral-400">
+              Buy, hold, and trade LOOP tokens with full liquidity on Base L2.
+              Your governance power, backed by a real market.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
+              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+                $1.00
+              </p>
+              <p className="text-xs text-neutral-500">Card purchase price</p>
+            </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
+              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+                0.0004
+              </p>
+              <p className="text-xs text-neutral-500">ETH per token (on-chain)</p>
+            </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
+              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+                2x
+              </p>
+              <p className="text-xs text-neutral-500">Tokens minted per purchase</p>
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/40 p-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-neutral-200">
+                  Buy with card or crypto
+                </h3>
+                <p className="text-sm leading-relaxed text-neutral-500">
+                  Pay with USD, GBP, or EUR via card. Or connect your wallet
+                  and purchase directly with ETH on Base L2. Every purchase
+                  mints tokens for you, plus funds the impact treasury and
+                  governance rewards.
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-neutral-200">
+                  Trade on DEX
+                </h3>
+                <p className="text-sm leading-relaxed text-neutral-500">
+                  LOOP has full trading liquidity on Base L2 decentralized
+                  exchanges. Track the live price on DEXScreener. Your tokens
+                  are standard ERC-20 and work with any Base-compatible wallet.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <a
+              href="/buy"
+              className="rounded-lg bg-green-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-green-400"
+            >
+              Buy LOOP tokens
+            </a>
+            <a
+              href="https://basescan.org/token/0xb8B309BBD007143cbef1844b75C1Fd038a267F21"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-neutral-700 px-8 py-3 text-sm font-medium text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100"
+            >
+              View on Basescan
+            </a>
           </div>
         </div>
       </section>

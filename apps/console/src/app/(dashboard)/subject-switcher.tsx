@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { setSubject } from "./set-subject";
 import {
   Select,
@@ -31,11 +32,13 @@ export function SubjectSwitcher({
   active: string;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   function handleChange(value: string | null) {
     if (!value) return;
-    startTransition(() => {
-      setSubject(value);
+    startTransition(async () => {
+      await setSubject(value);
+      router.refresh();
     });
   }
 

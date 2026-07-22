@@ -34,9 +34,11 @@ import {
   Coins,
   Wallet,
   Shield,
+  Package,
   LogOut,
   ChevronUp,
   User2,
+  Activity,
 } from "lucide-react";
 import { SubjectSwitcher } from "./subject-switcher";
 
@@ -47,6 +49,8 @@ const PERSONAL_NAV = [
   { href: "/earnings", label: "Earnings", icon: Wallet },
   { href: "/delegations", label: "Delegations", icon: ArrowLeftRight },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
+  { href: "/claim", label: "Your Tokens", icon: Package },
+  { href: "/token-activity", label: "Token Activity", icon: Activity },
 ];
 
 const COMMUNITY_NAV = [

@@ -16,7 +16,9 @@
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "stripe": "^22.3.2"
+    "resend": "^6.17.2",
+    "stripe": "^22.3.2",
+    "viem": "^2.55.4"
   },
   "devDependencies": {
     "@loop/config": "workspace:*",

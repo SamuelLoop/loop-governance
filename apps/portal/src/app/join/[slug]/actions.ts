@@ -212,18 +212,20 @@ export async function submitEnrollment(
   if (step === 1) {
     const email = formData.get("email") as string;
     const displayName = formData.get("displayName") as string;
-    const location = formData.get("location") as string;
+    const city = (formData.get("city") as string)?.trim();
+    const country = (formData.get("country") as string)?.trim();
 
     if (!email || !displayName) {
       return { step: 1, error: "Name and email are required.", subject };
     }
-    if (!location || !location.includes(",")) {
+    if (!city || !country) {
       return {
         step: 1,
-        error: "Please enter your location as City, Country.",
+        error: "Please enter your city and select your country.",
         subject,
       };
     }
+    const location = `${city}, ${country}`;
 
     let authId: string;
 
@@ -239,6 +241,7 @@ export async function submitEnrollment(
       if (!authError.message.includes("already been registered")) {
         return { step: 1, error: authError.message, subject };
       }
+      // Email already registered in auth, find the auth user
       const { data: existing } = await admin
         .from("users")
         .select("auth_id")
@@ -247,12 +250,23 @@ export async function submitEnrollment(
       if (existing) {
         authId = existing.auth_id;
       } else {
-        const {
-          data: { users },
-        } = await admin.auth.admin.listUsers();
-        const found = users.find((u) => u.email === email);
+        let found: { id: string } | undefined;
+        let page = 1;
+        while (!found) {
+          const { data: { users } } = await admin.auth.admin.listUsers({
+            page,
+            perPage: 100,
+          });
+          if (users.length === 0) break;
+          found = users.find((u) => u.email === email);
+          page++;
+        }
         if (!found) {
-          return { step: 1, error: "Could not find account.", subject };
+          return {
+            step: 1,
+            error: "Something went wrong creating your account. Please try again.",
+            subject,
+          };
         }
         authId = found.id;
       }

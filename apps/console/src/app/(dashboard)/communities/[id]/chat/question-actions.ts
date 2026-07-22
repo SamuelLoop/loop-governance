@@ -37,7 +37,7 @@ export async function getQuestions(communityId: string): Promise<Question[]> {
       author:users!community_questions_author_id_fkey(id, display_name)`
     )
     .eq("community_id", communityId)
-    .eq("status", "open")
+    .in("status", ["open", "discussing"])
     .order("upvote_count", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);
@@ -161,11 +161,51 @@ export async function markQuestionDiscussing(
   const questionId = formData.get("question_id") as string;
   const communityId = formData.get("community_id") as string;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
   const admin = createServiceClient();
+  const { data: profile } = await admin
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+  if (!profile) return { error: "No profile" };
+
+  // Fetch the question text and author
+  const { data: question } = await admin
+    .from("community_questions")
+    .select("question, author:users!community_questions_author_id_fkey(display_name)")
+    .eq("id", questionId)
+    .single();
+
+  if (!question) return { error: "Question not found" };
+
+  // Update status
   await admin
     .from("community_questions")
     .update({ status: "discussing" })
     .eq("id", questionId);
+
+  // Post a message in the quorum chat referencing the question
+  const authorName = (question.author as any)?.display_name ?? "A member";
+  await admin.from("messages").insert({
+    community_id: communityId,
+    author_id: profile.id,
+    content: `Raised for discussion: "${question.question}" (posed by ${authorName})`,
+    channel: "quorum",
+    metadata: {
+      reference: {
+        type: "question",
+        id: questionId,
+        title: "Community Question",
+        subtitle: question.question,
+      },
+    },
+  });
 
   revalidatePath(`/communities/${communityId}/chat`);
   return { error: "" };

@@ -128,12 +128,12 @@ export function ReferencePicker({
       </Button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-50 mb-1 w-80 rounded-lg border bg-popover shadow-lg">
+        <div className="absolute bottom-full left-0 z-50 mb-1 w-[calc(100vw-2rem)] rounded-lg border bg-popover shadow-lg sm:w-80">
           <div className="border-b p-2">
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               <button
                 onClick={() => setFilterType(null)}
-                className={`rounded px-2 py-0.5 text-[10px] font-medium transition ${
+                className={`rounded px-2 py-1.5 text-xs sm:py-0.5 sm:text-[10px] font-medium transition ${
                   !filterType
                     ? "bg-accent text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -145,7 +145,7 @@ export function ReferencePicker({
                 <button
                   key={rt.type}
                   onClick={() => setFilterType(rt.type)}
-                  className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium transition ${
+                  className={`flex items-center gap-1 rounded px-2 py-1.5 text-xs sm:py-0.5 sm:text-[10px] font-medium transition ${
                     filterType === rt.type
                       ? "bg-accent text-foreground"
                       : "text-muted-foreground hover:text-foreground"

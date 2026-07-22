@@ -7,6 +7,7 @@ import { getMessages } from "./actions";
 import { getQuestions } from "./question-actions";
 import { DualChatPanel } from "./dual-chat-panel";
 import { QuestionPanel } from "./question-panel";
+import { ChatMobileLayout } from "./chat-mobile-layout";
 
 export default async function ChatPage({
   params,
@@ -56,7 +57,7 @@ export default async function ChatPage({
   ]);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col md:h-[calc(100vh-4rem)]">
       <div className="flex items-center border-b px-4 py-3">
         <Button
           variant="ghost"
@@ -67,14 +68,14 @@ export default async function ChatPage({
         </Button>
         <div className="ml-3">
           <h1 className="text-sm font-medium">{community.name}</h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="hidden text-xs text-muted-foreground md:block">
             Community + Quorum (glass room) + Questions
           </p>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Chat panels take 2/3 */}
+      {/* Desktop: side-by-side panels */}
+      <div className="hidden flex-1 overflow-hidden md:flex">
         <div className="flex flex-[2] overflow-hidden">
           <DualChatPanel
             communityId={id}
@@ -83,7 +84,6 @@ export default async function ChatPage({
             isQuorum={isQuorum}
           />
         </div>
-        {/* Question panel takes 1/3 */}
         <div className="flex w-80 shrink-0 flex-col border-l">
           <QuestionPanel
             communityId={id}
@@ -92,6 +92,15 @@ export default async function ChatPage({
           />
         </div>
       </div>
+
+      {/* Mobile: tabbed layout */}
+      <ChatMobileLayout
+        communityId={id}
+        communityMessages={communityMessages}
+        quorumMessages={quorumMessages}
+        questions={questions}
+        isQuorum={isQuorum}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getSubject } from "@/lib/subjects";
 import { EnrollmentForm } from "./enrollment-form";
 
@@ -11,6 +12,11 @@ export default async function JoinPage({ params }: { params: Params }) {
   if (!subject) {
     notFound();
   }
+
+  const h = await headers();
+  const geoCity = h.get("x-vercel-ip-city") ?? "";
+  const geoCountry = h.get("x-vercel-ip-country-region") ?? "";
+  const geoCountryCode = h.get("x-vercel-ip-country") ?? "";
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
@@ -27,7 +33,11 @@ export default async function JoinPage({ params }: { params: Params }) {
         </p>
       </div>
 
-      <EnrollmentForm subject={subject} />
+      <EnrollmentForm
+        subject={subject}
+        geoCity={decodeURIComponent(geoCity)}
+        geoCountryCode={geoCountryCode}
+      />
     </main>
   );
 }

@@ -27,13 +27,19 @@ export default function SuccessPage() {
         Purchase complete
       </h1>
       <p className="mb-2 text-neutral-400">
-        Your LOOP tokens have been recorded. You will receive them once you
-        connect a wallet to your account.
+        Your LOOP tokens have been recorded and are ready to claim.
       </p>
       <p className="mb-8 text-sm text-neutral-500">
-        Check your email for a receipt from Stripe.
+        Head to the console to connect your wallet and receive your tokens on
+        Base L2. Check your email for a receipt from Stripe.
       </p>
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <a
+          href="https://console.loopcmbntr.live/claim"
+          className="rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400"
+        >
+          Claim tokens
+        </a>
         <Link
           href="/buy"
           className="rounded-lg border border-neutral-700 px-5 py-2.5 text-sm text-neutral-300 transition hover:border-neutral-500"
@@ -42,7 +48,7 @@ export default function SuccessPage() {
         </Link>
         <Link
           href="/"
-          className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+          className="rounded-lg border border-neutral-700 px-5 py-2.5 text-sm text-neutral-300 transition hover:border-neutral-500"
         >
           Go to portal
         </Link>

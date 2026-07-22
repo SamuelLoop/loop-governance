@@ -98,7 +98,7 @@ export default function BuyPage() {
       {/* Footer */}
       <div className="mt-10 space-y-2 text-center text-xs text-neutral-600">
         <p>LOOP is an ERC-20 utility token on Base L2 (Coinbase).</p>
-        <p>Powered by Coinbase Smart Wallet. No browser extension needed.</p>
+        <p>Connect MetaMask, Coinbase Wallet, or any Web3 wallet.</p>
         <p>
           Contract secured by Ledger hardware wallet. Verified on{" "}
           <a

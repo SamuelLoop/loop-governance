@@ -8,7 +8,7 @@ export type Message = {
   content: string;
   channel: "community" | "quorum";
   created_at: string;
-  author: { id: string; display_name: string; email: string } | null;
+  author: { id: string; display_name: string; email: string; avatar_url: string | null } | null;
   referenced_message: {
     id: string;
     content: string;
@@ -35,7 +35,7 @@ export async function getMessages(
     .from("messages")
     .select(
       `id, content, channel, created_at, referenced_message_id, metadata,
-      author:users!messages_author_id_fkey(id, display_name, email)`
+      author:users!messages_author_id_fkey(id, display_name, email, avatar_url)`
     )
     .eq("community_id", communityId)
     .order("created_at", { ascending: true })

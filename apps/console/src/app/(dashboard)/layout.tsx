@@ -1,8 +1,9 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "./app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getActiveSubject } from "@/lib/subject";
+import { LoopPriceTicker } from "@/components/loop-price-ticker";
 
 export default async function DashboardLayout({
   children,
@@ -46,7 +47,16 @@ export default async function DashboardLayout({
         activeSubject={subjects.includes(activeSubject) ? activeSubject : subjects[0] ?? "governance"}
       />
       <SidebarInset>
-        <main className="flex-1 px-8 py-6">{children}</main>
+        <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b bg-background px-4">
+          <div className="flex items-center md:hidden">
+            <SidebarTrigger />
+            <span className="ml-3 text-sm font-semibold">Loop_cmbntr</span>
+          </div>
+          <div className="ml-auto">
+            <LoopPriceTicker />
+          </div>
+        </header>
+        <main className="flex-1 px-4 py-4 md:px-8 md:py-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

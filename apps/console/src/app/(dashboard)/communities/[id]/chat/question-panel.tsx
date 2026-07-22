@@ -148,8 +148,8 @@ export function QuestionPanel({
               }
             }}
           />
-          <Button type="submit" size="sm" className="h-8 w-8 p-0">
-            <HelpCircle className="h-3 w-3" />
+          <Button type="submit" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8">
+            <HelpCircle className="h-4 w-4 md:h-3 md:w-3" />
           </Button>
         </form>
       </div>

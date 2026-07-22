@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
 type Currency = "usd" | "gbp" | "eur";
@@ -9,24 +10,24 @@ const PRICE_PER_TOKEN: Record<Currency, number> = {
   eur: 90,  // €0.90
 };
 
-const CURRENCY_SYMBOLS: Record<Currency, string> = {
-  usd: "$",
-  gbp: "£",
-  eur: "€",
-};
-
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!);
+}
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 }
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     amount?: number;
-    userId?: string;
     currency?: string;
+    accessToken?: string;
   };
   const amount = body.amount ?? 10;
-  const userId = body.userId ?? "anonymous";
   const currency = (body.currency?.toLowerCase() ?? "usd") as Currency;
 
   if (!PRICE_PER_TOKEN[currency]) {
@@ -43,10 +44,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Resolve user from access token if provided
+  let userId = "anonymous";
+  if (body.accessToken) {
+    const admin = getSupabaseAdmin();
+    const { data: { user: authUser } } = await admin.auth.getUser(body.accessToken);
+    if (authUser) {
+      const { data: profile } = await admin
+        .from("users")
+        .select("id")
+        .eq("auth_id", authUser.id)
+        .single();
+      if (profile) userId = profile.id;
+    }
+  }
+
   const unitAmount = PRICE_PER_TOKEN[currency];
-  const symbol = CURRENCY_SYMBOLS[currency];
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://portal.loopcmbntr.live";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://gov.loopcmbntr.live";
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
@@ -72,7 +87,7 @@ export async function POST(req: NextRequest) {
       impactAmount: String(amount / 2),
       allocationAmount: String(amount / 2),
     },
-    success_url: `${siteUrl}/buy/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `https://console.loopcmbntr.live/claim?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/buy`,
   });
 

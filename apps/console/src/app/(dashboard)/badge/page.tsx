@@ -155,14 +155,22 @@ export default async function BadgePage() {
         >
           <div className="flex items-center gap-4">
             <div
-              className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold"
+              className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full text-lg font-bold"
               style={{
                 backgroundColor: `${tier.color}15`,
                 color: tier.color,
                 border: `2px solid ${tier.color}40`,
               }}
             >
-              {profile.display_name?.[0]?.toUpperCase() ?? "?"}
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name ?? ""}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                profile.display_name?.[0]?.toUpperCase() ?? "?"
+              )}
             </div>
             <div>
               <h2 className="text-lg font-bold">{profile.display_name}</h2>
@@ -211,7 +219,7 @@ export default async function BadgePage() {
         </div>
 
         <CardContent className="pt-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {statItems.map((s) => (
               <div key={s.label} className="rounded-lg border bg-muted/30 p-3 text-center">
                 <p className="text-lg font-bold tabular-nums">{s.value}</p>

@@ -118,10 +118,10 @@ export default async function CommunityDetailPage({
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
               {community.name}
             </h1>
             <Badge variant="outline">{community.level}</Badge>
@@ -140,7 +140,7 @@ export default async function CommunityDetailPage({
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -252,7 +252,7 @@ export default async function CommunityDetailPage({
           Members ({memberCount})
         </p>
         {memberships && memberships.length > 0 ? (
-          <Card>
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

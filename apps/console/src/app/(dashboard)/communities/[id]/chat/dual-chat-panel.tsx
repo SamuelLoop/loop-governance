@@ -16,8 +16,12 @@ function MessageBubble({
 }) {
   return (
     <div className="group flex gap-2 px-3 py-1.5 hover:bg-accent/30">
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium">
-        {(message.author?.display_name ?? "?")[0].toUpperCase()}
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-medium">
+        {message.author?.avatar_url ? (
+          <img src={message.author.avatar_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          (message.author?.display_name ?? "?")[0].toUpperCase()
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
@@ -32,10 +36,10 @@ function MessageBubble({
           </span>
           <button
             onClick={() => onReference(message)}
-            className="ml-auto hidden text-muted-foreground opacity-0 transition group-hover:inline-flex group-hover:opacity-100 hover:text-primary"
+            className="ml-auto text-muted-foreground md:opacity-0 md:transition md:group-hover:opacity-100"
             title="Reference in your message"
           >
-            <MessageSquareQuote className="h-3 w-3" />
+            <MessageSquareQuote className="h-4 w-4 md:h-3 md:w-3" />
           </button>
         </div>
 
@@ -78,7 +82,7 @@ function MessageBubble({
   );
 }
 
-function ThreadPanel({
+export function ThreadPanel({
   title,
   icon,
   messages,
@@ -188,8 +192,8 @@ function ThreadPanel({
                 }
               }}
             />
-            <Button type="submit" size="sm" className="h-8 w-8 p-0">
-              <Send className="h-3 w-3" />
+            <Button type="submit" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8">
+              <Send className="h-4 w-4 md:h-3 md:w-3" />
             </Button>
           </form>
         </div>
