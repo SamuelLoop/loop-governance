@@ -2,6 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileForm } from "./profile-form";
+import { PasswordForm } from "./password-form";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -35,6 +36,19 @@ export default async function AccountPage() {
           </CardHeader>
           <CardContent>
             <ProfileForm profile={profile} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Change password</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Set a password to sign in directly without a magic link. This
+              also works on the admin console if you have admin access.
+            </p>
+            <PasswordForm />
           </CardContent>
         </Card>
 

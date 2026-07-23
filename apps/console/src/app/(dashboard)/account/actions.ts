@@ -37,3 +37,35 @@ export async function updateProfile(
   revalidatePath("/");
   return { error: "", success: true };
 }
+
+export async function changePassword(
+  _prev: { error: string; success: boolean },
+  formData: FormData
+): Promise<{ error: string; success: boolean }> {
+  const password = formData.get("password") as string;
+  const confirm = formData.get("confirm") as string;
+
+  if (!password || password.length < 8) {
+    return { error: "Password must be at least 8 characters", success: false };
+  }
+  if (password !== confirm) {
+    return { error: "Passwords do not match", success: false };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated", success: false };
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    if (error.message.includes("different from the old")) {
+      return { error: "New password must be different from your current one", success: false };
+    }
+    return { error: error.message, success: false };
+  }
+
+  return { error: "", success: true };
+}
