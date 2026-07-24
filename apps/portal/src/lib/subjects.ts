@@ -19,7 +19,7 @@ export const SUBJECTS: Record<string, SubjectConfig> = {
     icon: "⚖",
     benefits: [
       "Vote on community proposals and fund allocations",
-      "Stand for election to your local quorum",
+      "Stand for election to your local leadership group",
       "Delegate your vote to trusted representatives",
       "Accredit peers for their knowledge and expertise",
     ],

@@ -41,6 +41,9 @@ export const proposals = pgTable(
     // Budget request in cents (if this is a fund allocation proposal)
     budgetRequestCents: integer("budget_request_cents"),
 
+    // When true, all members in the community and below can vote (not just leaders)
+    directDemocracy: boolean("direct_democracy").notNull().default(false),
+
     // Policy fields from the IGP spec
     consequence: text("consequence"),
 

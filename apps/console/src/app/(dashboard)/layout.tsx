@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 
   const admin = createServiceClient();
 
-  const [{ data: subjectRows }, { data: profile }] = await Promise.all([
+  const [{ data: subjectRows }, { data: existingProfile }] = await Promise.all([
     admin
       .from("communities")
       .select("subject")
@@ -30,6 +30,33 @@ export default async function DashboardLayout({
       .eq("auth_id", user.id)
       .single(),
   ]);
+
+  let profile = existingProfile;
+  if (!profile) {
+    const meta = user.user_metadata ?? {};
+    const displayName =
+      meta.full_name ||
+      meta.name ||
+      meta.preferred_username ||
+      meta.user_name ||
+      user.email?.split("@")[0] ||
+      "User";
+    const email = user.email || meta.email || `${user.id}@noemail`;
+    const avatarUrl = meta.avatar_url || meta.picture || null;
+
+    const { data: newProfile } = await admin
+      .from("users")
+      .insert({
+        auth_id: user.id,
+        display_name: displayName,
+        email,
+        avatar_url: avatarUrl,
+      })
+      .select("id, display_name, avatar_url")
+      .single();
+
+    profile = newProfile;
+  }
 
   const subjects = [
     ...new Set((subjectRows ?? []).map((r: any) => r.subject as string)),
