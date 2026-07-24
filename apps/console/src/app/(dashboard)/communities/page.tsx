@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase-server";
-import { getActiveSubject } from "@/lib/subject";
+import { getSubjectCommunityIds } from "@/lib/subject";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +86,7 @@ function CommunityNode({
               </span>
             </div>
             <span className="text-xs text-muted-foreground/60">
-              quorum {community.quorum_size}
+              leadership {community.quorum_size}
             </span>
           </div>
         </div>
@@ -100,15 +100,20 @@ function CommunityNode({
 
 export default async function CommunitiesPage() {
   const admin = createServiceClient();
-  const activeSubject = await getActiveSubject();
+  const { isPlatformAdmin, activeSubject } = await getSubjectCommunityIds();
 
-  const { data: communities } = await admin
+  let communityQuery = admin
     .from("communities")
     .select(
       "id, name, slug, level, path, parent_id, subject, quorum_size, dunbar_limit"
     )
-    .eq("subject", activeSubject)
     .order("path", { ascending: true });
+
+  if (!isPlatformAdmin) {
+    communityQuery = communityQuery.eq("subject", activeSubject);
+  }
+
+  const { data: communities } = await communityQuery;
 
   const { data: counts } = await admin
     .from("community_memberships")

@@ -166,7 +166,7 @@ export default async function CommunityDetailPage({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Quorum
+              Leadership group
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -174,7 +174,7 @@ export default async function CommunityDetailPage({
               {community.quorum_size}
             </span>
             <p className="mt-1 text-xs text-muted-foreground">
-              voters required
+              seats available
             </p>
           </CardContent>
         </Card>
@@ -286,7 +286,7 @@ export default async function CommunityDetailPage({
                               : "outline"
                         }
                       >
-                        {m.role}
+                        {m.role === "quorum" ? "leader" : m.role}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">

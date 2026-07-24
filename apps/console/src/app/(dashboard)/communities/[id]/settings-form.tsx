@@ -43,7 +43,7 @@ export function SettingsForm({
           <input type="hidden" name="community_id" value={communityId} />
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="quorum_size">Quorum size</Label>
+              <Label htmlFor="quorum_size">Leadership group size</Label>
               <Input
                 id="quorum_size"
                 type="number"
@@ -77,7 +77,7 @@ export function SettingsForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="quorum_threshold_pct">Quorum threshold %</Label>
+              <Label htmlFor="quorum_threshold_pct">Leadership threshold %</Label>
               <Input
                 id="quorum_threshold_pct"
                 type="number"
@@ -107,7 +107,7 @@ export function SettingsForm({
             </Button>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            Decay = 1.0 means full transitive voting (no loss per hop). Decay = 0.9 means 10% loss per hop in the delegation chain. Quorum threshold is the % of total community votes needed to earn a quorum seat.
+            Decay = 1.0 means full transitive voting (no loss per hop). Decay = 0.9 means 10% loss per hop in the delegation chain. Leadership threshold is the % of total community votes needed to earn a leadership group seat.
           </p>
         </form>
       </CardContent>
