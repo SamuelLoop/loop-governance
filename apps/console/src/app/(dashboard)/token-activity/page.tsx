@@ -15,11 +15,17 @@ export default async function TokenActivityPage() {
 
   const { data: profile } = await admin
     .from("users")
-    .select("id")
+    .select("id, platform_role")
     .eq("auth_id", user.id)
     .single();
 
   if (!profile) redirect("/");
+
+  // Aggregate stats are public to any logged-in member; the per-row
+  // purchase table with wallets + timing is admin-only.
+  const isAdmin = ["platform_admin", "org_admin", "org_manager"].includes(
+    profile.platform_role ?? ""
+  );
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -188,11 +194,12 @@ export default async function TokenActivityPage() {
 
       <TokenActivityClient />
 
-      <div className="mt-6">
-        <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Recent purchases
-        </h2>
-        {purchases.length > 0 ? (
+      {isAdmin ? (
+        <div className="mt-6">
+          <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Recent purchases <span className="normal-case text-[10px] text-amber-400/70">(admin only)</span>
+          </h2>
+          {purchases.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -243,14 +250,20 @@ export default async function TokenActivityPage() {
               </tbody>
             </table>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No purchases yet. Share your buy page to get started.
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No purchases yet. Share your buy page to get started.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <div className="mt-6 rounded-md border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+          Aggregate stats above are public. Individual purchases are only
+          visible to platform admins for privacy.
+        </div>
+      )}
     </div>
   );
 }
