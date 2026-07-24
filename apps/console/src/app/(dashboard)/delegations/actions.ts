@@ -3,6 +3,56 @@
 import { createServiceClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
+export type OverlappingCommunity = {
+  id: string;
+  name: string;
+  level: string;
+  path: string;
+};
+
+export async function getOverlappingCommunities(
+  userId: string,
+  delegateId: string,
+  subject: string
+): Promise<OverlappingCommunity[]> {
+  const admin = createServiceClient();
+
+  const [{ data: myMemberships }, { data: theirMemberships }] = await Promise.all([
+    admin
+      .from("community_memberships")
+      .select("community_id, communities!inner(id, name, level, path, subject)")
+      .eq("user_id", userId),
+    admin
+      .from("community_memberships")
+      .select("community_id, communities!inner(id, name, level, path, subject)")
+      .eq("user_id", delegateId),
+  ]);
+
+  const myCommunityIds = new Set(
+    (myMemberships ?? [])
+      .filter((m: any) => m.communities?.subject === subject)
+      .map((m: any) => m.community_id)
+  );
+
+  const overlapping = (theirMemberships ?? [])
+    .filter((m: any) => m.communities?.subject === subject && myCommunityIds.has(m.community_id))
+    .map((m: any) => ({
+      id: m.communities.id,
+      name: m.communities.name,
+      level: m.communities.level,
+      path: m.communities.path,
+    }));
+
+  const LEVEL_ORDER = ["global", "continental", "national", "city", "local"];
+  overlapping.sort(
+    (a: OverlappingCommunity, b: OverlappingCommunity) =>
+      LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level) ||
+      a.name.localeCompare(b.name)
+  );
+
+  return overlapping;
+}
+
 type State = { error: string; success: boolean };
 
 export async function createDelegation(
@@ -13,93 +63,99 @@ export async function createDelegation(
 
   const delegatorId = formData.get("delegatorId") as string;
   const delegateId = formData.get("delegateId") as string;
-  const communityId = formData.get("communityId") as string;
+  const communityIdsJson = formData.get("communityIds") as string;
   const subjectTag = formData.get("subjectTag") as string;
 
-  if (!delegateId || !communityId || !subjectTag) {
-    return { error: "All fields are required.", success: false };
+  let communityIds: string[] = [];
+  try {
+    communityIds = JSON.parse(communityIdsJson);
+  } catch {}
+
+  if (!delegateId || communityIds.length === 0 || !subjectTag) {
+    return { error: "Select a person and at least one community.", success: false };
   }
 
   if (delegatorId === delegateId) {
     return { error: "You cannot delegate to yourself.", success: false };
   }
 
-  // Check for circular delegation: would this create a loop?
-  // Walk the chain from delegateId to see if it leads back to delegatorId
-  const { data: chain } = await admin.rpc("compute_vote_weight", {
-    p_voter_id: delegatorId,
-    p_community_id: communityId,
-    p_subject_tags: [subjectTag],
-  });
+  const errors: string[] = [];
+  let created = 0;
 
-  // Check if the delegate already has a chain that includes the delegator
-  const { data: existing } = await admin
-    .from("delegations")
-    .select("id")
-    .eq("delegator_id", delegateId)
-    .eq("community_id", communityId)
-    .eq("subject_tag", subjectTag)
-    .eq("active", true)
-    .single();
+  for (const communityId of communityIds) {
+    // Check if the delegate already has a chain that includes the delegator
+    const { data: existing } = await admin
+      .from("delegations")
+      .select("id")
+      .eq("delegator_id", delegateId)
+      .eq("community_id", communityId)
+      .eq("subject_tag", subjectTag)
+      .eq("active", true)
+      .single();
 
-  if (existing) {
-    // The delegate has already delegated on this subject.
-    // Walk the chain manually to detect a cycle.
-    let current = delegateId;
-    const visited = new Set<string>([delegatorId]);
-    let isCycle = false;
+    if (existing) {
+      let current = delegateId;
+      const visited = new Set<string>([delegatorId]);
+      let isCycle = false;
 
-    for (let depth = 0; depth < 10; depth++) {
-      const { data: next } = await admin
-        .from("delegations")
-        .select("delegate_id")
-        .eq("delegator_id", current)
-        .eq("community_id", communityId)
-        .eq("subject_tag", subjectTag)
-        .eq("active", true)
-        .single();
+      for (let depth = 0; depth < 10; depth++) {
+        const { data: next } = await admin
+          .from("delegations")
+          .select("delegate_id")
+          .eq("delegator_id", current)
+          .eq("community_id", communityId)
+          .eq("subject_tag", subjectTag)
+          .eq("active", true)
+          .single();
 
-      if (!next) break;
-      if (visited.has(next.delegate_id)) {
-        isCycle = true;
-        break;
+        if (!next) break;
+        if (visited.has(next.delegate_id)) {
+          isCycle = true;
+          break;
+        }
+        visited.add(next.delegate_id);
+        current = next.delegate_id;
       }
-      visited.add(next.delegate_id);
-      current = next.delegate_id;
+
+      if (isCycle) {
+        errors.push(`Circular chain detected, skipped one community.`);
+        continue;
+      }
     }
 
-    if (isCycle) {
-      return {
-        error:
-          "This delegation would create a circular chain. Choose a different delegate.",
-        success: false,
-      };
+    await admin
+      .from("delegations")
+      .update({ active: false, revoked_at: new Date().toISOString() })
+      .eq("delegator_id", delegatorId)
+      .eq("community_id", communityId)
+      .eq("subject_tag", subjectTag)
+      .eq("active", true);
+
+    const { error } = await admin.from("delegations").insert({
+      delegator_id: delegatorId,
+      delegate_id: delegateId,
+      community_id: communityId,
+      subject_tag: subjectTag,
+      active: true,
+    });
+
+    if (error) {
+      errors.push(error.message);
+    } else {
+      created++;
     }
   }
 
-  // Deactivate any existing delegation for this subject first (upsert pattern)
-  await admin
-    .from("delegations")
-    .update({ active: false, revoked_at: new Date().toISOString() })
-    .eq("delegator_id", delegatorId)
-    .eq("community_id", communityId)
-    .eq("subject_tag", subjectTag)
-    .eq("active", true);
+  revalidatePath("/give-power");
 
-  const { error } = await admin.from("delegations").insert({
-    delegator_id: delegatorId,
-    delegate_id: delegateId,
-    community_id: communityId,
-    subject_tag: subjectTag,
-    active: true,
-  });
-
-  if (error) {
-    return { error: error.message, success: false };
+  if (errors.length > 0 && created === 0) {
+    return { error: errors.join("; "), success: false };
   }
 
-  revalidatePath("/delegations");
-  return { error: "", success: true };
+  return {
+    error: errors.length > 0 ? `Delegated to ${created} communities. ${errors.join("; ")}` : "",
+    success: true,
+  };
 }
 
 type RevokeState = { error: string };
@@ -121,6 +177,6 @@ export async function revokeDelegation(
     return { error: error.message };
   }
 
-  revalidatePath("/delegations");
+  revalidatePath("/give-power");
   return { error: "" };
 }
