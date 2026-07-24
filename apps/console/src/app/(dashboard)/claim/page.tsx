@@ -4,6 +4,7 @@ import {
   listDirectableCommunities,
 } from "./actions";
 import { ClaimPanel } from "./claim-panel";
+import { TokenInfoCard } from "./token-info-card";
 
 export default async function ClaimPage({
   searchParams,
@@ -18,6 +19,9 @@ export default async function ClaimPage({
   const params = await searchParams;
   const justPurchased = params.purchased === "true";
 
+  const contractAddress = process.env.NEXT_PUBLIC_LOOP_TOKEN_ADDRESS ?? "";
+  const chainId = Number(process.env.NEXT_PUBLIC_LOOP_CHAIN_ID ?? 8453);
+
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-2 sm:p-6">
       <div>
@@ -28,6 +32,9 @@ export default async function ClaimPage({
           confirmed on-chain instantly.
         </p>
       </div>
+      {contractAddress && (
+        <TokenInfoCard contractAddress={contractAddress} chainId={chainId} />
+      )}
       <ClaimPanel
         purchases={purchases}
         justPurchased={justPurchased}
