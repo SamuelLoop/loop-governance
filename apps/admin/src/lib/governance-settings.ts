@@ -196,6 +196,58 @@ export const SETTING_FIELDS: SettingField[] = [
     placeholder: "equal",
     helper: "How the motivation cut is split among a community's voters on the proposal. 'equal' (default) or 'by_vote_weight' (future).",
   },
+  {
+    key: "leader_activity_award_moderation",
+    label: "Award for moderation",
+    type: "boolean",
+    helper: "Pay leaders LOOP_TKN when they action or dismiss a moderation flag.",
+  },
+  {
+    key: "leader_activity_tokens_per_moderation",
+    label: "LOOP per moderation action",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "2",
+    helper: "Amount paid to the leader per moderation resolution.",
+  },
+  {
+    key: "leader_activity_award_learning",
+    label: "Award for encouraging learning",
+    type: "boolean",
+    helper: "Leader event type reserved for teaching-in-subject; no runtime trigger wired yet.",
+  },
+  {
+    key: "leader_activity_tokens_per_learning",
+    label: "LOOP per learning event",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "3",
+  },
+  {
+    key: "leader_activity_award_advert",
+    label: "Award for gating adverts",
+    type: "boolean",
+    helper: "Leader event type reserved for approving adverts to the community; no runtime trigger wired yet.",
+  },
+  {
+    key: "leader_activity_tokens_per_advert",
+    label: "LOOP per advert gated",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "5",
+  },
+  {
+    key: "leader_activity_weekly_cap",
+    label: "Weekly cap for leader activities (per community)",
+    type: "number",
+    min: 0,
+    step: 1,
+    placeholder: "100",
+    helper: "Ceiling on LOOP_TKN a leader can earn per week from these activities in a single community. Prevents unbounded moderation-farming.",
+  },
 ];
 
 export function parseFieldValue(field: SettingField, raw: string): unknown | null {
