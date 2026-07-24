@@ -60,7 +60,7 @@ export default async function BadgePage() {
 
   const communityIds = (subjectCommunities ?? []).map((c: any) => c.id);
 
-  const [accResult, votesResult, propsResult] = await Promise.all([
+  const [accResult, votesResult, propsResult, scoreResult] = await Promise.all([
     admin
       .from("accreditations")
       .select("weight")
@@ -75,6 +75,13 @@ export default async function BadgePage() {
       .from("proposals")
       .select("*", { count: "exact", head: true })
       .eq("author_id", userId),
+    admin
+      .from("accreditation_scores")
+      .select("score, rank")
+      .eq("user_id", userId)
+      .eq("subject_tag", activeSubject)
+      .is("community_id", null)
+      .maybeSingle(),
   ]);
 
   const accreditationWeight = (accResult.data ?? []).reduce(
@@ -128,9 +135,19 @@ export default async function BadgePage() {
   const label = SUBJECT_LABELS[activeSubject] ?? activeSubject;
   const badgeUrl = `https://gov.loopcmbntr.live/badge/${userId}/${activeSubject}`;
 
+  const standingScore = scoreResult.data?.score;
+  const standingRank = scoreResult.data?.rank;
   const statItems = [
     { label: "Delegations received", value: delegationsReceived },
-    { label: "Accreditation weight", value: accreditationWeight },
+    { label: "Accreditation weight", value: accreditationWeight.toFixed(2) },
+    ...(standingScore != null
+      ? [{
+          label: standingRank != null
+            ? `Standing (#${standingRank} in ${label})`
+            : `Standing in ${label}`,
+          value: (Number(standingScore) * 100).toFixed(1),
+        }]
+      : []),
     { label: "Votes cast", value: votesCast },
     { label: "Proposals authored", value: proposalsAuthored },
     { label: "Communities joined", value: communitiesJoined },
