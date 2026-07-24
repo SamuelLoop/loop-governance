@@ -152,6 +152,22 @@ export default async function ProposalPage({
             Direct democracy
           </Badge>
         )}
+        {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && (
+          <Badge
+            className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
+            variant="outline"
+          >
+            Budget allocation
+          </Badge>
+        )}
+        {proposal.disbursed_at && (
+          <Badge
+            className="border-green-500/40 bg-green-500/15 text-[10px] text-green-400"
+            variant="outline"
+          >
+            Disbursed
+          </Badge>
+        )}
       </div>
 
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">
@@ -186,7 +202,7 @@ export default async function ProposalPage({
         </Card>
       )}
 
-      {proposal.budget_request_cents != null && (
+      {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -197,6 +213,24 @@ export default async function ProposalPage({
             <p className="text-lg font-semibold">
               ${(proposal.budget_request_cents / 100).toFixed(2)}
             </p>
+            {proposal.disbursed_at ? (
+              <p className="mt-2 text-xs text-green-400">
+                Disbursed on{" "}
+                {new Date(proposal.disbursed_at).toLocaleDateString()} to{" "}
+                {proposal.users?.display_name ?? "author"}. Voters were
+                compensated from the governance motivation pool.
+              </p>
+            ) : proposal.status === "approved" ? (
+              <p className="mt-2 text-xs text-amber-400">
+                Approved but not yet disbursed. This usually means the
+                community treasury does not have sufficient balance.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                If approved, funds will be disbursed automatically from the
+                community treasury to the author.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

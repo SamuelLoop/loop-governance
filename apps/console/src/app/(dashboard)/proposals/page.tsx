@@ -13,6 +13,7 @@ export default async function ProposalsPage() {
     .from("proposals")
     .select(
       `id, title, description, status, budget_request_cents, direct_democracy,
+      disbursed_at, disbursed_amount,
       votes_for, votes_against, opens_at, closes_at, created_at,
       users!proposals_author_id_fkey(display_name),
       communities!proposals_community_id_fkey(name, slug, subject)`
@@ -62,6 +63,22 @@ export default async function ProposalsPage() {
                         {p.direct_democracy && (
                           <Badge variant="secondary" className="text-[10px]">
                             Direct democracy
+                          </Badge>
+                        )}
+                        {p.budget_request_cents != null && p.budget_request_cents > 0 && (
+                          <Badge
+                            className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
+                            variant="outline"
+                          >
+                            Budget allocation
+                          </Badge>
+                        )}
+                        {p.disbursed_at && (
+                          <Badge
+                            className="border-green-500/40 bg-green-500/15 text-[10px] text-green-400"
+                            variant="outline"
+                          >
+                            Disbursed
                           </Badge>
                         )}
                       </div>

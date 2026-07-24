@@ -171,20 +171,30 @@ export const SETTING_FIELDS: SettingField[] = [
   },
   {
     key: "governance_motivation_pct",
-    label: "Governance motivation %",
+    label: "Governance motivation % per hop",
     type: "percent",
     min: 0,
     max: 50,
     step: 0.5,
     placeholder: "5",
-    helper: "Percentage of each authorised money movement paid to the deciding community's leaders. Higher-level leaders earn more automatically because higher-level hops route larger amounts.",
+    helper: "Percentage of each authorised money movement paid to the deciding community's voters. Higher-level leaders earn more because higher-level hops route larger amounts.",
+  },
+  {
+    key: "governance_motivation_max_pct_of_origin",
+    label: "Governance motivation hard cap %",
+    type: "percent",
+    min: 0,
+    max: 100,
+    step: 0.5,
+    placeholder: "20",
+    helper: "Hard ceiling on the total motivation payout for a single disbursement, expressed as % of the origin amount. Once the pot is exhausted, further hops earn nothing.",
   },
   {
     key: "governance_motivation_weighting",
     label: "Motivation split within a community",
     type: "text",
     placeholder: "equal",
-    helper: "How the motivation cut is split among a community's leaders. 'equal' (default) or 'by_vote_weight' (future).",
+    helper: "How the motivation cut is split among a community's voters on the proposal. 'equal' (default) or 'by_vote_weight' (future).",
   },
 ];
 
