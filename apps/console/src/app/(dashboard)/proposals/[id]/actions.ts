@@ -112,6 +112,13 @@ export async function castVote(
     return { error: voteError.message };
   }
 
+  // Award loyalty for casting a vote (no-op if disabled or capped)
+  await admin.rpc("award_loyalty", {
+    p_user_id: userId,
+    p_event_type: "vote",
+    p_community_id: proposal.community_id,
+  });
+
   if (choice === "for") {
     await admin.rpc("increment_votes_for", {
       p_id: proposalId,

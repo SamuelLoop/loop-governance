@@ -300,16 +300,28 @@ export function GovernanceEditor({
                         )}
                       </td>
                       <td className="px-4 py-3 align-top">
-                        <input
-                          type={field.type === "text" ? "text" : "number"}
-                          name={field.key}
-                          defaultValue={formatFieldValue(field, currentValue)}
-                          placeholder={field.placeholder ?? "inherit"}
-                          min={field.min}
-                          max={field.max}
-                          step={field.step}
-                          className={inputCls}
-                        />
+                        {field.type === "boolean" ? (
+                          <select
+                            name={field.key}
+                            defaultValue={formatFieldValue(field, currentValue)}
+                            className={inputCls}
+                          >
+                            <option value="">inherit</option>
+                            <option value="true">on</option>
+                            <option value="false">off</option>
+                          </select>
+                        ) : (
+                          <input
+                            type={field.type === "text" ? "text" : "number"}
+                            name={field.key}
+                            defaultValue={formatFieldValue(field, currentValue)}
+                            placeholder={field.placeholder ?? "inherit"}
+                            min={field.min}
+                            max={field.max}
+                            step={field.step}
+                            className={inputCls}
+                          />
+                        )}
                       </td>
                       <td className="hidden px-4 py-3 align-top md:table-cell">
                         <div className="flex items-center gap-2">

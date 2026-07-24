@@ -76,6 +76,99 @@ export const SETTING_FIELDS: SettingField[] = [
     placeholder: "public",
     helper: "public or private. Applied to newly created sub-communities.",
   },
+  {
+    key: "loyalty_award_votes",
+    label: "Award loyalty for votes",
+    type: "boolean",
+    helper: "Give LOOP_LOYALTY when a member casts a proposal or election vote.",
+  },
+  {
+    key: "loyalty_tokens_per_vote",
+    label: "Loyalty per vote",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "1",
+    helper: "LOOP_LOYALTY paid for each vote (before weekly cap and streak multiplier).",
+  },
+  {
+    key: "loyalty_award_proposals",
+    label: "Award loyalty for proposals",
+    type: "boolean",
+    helper: "Give LOOP_LOYALTY when a member authors a proposal.",
+  },
+  {
+    key: "loyalty_tokens_per_proposal",
+    label: "Loyalty per proposal",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "5",
+    helper: "LOOP_LOYALTY paid for authoring a proposal.",
+  },
+  {
+    key: "loyalty_award_delegations",
+    label: "Award loyalty for delegations given",
+    type: "boolean",
+    helper: "Give LOOP_LOYALTY when a member delegates their vote (once per delegation, not per proposal).",
+  },
+  {
+    key: "loyalty_tokens_per_delegation",
+    label: "Loyalty per delegation",
+    type: "number",
+    min: 0,
+    step: 0.1,
+    placeholder: "0.5",
+    helper: "LOOP_LOYALTY paid when a delegation is created.",
+  },
+  {
+    key: "loyalty_weekly_cap",
+    label: "Weekly loyalty cap",
+    type: "number",
+    min: 0,
+    step: 1,
+    placeholder: "50",
+    helper: "Maximum LOOP_LOYALTY a single user can earn in a week, across every community.",
+  },
+  {
+    key: "loyalty_streak_threshold_weeks",
+    label: "Streak threshold (weeks)",
+    type: "number",
+    min: 1,
+    max: 52,
+    step: 1,
+    placeholder: "4",
+    helper: "How many consecutive earning weeks before the streak multiplier and streak bonus kick in.",
+  },
+  {
+    key: "loyalty_streak_multiplier",
+    label: "Streak multiplier",
+    type: "number",
+    min: 1,
+    max: 5,
+    step: 0.05,
+    placeholder: "1.0",
+    helper: "Multiplier applied to base earnings while the streak is active. 1.0 = no boost.",
+  },
+  {
+    key: "loyalty_streak_bonus",
+    label: "Streak bonus (one-off)",
+    type: "number",
+    min: 0,
+    step: 1,
+    placeholder: "10",
+    helper: "One-time LOOP_LOYALTY payout when a user first crosses the streak threshold.",
+  },
+  {
+    key: "loyalty_to_loop_rate",
+    label: "LOYALTY → LOOP conversion rate",
+    type: "number",
+    min: 0,
+    max: 1,
+    step: 0.001,
+    placeholder: "0.01",
+    helper: "How much LOOP_TKN a member gets per 1 LOOP_LOYALTY converted. Keep small to protect market value.",
+  },
 ];
 
 export function parseFieldValue(field: SettingField, raw: string): unknown | null {
@@ -100,6 +193,8 @@ export function formatFieldValue(field: SettingField, value: unknown): string {
   switch (field.type) {
     case "money_cents":
       return typeof value === "number" ? (value / 100).toString() : String(value);
+    case "boolean":
+      return value === true || value === "true" ? "true" : "false";
     default:
       return String(value);
   }
@@ -112,6 +207,8 @@ export function displayFieldValue(field: SettingField, value: unknown): string {
       return typeof value === "number" ? `$${(value / 100).toLocaleString()}` : String(value);
     case "percent":
       return `${value}%`;
+    case "boolean":
+      return value === true || value === "true" ? "on" : "off";
     default:
       return String(value);
   }

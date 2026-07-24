@@ -190,6 +190,13 @@ export async function castElectionVote(
     return { error: error.message };
   }
 
+  // Award loyalty for casting an election vote
+  await admin.rpc("award_loyalty", {
+    p_user_id: profile.id,
+    p_event_type: "vote",
+    p_community_id: election.community_id,
+  });
+
   revalidatePath(`/elections/${electionId}`);
   return { error: "" };
 }

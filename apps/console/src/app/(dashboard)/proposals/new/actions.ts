@@ -46,5 +46,15 @@ export async function createProposal(
     return { error: error.message };
   }
 
+  // Only award loyalty when the proposal is actually published (open),
+  // not while a member is still working on a draft.
+  if (status === "open") {
+    await admin.rpc("award_loyalty", {
+      p_user_id: userId,
+      p_event_type: "proposal",
+      p_community_id: communityId,
+    });
+  }
+
   redirect(`/proposals/${data.id}`);
 }

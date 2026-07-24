@@ -2,6 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConvertForm } from "./convert-form";
 
 type EarningRow = {
   id: string;
@@ -22,6 +23,12 @@ function typeLabel(type: string) {
       return "Participant";
     case "delegator_reward":
       return "Delegator";
+    case "loyalty_reward":
+      return "Loyalty";
+    case "streak_bonus":
+      return "Streak bonus";
+    case "loyalty_conversion":
+      return "Conversion";
     default:
       return type;
   }
@@ -76,7 +83,29 @@ export default async function EarningsPage() {
     {} as Record<string, number>
   );
 
-  const grandTotal = Object.values(totalByType).reduce((a, b) => a + b, 0);
+  const loopBalance = rows
+    .filter((e) => e.token_type === "LOOP_TKN")
+    .reduce((s, e) => s + Number(e.amount), 0);
+  const loyaltyBalance = rows
+    .filter((e) => e.token_type === "LOOP_LOYALTY")
+    .reduce((s, e) => s + Number(e.amount), 0);
+
+  // Look up the current conversion rate via any community the user is in
+  const { data: firstMembership } = await admin
+    .from("community_memberships")
+    .select("community_id")
+    .eq("user_id", profile.id)
+    .limit(1)
+    .maybeSingle();
+
+  let conversionRate: number | null = null;
+  if (firstMembership) {
+    const { data: cascade } = await admin.rpc("resolve_governance_settings", {
+      p_community_id: firstMembership.community_id,
+    });
+    const raw = (cascade as any)?.values?.loyalty_to_loop_rate;
+    if (raw != null) conversionRate = Number(raw);
+  }
 
   return (
     <div>
@@ -87,37 +116,54 @@ export default async function EarningsPage() {
         </p>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total earned
+              LOOP balance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">
-              {grandTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              {loopBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-muted-foreground">LOOP</p>
+            <p className="text-xs text-muted-foreground">LOOP_TKN</p>
           </CardContent>
         </Card>
-
-        {Object.entries(totalByType).map(([type, total]) => (
-          <Card key={type}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {typeLabel(type)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xl font-bold font-mono">
-                {total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs text-muted-foreground">LOOP</p>
-            </CardContent>
-          </Card>
-        ))}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Loyalty balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-mono">
+              {loyaltyBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-muted-foreground">LOOP_LOYALTY</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Records
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-mono">{rows.length}</p>
+            <p className="text-xs text-muted-foreground">last 100 entries</p>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Convert loyalty to LOOP</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ConvertForm balance={loyaltyBalance} rate={conversionRate} />
+        </CardContent>
+      </Card>
 
       {rows.length === 0 ? (
         <Card>
@@ -138,6 +184,7 @@ export default async function EarningsPage() {
                     <th className="pb-2 pr-4">Date</th>
                     <th className="pb-2 pr-4">Community</th>
                     <th className="pb-2 pr-4">Type</th>
+                    <th className="pb-2 pr-4">Token</th>
                     <th className="pb-2 pr-4">Period</th>
                     <th className="pb-2 text-right">Amount</th>
                   </tr>
@@ -157,10 +204,15 @@ export default async function EarningsPage() {
                         </Badge>
                       </td>
                       <td className="py-2.5 pr-4 text-xs text-muted-foreground">
+                        {e.token_type === "LOOP_LOYALTY" ? "LOYALTY" : "LOOP"}
+                      </td>
+                      <td className="py-2.5 pr-4 text-xs text-muted-foreground">
                         {new Date(e.period_start).toLocaleDateString()} -{" "}
                         {new Date(e.period_end).toLocaleDateString()}
                       </td>
-                      <td className="py-2.5 text-right font-mono font-medium">
+                      <td className={`py-2.5 text-right font-mono font-medium ${
+                        Number(e.amount) < 0 ? "text-destructive" : ""
+                      }`}>
                         {Number(e.amount).toLocaleString(undefined, {
                           maximumFractionDigits: 4,
                         })}

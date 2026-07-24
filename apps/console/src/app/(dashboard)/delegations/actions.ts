@@ -143,6 +143,14 @@ export async function createDelegation(
       errors.push(error.message);
     } else {
       created++;
+      // Award loyalty for each new delegation (once per community). No-op
+      // if the cascade has this event disabled or the user is already at
+      // their weekly cap.
+      await admin.rpc("award_loyalty", {
+        p_user_id: delegatorId,
+        p_event_type: "delegation",
+        p_community_id: communityId,
+      });
     }
   }
 
