@@ -117,6 +117,23 @@ export async function updateLoyaltyConfig(
 
   const admin = createServiceClient();
 
+  // Enforce platform locks: platform_admin can pin loyalty settings so
+  // white_label admins can't override them. Silently strip any locked
+  // keys from this update so the higher scope keeps authority.
+  const { data: platformRow } = await admin
+    .from("governance_settings")
+    .select("settings")
+    .eq("scope_type", "platform")
+    .maybeSingle();
+  const platformLocks: Set<string> = new Set();
+  const rawLocks = (platformRow?.settings as any)?._locked_keys;
+  if (Array.isArray(rawLocks)) {
+    for (const k of rawLocks) if (typeof k === "string") platformLocks.add(k);
+  }
+  for (const k of Object.keys(values)) {
+    if (platformLocks.has(k)) delete values[k];
+  }
+
   // Load current cascade row for this white_label so we merge, not replace
   const { data: existing } = await admin
     .from("governance_settings")

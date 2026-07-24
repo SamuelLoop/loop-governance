@@ -46,15 +46,81 @@ export async function saveGovernanceSettings(
   }
 
   const settings: Record<string, unknown> = {};
+  const lockedKeys: string[] = [];
   for (const field of SETTING_FIELDS) {
     const raw = formData.get(field.key);
     if (typeof raw === "string" && raw.trim() !== "") {
       const parsed = parseFieldValue(field, raw);
       if (parsed !== null) settings[field.key] = parsed;
     }
+    if (formData.get(`__lock__${field.key}`) === "on") {
+      lockedKeys.push(field.key);
+    }
+  }
+  if (lockedKeys.length > 0) {
+    settings._locked_keys = lockedKeys;
   }
 
   const admin = createServiceClient();
+
+  // Enforce parent locks: don't allow this scope to set a key that a
+  // higher scope has locked. Silently strip any such attempts so the
+  // form doesn't error but the higher scope keeps its authority.
+  const higherScopeTypes: string[] = [];
+  if (scope.type === "white_label") higherScopeTypes.push("platform");
+  if (scope.type === "subject") higherScopeTypes.push("platform", "white_label");
+  if (scope.type === "community") higherScopeTypes.push("platform", "white_label", "subject");
+
+  if (higherScopeTypes.length > 0) {
+    let higherQuery = admin
+      .from("governance_settings")
+      .select("scope_type, white_label_id, subject, settings")
+      .in("scope_type", higherScopeTypes);
+    const { data: higherRows } = await higherQuery;
+    const higherLocks = new Set<string>();
+
+    // Resolve the white_label + subject relevant to this scope
+    let wlIdForThis: string | null = null;
+    let subjForThis: string | null = null;
+    if (scope.type === "white_label") wlIdForThis = scope.white_label_id;
+    if (scope.type === "subject") {
+      wlIdForThis = scope.white_label_id;
+      subjForThis = scope.subject;
+    }
+    if (scope.type === "community") {
+      const { data: community } = await admin
+        .from("communities")
+        .select("subject, path")
+        .eq("id", scope.community_id)
+        .single();
+      subjForThis = community?.subject ?? null;
+      const rootSlug = (community?.path as string | undefined)?.split(".")[0];
+      if (rootSlug) {
+        const { data: root } = await admin
+          .from("communities")
+          .select("source_white_label_id")
+          .eq("slug", rootSlug)
+          .eq("level", "global")
+          .maybeSingle();
+        wlIdForThis = root?.source_white_label_id ?? null;
+      }
+    }
+
+    for (const row of higherRows ?? []) {
+      const applies =
+        row.scope_type === "platform" ||
+        (row.scope_type === "white_label" && row.white_label_id === wlIdForThis) ||
+        (row.scope_type === "subject" && row.white_label_id === wlIdForThis && row.subject === subjForThis);
+      if (!applies) continue;
+      const locks = (row.settings as any)?._locked_keys ?? [];
+      if (Array.isArray(locks)) for (const k of locks) higherLocks.add(k);
+    }
+
+    for (const k of Object.keys(settings)) {
+      if (k === "_locked_keys") continue;
+      if (higherLocks.has(k)) delete settings[k];
+    }
+  }
 
   const row: Record<string, any> = {
     scope_type: scope.type,

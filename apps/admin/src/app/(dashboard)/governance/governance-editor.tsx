@@ -25,6 +25,12 @@ type SettingsRow = {
   settings: Record<string, unknown>;
 };
 
+function lockedKeysOf(row: SettingsRow | null | undefined): Set<string> {
+  const raw = row?.settings?._locked_keys;
+  if (!Array.isArray(raw)) return new Set();
+  return new Set(raw.filter((k): k is string => typeof k === "string"));
+}
+
 type ScopeType = "platform" | "white_label" | "subject" | "community";
 
 const SOURCE_STYLES: Record<string, string> = {
@@ -101,6 +107,45 @@ export function GovernanceEditor({
       return false;
     });
   }, [scope, allSettings]);
+
+  // Locks inherited from higher scopes (keys this scope cannot override)
+  const inheritedLocks = useMemo(() => {
+    const locks = new Map<string, string>(); // key -> locking scope label
+    if (!scope) return locks;
+
+    const platform = allSettings.find((r) => r.scope_type === "platform");
+    const platformLocks = lockedKeysOf(platform);
+    for (const k of platformLocks) locks.set(k, "platform");
+
+    if (scope.type === "subject" || scope.type === "community") {
+      const wlId =
+        scope.type === "subject"
+          ? (scope as any).white_label_id
+          : communities.find((c) => c.id === (scope as any).community_id)?.white_label_id;
+      if (wlId) {
+        const wl = allSettings.find(
+          (r) => r.scope_type === "white_label" && r.white_label_id === wlId
+        );
+        for (const k of lockedKeysOf(wl)) if (!locks.has(k)) locks.set(k, "white_label");
+      }
+    }
+    if (scope.type === "community") {
+      const community = communities.find((c) => c.id === (scope as any).community_id);
+      if (community?.white_label_id) {
+        const subj = allSettings.find(
+          (r) =>
+            r.scope_type === "subject" &&
+            r.white_label_id === community.white_label_id &&
+            r.subject === community.subject
+        );
+        for (const k of lockedKeysOf(subj)) if (!locks.has(k)) locks.set(k, "subject");
+      }
+    }
+    return locks;
+  }, [scope, allSettings, communities]);
+
+  // Locks at THIS scope (that this scope has imposed on lower scopes)
+  const ownLocks = useMemo(() => lockedKeysOf(currentRow), [currentRow]);
 
   // Effective merged values with source per key (CSS cascade preview)
   const effective = useMemo(() => {
@@ -291,6 +336,9 @@ export function GovernanceEditor({
                   const currentValue = currentRow?.settings?.[field.key];
                   const effValue = effective.values[field.key];
                   const effSource = effective.sources[field.key];
+                  const inheritedLockedBy = inheritedLocks.get(field.key);
+                  const disabled = Boolean(inheritedLockedBy);
+                  const isOwnLocked = ownLocks.has(field.key);
                   return (
                     <tr key={field.key} className="border-b border-border last:border-0">
                       <td className="px-4 py-3 align-top">
@@ -298,13 +346,19 @@ export function GovernanceEditor({
                         {field.helper && (
                           <p className="mt-0.5 text-xs text-muted-foreground">{field.helper}</p>
                         )}
+                        {inheritedLockedBy && (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-amber-400">
+                            🔒 Locked by {inheritedLockedBy.replace("_", " ")}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-3 align-top">
                         {field.type === "boolean" ? (
                           <select
                             name={field.key}
                             defaultValue={formatFieldValue(field, currentValue)}
-                            className={inputCls}
+                            disabled={disabled}
+                            className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
                           >
                             <option value="">inherit</option>
                             <option value="true">on</option>
@@ -315,12 +369,24 @@ export function GovernanceEditor({
                             type={field.type === "text" ? "text" : "number"}
                             name={field.key}
                             defaultValue={formatFieldValue(field, currentValue)}
-                            placeholder={field.placeholder ?? "inherit"}
+                            placeholder={disabled ? "locked above" : (field.placeholder ?? "inherit")}
                             min={field.min}
                             max={field.max}
                             step={field.step}
-                            className={inputCls}
+                            disabled={disabled}
+                            className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
                           />
+                        )}
+                        {scopeType !== "community" && !disabled && (
+                          <label className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <input
+                              type="checkbox"
+                              name={`__lock__${field.key}`}
+                              defaultChecked={isOwnLocked}
+                              className="h-3 w-3 rounded border-border"
+                            />
+                            Lock this value — no lower scope may override
+                          </label>
                         )}
                       </td>
                       <td className="hidden px-4 py-3 align-top md:table-cell">
@@ -335,6 +401,11 @@ export function GovernanceEditor({
                               }`}
                             >
                               {effSource.replace("_", " ")}
+                            </span>
+                          )}
+                          {inheritedLockedBy && (
+                            <span className="text-[11px]" title={`Locked by ${inheritedLockedBy}`}>
+                              🔒
                             </span>
                           )}
                         </div>
