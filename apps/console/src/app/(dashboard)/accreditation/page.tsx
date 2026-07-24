@@ -3,7 +3,6 @@ import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AccreditForm } from "./accredit-form";
 import { PowerTree } from "./power-tree";
 
 type DelegationRow = {
@@ -165,18 +164,6 @@ export default async function AccreditationPage() {
 
   const totalVotePower = communityPower.reduce((sum, c) => sum + c.myVotes, 0);
 
-  const { data: members } = await admin
-    .from("users")
-    .select("id, display_name")
-    .neq("id", profile.id)
-    .order("display_name");
-
-  const { data: communities } = await admin
-    .from("communities")
-    .select("id, name, subject, level")
-    .eq("subject", activeSubject)
-    .order("level");
-
   return (
     <div className="max-w-5xl">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
@@ -207,7 +194,7 @@ export default async function AccreditationPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Quorum seats
+              Leadership seats
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -240,7 +227,7 @@ export default async function AccreditationPage() {
       {quorumCommunities.length > 0 && (
         <div className="mb-8">
           <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Leadership positions (quorum)
+            Leadership group positions
           </h2>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {quorumCommunities.map((c) => (
@@ -296,7 +283,7 @@ export default async function AccreditationPage() {
                       </Badge>
                     ) : (
                       <span className="text-[10px]">
-                        need {c.thresholdPct}% for quorum
+                        need {c.thresholdPct}% for leadership
                       </span>
                     )}
                   </div>
@@ -316,21 +303,6 @@ export default async function AccreditationPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Accredit a peer
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AccreditForm
-            giverId={profile.id}
-            members={members ?? []}
-            communities={communities ?? []}
-            activeSubject={activeSubject}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 }

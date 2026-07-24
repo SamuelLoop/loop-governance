@@ -42,15 +42,18 @@ import {
 } from "lucide-react";
 import { SubjectSwitcher } from "./subject-switcher";
 
-const PERSONAL_NAV = [
-  { href: "/account", label: "My Account", icon: User2 },
-  { href: "/badge", label: "My Badge", icon: Shield },
-  { href: "/accreditation", label: "My Power", icon: Star },
+const ACCOUNT_NAV = [
+  { href: "/account", label: "Account", icon: User2 },
   { href: "/earnings", label: "Earnings", icon: Wallet },
-  { href: "/delegations", label: "Delegations", icon: ArrowLeftRight },
-  { href: "/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/claim", label: "Your Tokens", icon: Package },
   { href: "/token-activity", label: "Token Activity", icon: Activity },
+];
+
+const PERSONAL_NAV = [
+  { href: "/badge", label: "My Badge", icon: Shield },
+  { href: "/accreditation", label: "My Power", icon: Star },
+  { href: "/give-power", label: "Give Power", icon: ArrowLeftRight },
+  { href: "/campaigns", label: "Campaigns", icon: Megaphone },
 ];
 
 const COMMUNITY_NAV = [
@@ -122,15 +125,21 @@ export function AppSidebar({
             <p className="text-xs text-muted-foreground">Console</p>
           </div>
         </div>
-        <SubjectSwitcher subjects={subjects} active={activeSubject} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Personal</SidebarGroupLabel>
+          <SidebarGroupLabel>My Account</SidebarGroupLabel>
+          <SidebarGroupContent>{renderNav(ACCOUNT_NAV)}</SidebarGroupContent>
+        </SidebarGroup>
+        <div className="px-2 py-1">
+          <SubjectSwitcher subjects={subjects} active={activeSubject} />
+        </div>
+        <SidebarGroup>
+          <SidebarGroupLabel>{activeSubject.charAt(0).toUpperCase() + activeSubject.slice(1)} - Personal</SidebarGroupLabel>
           <SidebarGroupContent>{renderNav(PERSONAL_NAV)}</SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Community</SidebarGroupLabel>
+          <SidebarGroupLabel>{activeSubject.charAt(0).toUpperCase() + activeSubject.slice(1)} - Community</SidebarGroupLabel>
           <SidebarGroupContent>{renderNav(COMMUNITY_NAV)}</SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
