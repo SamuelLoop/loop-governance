@@ -27,7 +27,7 @@ export function ChatMobileLayout({
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "community", label: "Chat", icon: <Users className="h-4 w-4" /> },
-    { id: "quorum", label: "Quorum", icon: <Shield className="h-4 w-4" /> },
+    { id: "quorum", label: "Leaders", icon: <Shield className="h-4 w-4" /> },
     { id: "questions", label: "Questions", icon: <HelpCircle className="h-4 w-4" /> },
   ];
 
@@ -65,7 +65,7 @@ export function ChatMobileLayout({
         )}
         {activeTab === "quorum" && (
           <ThreadPanel
-            title="Quorum"
+            title="Leadership group"
             icon={<Shield className="h-3.5 w-3.5 text-primary" />}
             messages={quorumMessages}
             communityId={communityId}

@@ -129,7 +129,7 @@ export function DashboardChat({
                   </span>
                   {msg.channel === "quorum" && (
                     <Badge variant="default" className="px-1 py-0 text-[9px]">
-                      quorum
+                      leader
                     </Badge>
                   )}
                 </div>

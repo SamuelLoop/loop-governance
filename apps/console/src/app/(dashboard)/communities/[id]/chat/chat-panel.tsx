@@ -40,7 +40,7 @@ function MessageBubble({
           </span>
           {isQuorumMsg && (
             <Badge variant="default" className="text-[9px] px-1 py-0">
-              quorum
+              leader
             </Badge>
           )}
           <span className="text-[10px] text-muted-foreground">
@@ -159,7 +159,7 @@ export function ChatPanel({
             <MessageSquareQuote className="h-3 w-3 text-primary" />
             <span className="flex-1 truncate text-muted-foreground">
               Referencing{" "}
-              {referencedMsg.channel === "quorum" ? "(quorum) " : ""}
+              {referencedMsg.channel === "quorum" ? "(leaders) " : ""}
               {referencedMsg.author?.display_name}:{" "}
               {referencedMsg.content.slice(0, 60)}
             </span>
@@ -209,7 +209,7 @@ export function ChatPanel({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  Quorum
+                  Leaders
                 </button>
               </div>
             )}
@@ -217,7 +217,7 @@ export function ChatPanel({
               name="content"
               placeholder={
                 postChannel === "quorum"
-                  ? "Post to quorum channel..."
+                  ? "Post to leadership group..."
                   : "Message the community..."
               }
               rows={1}

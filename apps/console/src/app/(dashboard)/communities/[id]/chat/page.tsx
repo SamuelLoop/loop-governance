@@ -69,7 +69,7 @@ export default async function ChatPage({
         <div className="ml-3">
           <h1 className="text-sm font-medium">{community.name}</h1>
           <p className="hidden text-xs text-muted-foreground md:block">
-            Community + Quorum (glass room) + Questions
+            Community + Leadership group (glass room) + Questions
           </p>
         </div>
       </div>

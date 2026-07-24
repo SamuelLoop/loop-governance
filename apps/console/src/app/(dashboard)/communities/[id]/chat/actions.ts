@@ -122,7 +122,7 @@ export async function sendMessage(
   if (!membership) return { error: "You must be a community member" };
 
   if (channel === "quorum" && !["quorum", "admin"].includes(membership.role)) {
-    return { error: "Only quorum members can post in the quorum channel" };
+    return { error: "Only leadership group members can post in the leaders channel" };
   }
 
   const { error } = await admin.from("messages").insert({

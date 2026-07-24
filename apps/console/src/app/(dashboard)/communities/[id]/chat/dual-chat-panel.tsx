@@ -181,7 +181,7 @@ export function ThreadPanel({
             <Textarea
               name="content"
               placeholder={
-                channel === "quorum" ? "Quorum message..." : "Message..."
+                channel === "quorum" ? "Leadership group message..." : "Message..."
               }
               rows={1}
               className="min-h-[32px] flex-1 resize-none text-sm"
@@ -201,7 +201,7 @@ export function ThreadPanel({
 
       {!canPost && (
         <div className="border-t px-3 py-2 text-center text-[10px] text-muted-foreground">
-          Only quorum members can post here
+          Only leadership group members can post here
         </div>
       )}
     </div>
@@ -235,7 +235,7 @@ export function DualChatPanel({
         clearReference={() => setReferencedMsg(null)}
       />
       <ThreadPanel
-        title="Quorum"
+        title="Leadership group"
         icon={<Shield className="h-3.5 w-3.5 text-primary" />}
         messages={quorumMessages}
         communityId={communityId}
