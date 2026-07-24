@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase-server";
-import { getActiveSubject } from "@/lib/subject";
+import { getSubjectCommunityIds } from "@/lib/subject";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,23 +7,17 @@ import { Button } from "@/components/ui/button";
 
 export default async function ProposalsPage() {
   const admin = createServiceClient();
-  const activeSubject = await getActiveSubject();
-
-  const { data: subjectCommunities } = await admin
-    .from("communities")
-    .select("id")
-    .eq("subject", activeSubject);
-  const subjectCommunityIds = (subjectCommunities ?? []).map((c: any) => c.id);
+  const { communityIds, isPlatformAdmin } = await getSubjectCommunityIds();
 
   const { data: proposals } = await admin
     .from("proposals")
     .select(
-      `id, title, description, status, budget_request_cents,
+      `id, title, description, status, budget_request_cents, direct_democracy,
       votes_for, votes_against, opens_at, closes_at, created_at,
       users!proposals_author_id_fkey(display_name),
-      communities!proposals_community_id_fkey(name, slug)`
+      communities!proposals_community_id_fkey(name, slug, subject)`
     )
-    .in("community_id", subjectCommunityIds.length > 0 ? subjectCommunityIds : ["none"])
+    .in("community_id", communityIds.length > 0 ? communityIds : ["none"])
     .order("created_at", { ascending: false });
 
   return (
@@ -60,6 +54,16 @@ export default async function ProposalsPage() {
                         <span className="text-xs text-muted-foreground">
                           {p.communities?.name}
                         </span>
+                        {isPlatformAdmin && p.communities?.subject && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {p.communities.subject}
+                          </Badge>
+                        )}
+                        {p.direct_democracy && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Direct democracy
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="text-base font-medium">{p.title}</h3>
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">

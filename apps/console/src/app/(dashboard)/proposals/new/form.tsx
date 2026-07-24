@@ -82,6 +82,22 @@ export function CreateProposalForm({
         />
       </div>
 
+      <div className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="directDemocracy"
+          id="directDemocracy"
+          value="true"
+          className="mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-800 accent-amber-500"
+        />
+        <label htmlFor="directDemocracy" className="text-sm text-neutral-300">
+          <span className="font-medium">Direct democracy</span>
+          <span className="mt-0.5 block text-xs text-neutral-500">
+            All members in this community and below can vote, not just the leadership group.
+          </span>
+        </label>
+      </div>
+
       <div>
         <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
           Consequence

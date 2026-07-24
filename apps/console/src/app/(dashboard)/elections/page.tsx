@@ -1,5 +1,5 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
-import { getActiveSubject } from "@/lib/subject";
+import { getSubjectCommunityIds } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,23 +30,16 @@ export default async function ElectionsPage() {
     .eq("auth_id", user.id)
     .single();
 
-  const activeSubject = await getActiveSubject();
-
-  // Get communities for this subject to filter elections
-  const { data: subjectCommunities } = await admin
-    .from("communities")
-    .select("id")
-    .eq("subject", activeSubject);
-  const subjectCommunityIds = (subjectCommunities ?? []).map((c: any) => c.id);
+  const { communityIds, isPlatformAdmin } = await getSubjectCommunityIds();
 
   const { data: elections } = await admin
     .from("elections")
     .select(
       `id, title, status, seats, term_days,
       nominations_open, nominations_close, voting_open, voting_close, created_at,
-      communities!elections_community_id_fkey(name, slug)`
+      communities!elections_community_id_fkey(name, slug, subject)`
     )
-    .in("community_id", subjectCommunityIds.length > 0 ? subjectCommunityIds : ["none"])
+    .in("community_id", communityIds.length > 0 ? communityIds : ["none"])
     .order("created_at", { ascending: false });
 
   // Get communities where user is admin/quorum for the create form
@@ -112,6 +105,11 @@ export default async function ElectionsPage() {
                           <span className="text-xs text-muted-foreground">
                             {e.communities?.name}
                           </span>
+                          {isPlatformAdmin && e.communities?.subject && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {e.communities.subject}
+                            </Badge>
+                          )}
                         </div>
                         <h3 className="text-base font-medium">{e.title}</h3>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -132,7 +130,7 @@ export default async function ElectionsPage() {
       ) : (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">
-            No elections yet. Elections are triggered automatically when quorum
+            No elections yet. Elections are triggered automatically when leadership group
             terms expire, or can be called manually.
           </CardContent>
         </Card>

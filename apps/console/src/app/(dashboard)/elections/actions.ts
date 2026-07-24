@@ -41,7 +41,7 @@ export async function createElection(
     .single();
 
   if (!membership || !["admin", "quorum"].includes(membership.role))
-    return { error: "Admin or quorum role required" };
+    return { error: "Admin or leadership group role required" };
 
   const now = new Date();
   const nomClose = new Date(

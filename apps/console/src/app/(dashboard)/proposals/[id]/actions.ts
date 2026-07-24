@@ -21,7 +21,7 @@ export async function castVote(
 
   const { data: proposal } = await admin
     .from("proposals")
-    .select("status, community_id, communities(subject_tags)")
+    .select("status, community_id, direct_democracy, communities(subject_tags, path, level)")
     .eq("id", proposalId)
     .single();
 
@@ -29,9 +29,43 @@ export async function castVote(
     return { error: "This proposal is not open for voting." };
   }
 
+  const community = (proposal as any).communities;
+  const communityPath: string = community?.path ?? "";
+  const isDirectDemocracy: boolean = (proposal as any).direct_democracy ?? false;
+
+  // Check voting eligibility
+  if (isDirectDemocracy) {
+    // Direct democracy: voter must be a member of the proposal's community
+    // or any descendant community (path starts with the proposal community's path)
+    const { data: eligibleMemberships } = await admin
+      .from("community_memberships")
+      .select("community_id, communities!inner(path)")
+      .eq("user_id", userId);
+
+    const isEligible = (eligibleMemberships ?? []).some((m: any) => {
+      const memberPath: string = m.communities?.path ?? "";
+      return memberPath === communityPath || memberPath.startsWith(communityPath + ".");
+    });
+
+    if (!isEligible) {
+      return { error: "You must be a member of this community or a sub-community to vote on this proposal." };
+    }
+  } else {
+    // Representative democracy: voter must be a leader (quorum/admin) at the proposal's community
+    const { data: membership } = await admin
+      .from("community_memberships")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("community_id", proposal.community_id)
+      .single();
+
+    if (!membership || !["quorum", "admin"].includes(membership.role)) {
+      return { error: "Only leadership group members at this level can vote on this proposal." };
+    }
+  }
+
   // Check the voter hasn't already delegated on this subject
-  const subjectTags =
-    (proposal as any).communities?.subject_tags ?? [];
+  const subjectTags = community?.subject_tags ?? [];
 
   const { data: activeDelegation } = await admin
     .from("delegations")

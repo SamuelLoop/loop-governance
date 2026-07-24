@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase-server";
-import { getActiveSubject } from "@/lib/subject";
+import { getSubjectCommunityIds } from "@/lib/subject";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,13 +13,7 @@ import {
 
 export default async function MembersPage() {
   const admin = createServiceClient();
-  const activeSubject = await getActiveSubject();
-
-  const { data: subjectCommunities } = await admin
-    .from("communities")
-    .select("id")
-    .eq("subject", activeSubject);
-  const subjectCommunityIds = (subjectCommunities ?? []).map((c: any) => c.id);
+  const { communityIds } = await getSubjectCommunityIds();
 
   const { data: memberships } = await admin
     .from("community_memberships")
@@ -28,7 +22,7 @@ export default async function MembersPage() {
       users!community_memberships_user_id_fkey(id, display_name, email, location_name, subject_expertise),
       communities!community_memberships_community_id_fkey(name, slug)`
     )
-    .in("community_id", subjectCommunityIds.length > 0 ? subjectCommunityIds : ["none"])
+    .in("community_id", communityIds.length > 0 ? communityIds : ["none"])
     .order("joined_at", { ascending: false });
 
   return (
@@ -70,7 +64,7 @@ export default async function MembersPage() {
                             : "outline"
                       }
                     >
-                      {m.role}
+                      {m.role === "quorum" ? "leader" : m.role}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">

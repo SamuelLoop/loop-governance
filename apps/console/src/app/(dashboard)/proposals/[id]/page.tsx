@@ -24,7 +24,7 @@ export default async function ProposalPage({
     .select(
       `*,
       users!proposals_author_id_fkey(display_name, email),
-      communities!proposals_community_id_fkey(name, slug, quorum_size)`
+      communities!proposals_community_id_fkey(name, slug, quorum_size, path, level)`
     )
     .eq("id", id)
     .single();
@@ -33,9 +33,36 @@ export default async function ProposalPage({
 
   const { data: profile } = await admin
     .from("users")
-    .select("id")
+    .select("id, platform_role")
     .eq("auth_id", user.id)
     .single();
+
+  const isPlatformAdmin = profile?.platform_role === "platform_admin";
+
+  // Non-admins can only see proposals in subjects they belong to
+  if (profile && !isPlatformAdmin) {
+    const proposalCommunityId = proposal.community_id;
+    const { data: proposalCommunity } = await admin
+      .from("communities")
+      .select("subject")
+      .eq("id", proposalCommunityId)
+      .single();
+
+    if (proposalCommunity) {
+      const { data: userSubjectCommunities } = await admin
+        .from("community_memberships")
+        .select("communities!inner(subject)")
+        .eq("user_id", profile.id);
+
+      const userSubjects = new Set(
+        (userSubjectCommunities ?? []).map((m: any) => m.communities?.subject)
+      );
+
+      if (!userSubjects.has(proposalCommunity.subject)) {
+        notFound();
+      }
+    }
+  }
 
   const { data: existingVote } = profile
     ? await admin
@@ -45,6 +72,31 @@ export default async function ProposalPage({
         .eq("voter_id", profile.id)
         .single()
     : { data: null };
+
+  // Check voting eligibility
+  const isDirectDemocracy = proposal.direct_democracy ?? false;
+  let canVote = false;
+  if (profile) {
+    if (isDirectDemocracy) {
+      const communityPath = proposal.communities?.path ?? "";
+      const { data: memberships } = await admin
+        .from("community_memberships")
+        .select("community_id, communities!inner(path)")
+        .eq("user_id", profile.id);
+      canVote = (memberships ?? []).some((m: any) => {
+        const mPath: string = m.communities?.path ?? "";
+        return mPath === communityPath || mPath.startsWith(communityPath + ".");
+      });
+    } else {
+      const { data: membership } = await admin
+        .from("community_memberships")
+        .select("role")
+        .eq("user_id", profile.id)
+        .eq("community_id", proposal.community_id)
+        .single();
+      canVote = !!membership && ["quorum", "admin"].includes(membership.role);
+    }
+  }
 
   const { data: allVotes } = await admin
     .from("votes")
@@ -95,6 +147,11 @@ export default async function ProposalPage({
         <span className="text-xs text-muted-foreground">
           {proposal.communities?.name}
         </span>
+        {isDirectDemocracy && (
+          <Badge variant="secondary" className="text-[10px]">
+            Direct democracy
+          </Badge>
+        )}
       </div>
 
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">
@@ -172,13 +229,13 @@ export default async function ProposalPage({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Quorum ({voterCount} / {quorumSize} voters)
+              Participation ({voterCount} / {quorumSize} voters)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mb-2 text-sm">
               {quorumMet ? (
-                <span className="text-green-500">Quorum reached</span>
+                <span className="text-green-500">Threshold reached</span>
               ) : (
                 <span className="text-muted-foreground">
                   {quorumSize - voterCount} more voter
@@ -191,7 +248,7 @@ export default async function ProposalPage({
         </Card>
       </div>
 
-      {proposal.status === "open" && profile && (
+      {proposal.status === "open" && profile && canVote && (
         <Card className="mb-6">
           <CardContent className="py-4">
             <VoteButtons
@@ -199,6 +256,18 @@ export default async function ProposalPage({
               userId={profile.id}
               existingChoice={existingVote?.choice ?? null}
             />
+          </CardContent>
+        </Card>
+      )}
+
+      {proposal.status === "open" && profile && !canVote && !existingVote && (
+        <Card className="mb-6">
+          <CardContent className="py-4">
+            <p className="text-sm text-muted-foreground">
+              {isDirectDemocracy
+                ? "You are not a member of this community or its sub-communities."
+                : "Only leadership group members at this level can vote on this proposal."}
+            </p>
           </CardContent>
         </Card>
       )}

@@ -17,6 +17,7 @@ export async function createProposal(
   const description = formData.get("description") as string;
   const budget = formData.get("budget") as string;
   const consequence = formData.get("consequence") as string;
+  const directDemocracy = formData.get("directDemocracy") === "true";
   const action = formData.get("action") as string;
 
   if (!title || !description) {
@@ -34,6 +35,7 @@ export async function createProposal(
     status,
     budget_request_cents: budget ? Math.round(parseFloat(budget) * 100) : null,
     consequence: consequence || null,
+    direct_democracy: directDemocracy,
     opens_at: status === "open" ? now : null,
     closes_at: status === "open"
       ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
