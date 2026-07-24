@@ -119,21 +119,39 @@ export async function saveGovernanceSettings(
     }
   }
 
-  const wlForAudit =
-    scope.type === "white_label" || scope.type === "subject"
-      ? (scope as any).white_label_id
-      : session.whiteLabel?.id ?? null;
-
-  if (wlForAudit) {
-    await admin.from("admin_audit_log").insert({
-      white_label_id: wlForAudit,
-      actor_id: session.userId,
-      event_type: "settings.governance_updated",
-      target_type: "governance_settings",
-      target_id: conflictTarget,
-      detail: { scope_type: scope.type, settings },
-    });
+  // Resolve the white_label to attribute this audit entry to.
+  // - platform scope: no org (null); it's a global change.
+  // - white_label / subject scope: the org named by the scope.
+  // - community scope: the org that owns the community's subject root.
+  let wlForAudit: string | null = null;
+  if (scope.type === "white_label" || scope.type === "subject") {
+    wlForAudit = (scope as any).white_label_id;
+  } else if (scope.type === "community") {
+    const { data: community } = await admin
+      .from("communities")
+      .select("path")
+      .eq("id", scope.community_id)
+      .single();
+    const rootSlug = (community?.path as string | undefined)?.split(".")[0];
+    if (rootSlug) {
+      const { data: root } = await admin
+        .from("communities")
+        .select("source_white_label_id")
+        .eq("slug", rootSlug)
+        .eq("level", "global")
+        .maybeSingle();
+      wlForAudit = root?.source_white_label_id ?? null;
+    }
   }
+
+  await admin.from("admin_audit_log").insert({
+    white_label_id: wlForAudit,
+    actor_id: session.userId,
+    event_type: "settings.governance_updated",
+    target_type: "governance_settings",
+    target_id: conflictTarget,
+    detail: { scope_type: scope.type, settings },
+  });
 
   revalidatePath("/governance");
   return { error: "", success: "Settings saved" };
