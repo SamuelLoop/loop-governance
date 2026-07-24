@@ -143,15 +143,19 @@ export async function createDelegation(
       errors.push(error.message);
     } else {
       created++;
-      // Award loyalty for each new delegation (once per community). No-op
-      // if the cascade has this event disabled or the user is already at
-      // their weekly cap.
-      await admin.rpc("award_loyalty", {
-        p_user_id: delegatorId,
-        p_event_type: "delegation",
-        p_community_id: communityId,
-      });
     }
+  }
+
+  // Award loyalty once per subject session, not per community. Delegating
+  // to the same person across many communities counts as a single act of
+  // trust for reward purposes. Uses the first successfully created
+  // community as the cascade anchor.
+  if (created > 0) {
+    await admin.rpc("award_loyalty", {
+      p_user_id: delegatorId,
+      p_event_type: "delegation",
+      p_community_id: communityIds[0],
+    });
   }
 
   revalidatePath("/give-power");

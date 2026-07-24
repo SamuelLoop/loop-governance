@@ -16,12 +16,18 @@ type Org = {
 
 type LoyaltyConfig = {
   white_label_id: string;
-  tokens_per_action: number;
+  award_votes: boolean;
+  award_proposals: boolean;
+  award_delegations: boolean;
+  tokens_per_vote: number;
+  tokens_per_proposal: number;
+  tokens_per_delegation: number;
   weekly_cap: number;
   streak_multiplier: number;
   streak_threshold_weeks: number;
   streak_bonus: number;
-  delegation_reward: number;
+  conversion_rate: number;
+  has_override: boolean;
 };
 
 const inputCls =
@@ -149,10 +155,24 @@ export function SettingsForm({
       </div>
 
       <div className="rounded-lg border border-border bg-card p-5">
-        <h2 className="mb-1 text-lg font-semibold">Loyalty Tokens</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Regional loyalty token earning rules for this organization
-        </p>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h2 className="mb-1 text-lg font-semibold">Loyalty Tokens</h2>
+            <p className="text-sm text-muted-foreground">
+              Loyalty rules for <span className="text-foreground">{org.name}</span>.
+              Values shown are effective values (per-org override if set, otherwise
+              the platform default). Editing here saves a per-org override in the
+              governance cascade. For subject or community overrides use the{" "}
+              <a href="/governance" className="text-primary underline">Governance</a>{" "}
+              page.
+            </p>
+          </div>
+          {loyalty?.has_override && (
+            <span className="inline-flex shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+              Override active
+            </span>
+          )}
+        </div>
 
         {loyaltyState.error && (
           <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -167,21 +187,79 @@ export function SettingsForm({
 
         <form action={loyaltyAction} key={`loyalty-${org.id}`} className="space-y-4">
           <input type="hidden" name="white_label_id" value={org.id} />
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="award_votes"
+                defaultChecked={loyalty?.award_votes ?? true}
+                disabled={!canEdit}
+                className="h-4 w-4 rounded border-border"
+              />
+              Award for votes
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="award_proposals"
+                defaultChecked={loyalty?.award_proposals ?? true}
+                disabled={!canEdit}
+                className="h-4 w-4 rounded border-border"
+              />
+              Award for proposals
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="award_delegations"
+                defaultChecked={loyalty?.award_delegations ?? true}
+                disabled={!canEdit}
+                className="h-4 w-4 rounded border-border"
+              />
+              Award for delegations
+            </label>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Tokens per Action</label>
+              <label className="text-xs text-muted-foreground">Loyalty per vote</label>
               <input
-                name="tokens_per_action"
+                name="tokens_per_vote"
                 type="number"
                 step="0.01"
                 min="0"
-                defaultValue={loyalty?.tokens_per_action ?? 1}
+                defaultValue={loyalty?.tokens_per_vote ?? 1}
                 disabled={!canEdit}
                 className={inputCls}
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Weekly Cap</label>
+              <label className="text-xs text-muted-foreground">Loyalty per proposal</label>
+              <input
+                name="tokens_per_proposal"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={loyalty?.tokens_per_proposal ?? 5}
+                disabled={!canEdit}
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Loyalty per delegation</label>
+              <input
+                name="tokens_per_delegation"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={loyalty?.tokens_per_delegation ?? 0.5}
+                disabled={!canEdit}
+                className={inputCls}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Weekly Cap (per user)</label>
               <input
                 name="weekly_cap"
                 type="number"
@@ -215,7 +293,7 @@ export function SettingsForm({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Streak Bonus</label>
+              <label className="text-xs text-muted-foreground">Streak Bonus (one-off)</label>
               <input
                 name="streak_bonus"
                 type="number"
@@ -227,13 +305,13 @@ export function SettingsForm({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Delegation Reward</label>
+              <label className="text-xs text-muted-foreground">Loyalty → LOOP rate</label>
               <input
-                name="delegation_reward"
+                name="conversion_rate"
                 type="number"
-                step="0.01"
+                step="0.001"
                 min="0"
-                defaultValue={loyalty?.delegation_reward ?? 0.5}
+                defaultValue={loyalty?.conversion_rate ?? 0.01}
                 disabled={!canEdit}
                 className={inputCls}
               />

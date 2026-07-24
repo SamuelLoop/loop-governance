@@ -17,12 +17,59 @@ export default async function SettingsPage() {
     orgsQuery = orgsQuery.eq("id", session.whiteLabel.id);
   }
 
-  const [{ data: orgs }, { data: loyaltyConfigs }] = await Promise.all([
+  // Loyalty settings now live in the governance_settings cascade. Read
+  // both the platform default and per-white_label override; the settings
+  // form composes the effective values for each org (per-org override
+  // if present, otherwise the platform default).
+  const [{ data: orgs }, { data: cascadeRows }] = await Promise.all([
     orgsQuery,
     admin
-      .from("loyalty_config")
-      .select("white_label_id, tokens_per_action, weekly_cap, streak_multiplier, streak_threshold_weeks, streak_bonus, delegation_reward"),
+      .from("governance_settings")
+      .select("scope_type, white_label_id, settings")
+      .in("scope_type", ["platform", "white_label"]),
   ]);
+
+  const platformSettings =
+    ((cascadeRows ?? []).find((r) => r.scope_type === "platform")?.settings as
+      | Record<string, unknown>
+      | undefined) ?? {};
+
+  const overridesByOrg = new Map<string, Record<string, unknown>>();
+  for (const r of cascadeRows ?? []) {
+    if (r.scope_type === "white_label" && r.white_label_id) {
+      overridesByOrg.set(r.white_label_id, (r.settings ?? {}) as Record<string, unknown>);
+    }
+  }
+
+  const num = (v: unknown, fallback: number): number => {
+    if (v === null || v === undefined) return fallback;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const bool = (v: unknown, fallback: boolean): boolean => {
+    if (v === null || v === undefined) return fallback;
+    return v === true || v === "true";
+  };
+
+  const loyaltyConfigs = (orgs ?? []).map((o) => {
+    const override = overridesByOrg.get(o.id) ?? {};
+    const eff = { ...platformSettings, ...override };
+    return {
+      white_label_id: o.id,
+      award_votes: bool(eff.loyalty_award_votes, true),
+      award_proposals: bool(eff.loyalty_award_proposals, true),
+      award_delegations: bool(eff.loyalty_award_delegations, true),
+      tokens_per_vote: num(eff.loyalty_tokens_per_vote, 1),
+      tokens_per_proposal: num(eff.loyalty_tokens_per_proposal, 5),
+      tokens_per_delegation: num(eff.loyalty_tokens_per_delegation, 0.5),
+      weekly_cap: num(eff.loyalty_weekly_cap, 50),
+      streak_multiplier: num(eff.loyalty_streak_multiplier, 1),
+      streak_threshold_weeks: num(eff.loyalty_streak_threshold_weeks, 4),
+      streak_bonus: num(eff.loyalty_streak_bonus, 10),
+      conversion_rate: num(eff.loyalty_to_loop_rate, 0.01),
+      has_override: overridesByOrg.has(o.id),
+    };
+  });
 
   return (
     <div>
@@ -40,13 +87,7 @@ export default async function SettingsPage() {
 
       <SettingsForm
         orgs={orgs ?? []}
-        loyaltyConfigs={(loyaltyConfigs ?? []).map((l) => ({
-          ...l,
-          tokens_per_action: Number(l.tokens_per_action),
-          streak_multiplier: Number(l.streak_multiplier),
-          streak_bonus: Number(l.streak_bonus),
-          delegation_reward: Number(l.delegation_reward),
-        }))}
+        loyaltyConfigs={loyaltyConfigs}
         defaultOrgId={session.whiteLabel?.id ?? null}
         canEdit={session.platformRole !== "org_manager"}
       />
