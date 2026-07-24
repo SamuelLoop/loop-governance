@@ -278,7 +278,7 @@ export async function approveFundingRequest(
       .limit(1)
       .single();
 
-    if (!membership) return { error: "Quorum or admin access required" };
+    if (!membership) return { error: "Leadership group or admin access required" };
   }
 
   const { data, error } = await admin.rpc("approve_funding_request", {

@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase-server";
-import { getActiveSubject } from "@/lib/subject";
+import { getSubjectCommunityIds } from "@/lib/subject";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +14,7 @@ import { DistributeForm } from "./distribute-form";
 import { CascadeForm } from "./cascade-form";
 import { FundingRequestForm } from "./funding-request-form";
 import { ApproveButton, RejectButton } from "./approve-button";
+import { CollapsibleNode } from "./collapsible-node";
 
 const LEVEL_LABELS: Record<string, string> = {
   global: "Global",
@@ -43,12 +44,15 @@ type EnrichedCommunity = {
   name: string;
   slug: string;
   level: string;
+  subject?: string;
   parent_id: string | null;
   governanceSplit: number;
   maxGovernanceCap: number;
   rules: Awaited<ReturnType<typeof getDistributionRules>>;
   balance: Awaited<ReturnType<typeof getTreasuryBalance>>;
   allocations: Awaited<ReturnType<typeof getRegionalAllocations>>;
+  proposalCount: number;
+  requestedFunds: number;
   children: EnrichedCommunity[];
 };
 
@@ -69,6 +73,14 @@ function buildTree(
   return roots;
 }
 
+function getTotalProposals(community: EnrichedCommunity): number {
+  return community.proposalCount + community.children.reduce((s, c) => s + getTotalProposals(c), 0);
+}
+
+function getTotalRequested(community: EnrichedCommunity): number {
+  return community.requestedFunds + community.children.reduce((s, c) => s + getTotalRequested(c), 0);
+}
+
 function CommunityNode({
   community,
   depth,
@@ -82,170 +94,195 @@ function CommunityNode({
     (s, a) => s + Number(a.allocation_pct),
     0
   );
+  const totalProposals = getTotalProposals(community);
+  const totalRequested = getTotalRequested(community);
+
+  const nodeContent = (
+    <Card className="mb-4">
+      <CardContent className="pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[11px] text-muted-foreground">
+            {community.balance.inflow_count} inflows / {community.balance.outflow_count} outflows
+          </p>
+        </div>
+
+        {/* Regional allocation bar */}
+        {hasChildren && community.allocations.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              Regional allocation to sub-communities
+            </p>
+            <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-muted">
+              {community.allocations.map((a) => (
+                <div
+                  key={a.child.id}
+                  className="bg-primary/70 first:rounded-l-full last:rounded-r-full"
+                  style={{ width: `${a.allocation_pct}%` }}
+                  title={`${a.child.name}: ${a.allocation_pct}%`}
+                />
+              ))}
+              {allocationTotal < 100 && (
+                <div
+                  className="bg-amber-500/30"
+                  style={{ width: `${100 - allocationTotal}%` }}
+                  title={`Retained: ${(100 - allocationTotal).toFixed(1)}%`}
+                />
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+              {community.allocations.map((a) => (
+                <span key={a.child.id}>
+                  {a.child.name}: {a.allocation_pct}%
+                </span>
+              ))}
+              {allocationTotal < 100 && (
+                <span className="text-amber-500">
+                  Retained: {(100 - allocationTotal).toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Project vs Governance split */}
+        <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-medium text-amber-400">Funding split</p>
+            <p className="text-[10px] text-muted-foreground">
+              Max governance cap: {community.maxGovernanceCap}%
+            </p>
+          </div>
+          <div className="mb-1 flex h-3 overflow-hidden rounded-full bg-muted">
+            <div
+              className="bg-emerald-500/70 rounded-l-full"
+              style={{ width: `${100 - community.governanceSplit}%` }}
+              title={`Projects: ${100 - community.governanceSplit}%`}
+            />
+            <div
+              className="bg-primary/70 rounded-r-full"
+              style={{ width: `${community.governanceSplit}%` }}
+              title={`Governance: ${community.governanceSplit}%`}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span className="text-emerald-400">
+              Projects: {100 - community.governanceSplit}%
+            </span>
+            <span className="text-primary">
+              Governance: {community.governanceSplit}%
+            </span>
+          </div>
+        </div>
+
+        <div className={`grid gap-6 ${hasChildren ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+          <div>
+            <h3 className="mb-1 text-xs font-medium">Governance split</h3>
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              How the governance portion ({community.governanceSplit}%) is
+              divided between leaders, participants, and delegators.
+            </p>
+            <RulesForm communityId={community.id} rules={community.rules} />
+          </div>
+          <div>
+            <h3 className="mb-1 text-xs font-medium">Add funds</h3>
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              {community.level === "city" || community.level === "local"
+                ? "Top up from local sources: advertising revenue, business token purchases, or direct contributions."
+                : "Direct contributions from impact allocations, grants, or ad revenue."}
+            </p>
+            <InflowForm communityId={community.id} />
+          </div>
+          <div>
+            <h3 className="mb-1 text-xs font-medium">Distribute to members</h3>
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              Pay out funds to leaders, participants, and delegators based on the split above.
+            </p>
+            <DistributeForm
+              communityId={community.id}
+              balance={bal}
+            />
+          </div>
+          {hasChildren && (
+            <div>
+              <h3 className="mb-1 text-xs font-medium">Cascade down</h3>
+              <p className="mb-2 text-[11px] text-muted-foreground">
+                Push funds to sub-regions based on the allocation percentages above.
+              </p>
+              <CascadeForm
+                communityId={community.id}
+                balance={bal}
+                childCount={community.children.length}
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const sortedChildren = community.children
+    .sort(
+      (a, b) =>
+        LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level) ||
+        a.name.localeCompare(b.name)
+    );
 
   return (
     <div className={depth > 0 ? "ml-4 border-l border-border pl-4" : ""}>
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base">{community.name}</CardTitle>
-              <Badge variant="outline" className="text-[10px]">
-                {LEVEL_LABELS[community.level] ?? community.level}
-              </Badge>
-            </div>
-            <div className="text-right">
-              <p className="font-mono text-sm font-medium">
-                {bal.toLocaleString()} LOOP
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                {community.balance.inflow_count} in /{" "}
-                {community.balance.outflow_count} out
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Regional allocation bar */}
-          {hasChildren && community.allocations.length > 0 && (
-            <div className="mb-4">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Regional allocation to sub-communities
-              </p>
-              <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-muted">
-                {community.allocations.map((a) => (
-                  <div
-                    key={a.child.id}
-                    className="bg-primary/70 first:rounded-l-full last:rounded-r-full"
-                    style={{ width: `${a.allocation_pct}%` }}
-                    title={`${a.child.name}: ${a.allocation_pct}%`}
-                  />
-                ))}
-                {allocationTotal < 100 && (
-                  <div
-                    className="bg-amber-500/30"
-                    style={{ width: `${100 - allocationTotal}%` }}
-                    title={`Retained: ${(100 - allocationTotal).toFixed(1)}%`}
-                  />
-                )}
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                {community.allocations.map((a) => (
-                  <span key={a.child.id}>
-                    {a.child.name}: {a.allocation_pct}%
-                  </span>
-                ))}
-                {allocationTotal < 100 && (
-                  <span className="text-amber-500">
-                    Retained: {(100 - allocationTotal).toFixed(1)}%
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Project vs Governance split */}
-          <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-medium text-amber-400">Funding split</p>
-              <p className="text-[10px] text-muted-foreground">
-                Max governance cap: {community.maxGovernanceCap}%
-              </p>
-            </div>
-            <div className="mb-1 flex h-3 overflow-hidden rounded-full bg-muted">
-              <div
-                className="bg-emerald-500/70 rounded-l-full"
-                style={{ width: `${100 - community.governanceSplit}%` }}
-                title={`Projects: ${100 - community.governanceSplit}%`}
-              />
-              <div
-                className="bg-primary/70 rounded-r-full"
-                style={{ width: `${community.governanceSplit}%` }}
-                title={`Governance: ${community.governanceSplit}%`}
-              />
-            </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span className="text-emerald-400">
-                Projects: {100 - community.governanceSplit}%
-              </span>
-              <span className="text-primary">
-                Governance: {community.governanceSplit}%
-              </span>
-            </div>
-          </div>
-
-          <div className={`grid gap-6 ${hasChildren ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
-            <div>
-              <h3 className="mb-1 text-xs font-medium">Governance split</h3>
-              <p className="mb-2 text-[11px] text-muted-foreground">
-                How the governance portion ({community.governanceSplit}%) is
-                divided between leaders, participants, and delegators.
-              </p>
-              <RulesForm communityId={community.id} rules={community.rules} />
-            </div>
-            <div>
-              <h3 className="mb-1 text-xs font-medium">Add funds</h3>
-              <p className="mb-2 text-[11px] text-muted-foreground">
-                {community.level === "city" || community.level === "local"
-                  ? "Top up from local sources: advertising revenue, business token purchases, or direct contributions."
-                  : "Direct contributions from impact allocations, grants, or ad revenue."}
-              </p>
-              <InflowForm communityId={community.id} />
-            </div>
-            <div>
-              <h3 className="mb-1 text-xs font-medium">Distribute to members</h3>
-              <p className="mb-2 text-[11px] text-muted-foreground">
-                Pay out funds to leaders, participants, and delegators based on the split above.
-              </p>
-              <DistributeForm
-                communityId={community.id}
-                balance={bal}
-              />
-            </div>
-            {hasChildren && (
-              <div>
-                <h3 className="mb-1 text-xs font-medium">Cascade down</h3>
-                <p className="mb-2 text-[11px] text-muted-foreground">
-                  Push funds to sub-regions based on the allocation percentages above.
-                </p>
-                <CascadeForm
-                  communityId={community.id}
-                  balance={bal}
-                  childCount={community.children.length}
-                />
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Render children */}
-      {community.children
-        .sort(
-          (a, b) =>
-            LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level) ||
-            a.name.localeCompare(b.name)
-        )
-        .map((child) => (
+      <CollapsibleNode
+        label={community.name}
+        level={LEVEL_LABELS[community.level] ?? community.level}
+        balance={bal}
+        proposalCount={totalProposals}
+        requestedFunds={totalRequested}
+        childCount={community.children.length}
+        defaultOpen={depth === 0}
+        content={nodeContent}
+      >
+        {sortedChildren.map((child) => (
           <CommunityNode key={child.id} community={child} depth={depth + 1} />
         ))}
+      </CollapsibleNode>
     </div>
   );
 }
 
 export default async function TreasuryPage() {
   const admin = createServiceClient();
-  const activeSubject = await getActiveSubject();
+  const { communityIds: subjectCommunityIds, isPlatformAdmin, activeSubject } = await getSubjectCommunityIds();
   const pool = await getPlatformPool();
 
-  const { data: communities } = await admin
+  let communityQuery = admin
     .from("communities")
-    .select("id, name, slug, level, parent_id, governance_split_pct, max_governance_cap_pct")
-    .eq("subject", activeSubject)
+    .select("id, name, slug, level, parent_id, governance_split_pct, max_governance_cap_pct, subject")
     .order("name");
+
+  if (!isPlatformAdmin) {
+    communityQuery = communityQuery.eq("subject", activeSubject);
+  }
+
+  const { data: communities } = await communityQuery;
 
   const communityList = communities ?? [];
   const communityIds = communityList.map((c) => c.id);
+
+  // Fetch proposal counts and requested funds per community
+  const { data: proposalStats } = communityIds.length > 0
+    ? await admin
+        .from("proposals")
+        .select("community_id, budget_request_cents")
+        .in("community_id", communityIds)
+    : { data: [] };
+
+  const proposalCountMap = new Map<string, number>();
+  const requestedFundsMap = new Map<string, number>();
+  for (const p of proposalStats ?? []) {
+    proposalCountMap.set(p.community_id, (proposalCountMap.get(p.community_id) ?? 0) + 1);
+    requestedFundsMap.set(
+      p.community_id,
+      (requestedFundsMap.get(p.community_id) ?? 0) + (p.budget_request_cents ?? 0) / 100
+    );
+  }
 
   const enriched: EnrichedCommunity[] = await Promise.all(
     communityList.map(async (c) => {
@@ -259,6 +296,8 @@ export default async function TreasuryPage() {
         rules,
         balance,
         allocations,
+        proposalCount: proposalCountMap.get(c.id) ?? 0,
+        requestedFunds: requestedFundsMap.get(c.id) ?? 0,
         children: [],
       };
     })
@@ -303,7 +342,7 @@ export default async function TreasuryPage() {
     .order("created_at", { ascending: false })
     .limit(10);
 
-  const subjectLabel = SUBJECT_LABELS[activeSubject] ?? activeSubject;
+  const subjectLabel = isPlatformAdmin ? "All subjects" : (SUBJECT_LABELS[activeSubject] ?? activeSubject);
 
   return (
     <div>
@@ -323,7 +362,7 @@ export default async function TreasuryPage() {
           </p>
           <p>
             The governance portion is then divided three ways:{" "}
-            <strong>leaders</strong> (quorum members who hold governance
+            <strong>leaders</strong> (leadership group members who hold governance
             seats), <strong>participants</strong> (members who vote on
             proposals and submit ideas), and <strong>delegators</strong>{" "}
             (members who delegate their voting power to others they trust).
@@ -406,7 +445,7 @@ export default async function TreasuryPage() {
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
           The Platform Steering Committee holds{" "}
           <strong>{Number(pool.balance).toLocaleString()} LOOP</strong> in
-          reserve. Community leadership quorums can submit proposals to draw
+          reserve. Community leadership groups can submit proposals to draw
           from this pool for their region or subject area. Approved requests
           are disbursed directly into the requesting community's treasury,
           where they can then be cascaded further down the hierarchy or
@@ -521,7 +560,7 @@ export default async function TreasuryPage() {
           {subjectLabel} treasury hierarchy
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-          Funds flow from top to bottom. Each community's quorum leadership
+          Funds flow from top to bottom. Each community's leadership group
           controls the regional allocation percentages that determine how much
           cascades to sub-regions and how much is retained for local
           distribution. Local and city-level treasuries can also receive
