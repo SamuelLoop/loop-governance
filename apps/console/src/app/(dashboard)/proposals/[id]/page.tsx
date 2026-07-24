@@ -152,12 +152,28 @@ export default async function ProposalPage({
             Direct democracy
           </Badge>
         )}
-        {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && (
+        {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && proposal.proposal_type === "standard" && (
           <Badge
             className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
             variant="outline"
           >
             Budget allocation
+          </Badge>
+        )}
+        {proposal.proposal_type === "regional_cascade" && (
+          <Badge
+            className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
+            variant="outline"
+          >
+            Regional cascade
+          </Badge>
+        )}
+        {proposal.proposal_type === "treasury_distribution" && (
+          <Badge
+            className="border-blue-500/40 bg-blue-500/15 text-[10px] text-blue-400"
+            variant="outline"
+          >
+            Treasury distribution
           </Badge>
         )}
         {proposal.disbursed_at && (
@@ -202,7 +218,71 @@ export default async function ProposalPage({
         </Card>
       )}
 
-      {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && (
+      {proposal.proposal_type === "regional_cascade" && proposal.cascade_allocations && (
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Regional cascade
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-semibold">
+              {Number((proposal.cascade_allocations as any).amount ?? 0).toLocaleString()} LOOP_TKN
+            </p>
+            <ul className="mt-3 space-y-1 text-sm">
+              {((proposal.cascade_allocations as any).splits ?? []).map((s: any, i: number) => (
+                <li key={i} className="flex items-center justify-between text-muted-foreground">
+                  <span className="font-mono text-xs">{String(s.child_community_id).slice(0, 8)}…</span>
+                  <span className="tabular-nums">{s.pct}%</span>
+                </li>
+              ))}
+            </ul>
+            {proposal.disbursed_at ? (
+              <p className="mt-3 text-xs text-green-400">
+                Cascaded on {new Date(proposal.disbursed_at).toLocaleDateString()}. Voters were compensated from the motivation pool.
+              </p>
+            ) : proposal.status === "approved" ? (
+              <p className="mt-3 text-xs text-amber-400">
+                Approved but not yet cascaded. Usually means the community treasury has insufficient balance for the total.
+              </p>
+            ) : (
+              <p className="mt-3 text-xs text-muted-foreground">
+                If approved, funds will cascade automatically to the listed children.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {proposal.proposal_type === "treasury_distribution" && proposal.distribution_amount != null && (
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Treasury distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-semibold">
+              {Number(proposal.distribution_amount).toLocaleString()} LOOP_TKN
+            </p>
+            {proposal.disbursed_at ? (
+              <p className="mt-2 text-xs text-green-400">
+                Distributed on {new Date(proposal.disbursed_at).toLocaleDateString()} per the community's leader / participant / delegator rules.
+              </p>
+            ) : proposal.status === "approved" ? (
+              <p className="mt-2 text-xs text-amber-400">
+                Approved but not yet distributed.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                If approved, this amount will be distributed to members per the community's distribution rules.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {proposal.budget_request_cents != null && proposal.budget_request_cents > 0 && proposal.proposal_type === "standard" && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

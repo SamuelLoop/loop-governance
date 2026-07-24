@@ -44,6 +44,23 @@ export default async function NewProposalPage() {
       .sort((a: any, b: any) => a.level.localeCompare(b.level));
   }
 
+  // Load children per community so the cascade form can render splits
+  const communityIds = communities.map((c) => c.id);
+  const { data: allChildren } = communityIds.length
+    ? await admin
+        .from("communities")
+        .select("id, name, level, parent_id")
+        .in("parent_id", communityIds)
+    : { data: [] };
+  const childrenByParent: Record<string, { id: string; name: string; level: string; parent_id: string | null }[]> = {};
+  for (const c of allChildren ?? []) {
+    if (!c.parent_id) continue;
+    if (!childrenByParent[c.parent_id]) childrenByParent[c.parent_id] = [];
+    childrenByParent[c.parent_id].push({
+      id: c.id, name: c.name, level: c.level, parent_id: c.parent_id,
+    });
+  }
+
   return (
     <div className="max-w-2xl">
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">
@@ -53,6 +70,7 @@ export default async function NewProposalPage() {
         <CardContent className="pt-6">
           <CreateProposalForm
             communities={communities ?? []}
+            childrenByParent={childrenByParent}
             userId={profile.id}
           />
         </CardContent>

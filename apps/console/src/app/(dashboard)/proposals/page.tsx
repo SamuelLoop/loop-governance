@@ -13,6 +13,7 @@ export default async function ProposalsPage() {
     .from("proposals")
     .select(
       `id, title, description, status, budget_request_cents, direct_democracy,
+      proposal_type, cascade_allocations, distribution_amount,
       disbursed_at, disbursed_amount,
       votes_for, votes_against, opens_at, closes_at, created_at,
       users!proposals_author_id_fkey(display_name),
@@ -65,12 +66,28 @@ export default async function ProposalsPage() {
                             Direct democracy
                           </Badge>
                         )}
-                        {p.budget_request_cents != null && p.budget_request_cents > 0 && (
+                        {p.budget_request_cents != null && p.budget_request_cents > 0 && p.proposal_type === "standard" && (
                           <Badge
                             className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
                             variant="outline"
                           >
                             Budget allocation
+                          </Badge>
+                        )}
+                        {p.proposal_type === "regional_cascade" && (
+                          <Badge
+                            className="border-amber-500/40 bg-amber-500/15 text-[10px] text-amber-400"
+                            variant="outline"
+                          >
+                            Regional cascade
+                          </Badge>
+                        )}
+                        {p.proposal_type === "treasury_distribution" && (
+                          <Badge
+                            className="border-blue-500/40 bg-blue-500/15 text-[10px] text-blue-400"
+                            variant="outline"
+                          >
+                            Treasury distribution
                           </Badge>
                         )}
                         {p.disbursed_at && (
