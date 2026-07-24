@@ -64,24 +64,29 @@ export async function castVote(
     }
   }
 
-  // Check the voter hasn't already delegated on this subject
+  // Delegation only applies to representative-democracy proposals. In
+  // direct-democracy proposals every eligible member votes for themself,
+  // so an existing delegation is not a block. See product note: delegation
+  // is a mechanism for representative voting, not a global proxy.
   const subjectTags = community?.subject_tags ?? [];
 
-  const { data: activeDelegation } = await admin
-    .from("delegations")
-    .select("id, delegate:users!delegations_delegate_id_fkey(display_name)")
-    .eq("delegator_id", userId)
-    .eq("community_id", proposal.community_id)
-    .in("subject_tag", subjectTags.length > 0 ? subjectTags : ["__none__"])
-    .eq("active", true)
-    .limit(1)
-    .maybeSingle();
+  if (!isDirectDemocracy) {
+    const { data: activeDelegation } = await admin
+      .from("delegations")
+      .select("id, delegate:users!delegations_delegate_id_fkey(display_name)")
+      .eq("delegator_id", userId)
+      .eq("community_id", proposal.community_id)
+      .in("subject_tag", subjectTags.length > 0 ? subjectTags : ["__none__"])
+      .eq("active", true)
+      .limit(1)
+      .maybeSingle();
 
-  if (activeDelegation) {
-    const delegateName = (activeDelegation as any).delegate?.display_name ?? "your delegate";
-    return {
-      error: `You have delegated your vote on this subject to ${delegateName}. Revoke the delegation first to vote directly.`,
-    };
+    if (activeDelegation) {
+      const delegateName = (activeDelegation as any).delegate?.display_name ?? "your delegate";
+      return {
+        error: `You have delegated your vote on this subject to ${delegateName}. Revoke the delegation first to vote directly.`,
+      };
+    }
   }
 
   // Compute vote weight from delegation chain
