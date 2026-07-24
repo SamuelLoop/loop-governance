@@ -218,7 +218,6 @@ async function cleanup() {
     "admin_audit_log",
     "moderation_flags",
     "subject_allocations",
-    "loyalty_config",
     "admin_assignments",
   ];
 
@@ -254,11 +253,6 @@ async function testSchemaExists() {
 
   await test("subject_allocations table exists", async () => {
     const { error } = await db.from("subject_allocations").select("id").limit(0);
-    assert(!error, `Table missing: ${error?.message}`);
-  });
-
-  await test("loyalty_config table exists", async () => {
-    const { error } = await db.from("loyalty_config").select("id").limit(0);
     assert(!error, `Table missing: ${error?.message}`);
   });
 
@@ -583,57 +577,7 @@ async function testSpendingCaps() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TEST SUITE 5: LOYALTY CONFIG
-// ══════════════════════════════════════════════════════════════════════════════
-async function testLoyaltyConfig() {
-  console.log("\n── Loyalty config ──");
-
-  await test("can create loyalty config for an org", async () => {
-    const { error } = await db.from("loyalty_config").insert({
-      white_label_id: WL_ID,
-      tokens_per_action: 2,
-      weekly_cap: 100,
-      streak_multiplier: 1.5,
-      streak_threshold_weeks: 4,
-      streak_bonus: 15,
-      delegation_reward: 0.75,
-      updated_by: USER_ORG_ADMIN,
-    });
-    assert(!error, `Insert failed: ${error?.message}`);
-  });
-
-  await test("loyalty config is scoped by white_label_id", async () => {
-    const { data } = await db
-      .from("loyalty_config")
-      .select("*")
-      .eq("white_label_id", WL_ID);
-    assertEqual(data.length, 1, "Should have exactly 1 config for WL_ID");
-  });
-
-  await test("loyalty config has correct defaults after creation", async () => {
-    const { data } = await db
-      .from("loyalty_config")
-      .select("tokens_per_action, weekly_cap, streak_multiplier")
-      .eq("white_label_id", WL_ID)
-      .single();
-    assertEqual(Number(data.tokens_per_action), 2, "Wrong tokens_per_action");
-    assertEqual(data.weekly_cap, 100, "Wrong weekly_cap");
-    assertEqual(Number(data.streak_multiplier), 1.5, "Wrong streak_multiplier");
-  });
-
-  await test("unique constraint on (white_label_id) for loyalty config", async () => {
-    const { error } = await db.from("loyalty_config").insert({
-      white_label_id: WL_ID,
-      tokens_per_action: 5,
-      weekly_cap: 200,
-      updated_by: USER_ORG_ADMIN,
-    });
-    assert(error, "Should reject duplicate loyalty config for same org");
-  });
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// TEST SUITE 6: AUDIT LOG
+// TEST SUITE 5: AUDIT LOG
 // ══════════════════════════════════════════════════════════════════════════════
 async function testAuditLog() {
   console.log("\n── Audit log ──");
@@ -814,7 +758,6 @@ async function run() {
     await testAuthScoping();
     await testSubjectAllocations();
     await testSpendingCaps();
-    await testLoyaltyConfig();
     await testAuditLog();
     await testModerationFlags();
   } catch (err) {

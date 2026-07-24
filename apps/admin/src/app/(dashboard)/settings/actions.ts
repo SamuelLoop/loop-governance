@@ -76,7 +76,6 @@ export async function updateLoyaltyConfig(
 
   // Write to the shared governance_settings cascade so runtime code
   // (award_loyalty) and the Governance page see the same source of truth.
-  // Keeps loyalty_config in sync too for any legacy consumer.
   const parsedNum = (name: string) => {
     const raw = formData.get(name);
     if (typeof raw !== "string" || raw.trim() === "") return null;
