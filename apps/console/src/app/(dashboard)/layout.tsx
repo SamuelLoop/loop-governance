@@ -4,6 +4,7 @@ import { AppSidebar } from "./app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getActiveSubject } from "@/lib/subject";
 import { LoopPriceTicker } from "@/components/loop-price-ticker";
+import { ensureBaselineMemberships } from "@/lib/baseline-memberships";
 
 export default async function DashboardLayout({
   children,
@@ -56,6 +57,12 @@ export default async function DashboardLayout({
       .single();
 
     profile = newProfile;
+  }
+
+  // Everyone is a member of the Global Governance community by default;
+  // other subjects stay opt-in. Idempotent, no-op after first pass.
+  if (profile?.id) {
+    await ensureBaselineMemberships(profile.id);
   }
 
   const subjects = [
