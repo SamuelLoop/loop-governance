@@ -169,6 +169,23 @@ export const SETTING_FIELDS: SettingField[] = [
     placeholder: "0.01",
     helper: "How much LOOP_TKN a member gets per 1 LOOP_LOYALTY converted. Keep small to protect market value.",
   },
+  {
+    key: "governance_motivation_pct",
+    label: "Governance motivation %",
+    type: "percent",
+    min: 0,
+    max: 50,
+    step: 0.5,
+    placeholder: "5",
+    helper: "Percentage of each authorised money movement paid to the deciding community's leaders. Higher-level leaders earn more automatically because higher-level hops route larger amounts.",
+  },
+  {
+    key: "governance_motivation_weighting",
+    label: "Motivation split within a community",
+    type: "text",
+    placeholder: "equal",
+    helper: "How the motivation cut is split among a community's leaders. 'equal' (default) or 'by_vote_weight' (future).",
+  },
 ];
 
 export function parseFieldValue(field: SettingField, raw: string): unknown | null {
