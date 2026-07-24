@@ -33,6 +33,7 @@ import {
   Shield,
   LogOut,
   ChevronUp,
+  Sliders,
 } from "lucide-react";
 import type { AdminRole } from "@/lib/admin-auth";
 
@@ -44,6 +45,7 @@ const NAV_ITEMS = [
   { href: "/allocations", label: "Allocations", icon: PieChart, minRole: "org_admin" as const },
   { href: "/moderation", label: "Moderation", icon: Flag, minRole: "org_manager" as const },
   { href: "/audit", label: "Audit Log", icon: ScrollText, minRole: "org_manager" as const },
+  { href: "/governance", label: "Governance", icon: Sliders, minRole: "org_admin" as const },
   { href: "/settings", label: "Settings", icon: Settings, minRole: "org_admin" as const },
 ];
 
