@@ -4,25 +4,14 @@ import { useActionState } from "react";
 import { giveAccreditation } from "./actions";
 
 type Member = { id: string; display_name: string };
-type Community = { id: string; name: string; subject: string; level: string };
-
-const LEVEL_LABELS: Record<string, string> = {
-  global: "Global",
-  continental: "Continental",
-  national: "National",
-  city: "City",
-  local: "Local",
-};
 
 export function AccreditForm({
   giverId,
   members,
-  communities,
   activeSubject,
 }: {
   giverId: string;
   members: Member[];
-  communities: Community[];
   activeSubject: string;
 }) {
   const [state, formAction] = useActionState(giveAccreditation, { error: "", success: false });
@@ -43,42 +32,27 @@ export function AccreditForm({
       <input type="hidden" name="giverId" value={giverId} />
       <input type="hidden" name="subjectTag" value={activeSubject} />
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-            Peer
-          </label>
-          <select
-            name="receiverId"
-            required
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
-          >
-            <option value="">Select a member</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.display_name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-            Community
-          </label>
-          <select
-            name="communityId"
-            required
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
-          >
-            <option value="">Select a community</option>
-            {communities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({LEVEL_LABELS[c.level] ?? c.level})
-              </option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+          Peer
+        </label>
+        <select
+          name="receiverId"
+          required
+          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
+        >
+          <option value="">Select a member</option>
+          {members.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.display_name}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Accreditation is a public declaration that this person knows{" "}
+          <span className="font-medium text-foreground">{activeSubject}</span>.
+          It boosts their standing in every community, no location required.
+        </p>
       </div>
 
       <button

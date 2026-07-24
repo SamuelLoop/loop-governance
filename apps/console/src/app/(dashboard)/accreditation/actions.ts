@@ -13,33 +13,42 @@ export async function giveAccreditation(
 
   const giverId = formData.get("giverId") as string;
   const receiverId = formData.get("receiverId") as string;
-  const communityId = formData.get("communityId") as string;
   const subjectTag = formData.get("subjectTag") as string;
 
-  if (!receiverId || !communityId || !subjectTag) {
-    return { error: "All fields are required.", success: false };
+  if (!receiverId || !subjectTag) {
+    return { error: "Select a peer and a subject.", success: false };
   }
 
   if (giverId === receiverId) {
     return { error: "You cannot accredit yourself.", success: false };
   }
 
-  const { error } = await admin.from("accreditations").upsert(
-    {
-      giver_id: giverId,
-      receiver_id: receiverId,
-      community_id: communityId,
-      subject_tag: subjectTag,
-      active: true,
-      weight: 1,
-    },
-    { onConflict: "giver_id,receiver_id,community_id,subject_tag" }
-  );
+  const { data: existing } = await admin
+    .from("accreditations")
+    .select("id")
+    .eq("giver_id", giverId)
+    .eq("receiver_id", receiverId)
+    .eq("subject_tag", subjectTag)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (existing) {
+    return { error: "You have already accredited this person for this subject.", success: false };
+  }
+
+  const { error } = await admin.from("accreditations").insert({
+    giver_id: giverId,
+    receiver_id: receiverId,
+    subject_tag: subjectTag,
+    active: true,
+    weight: 1,
+  });
 
   if (error) {
     return { error: error.message, success: false };
   }
 
+  revalidatePath("/give-power");
   revalidatePath("/accreditation");
   return { error: "", success: true };
 }

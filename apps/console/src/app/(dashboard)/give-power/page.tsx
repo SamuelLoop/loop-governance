@@ -73,11 +73,11 @@ export default async function GivePowerPage() {
     .eq("active", true)
     .order("created_at", { ascending: false });
 
-  const { data: accreditCommunities } = await admin
-    .from("communities")
-    .select("id, name, subject, level")
-    .eq("subject", activeSubject)
-    .order("level");
+  const { data: accreditableMembers } = await admin
+    .from("users")
+    .select("id, display_name")
+    .neq("id", profile.id)
+    .order("display_name");
 
   return (
     <div className="max-w-4xl">
@@ -155,8 +155,7 @@ export default async function GivePowerPage() {
         <CardContent>
           <AccreditForm
             giverId={profile.id}
-            members={members ?? []}
-            communities={accreditCommunities ?? []}
+            members={accreditableMembers ?? []}
             activeSubject={activeSubject}
           />
         </CardContent>

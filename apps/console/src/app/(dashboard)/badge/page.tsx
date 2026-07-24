@@ -60,35 +60,42 @@ export default async function BadgePage() {
 
   const communityIds = (subjectCommunities ?? []).map((c: any) => c.id);
 
+  const [accResult, votesResult, propsResult] = await Promise.all([
+    admin
+      .from("accreditations")
+      .select("weight")
+      .eq("receiver_id", userId)
+      .eq("active", true)
+      .eq("subject_tag", activeSubject),
+    admin
+      .from("votes")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId),
+    admin
+      .from("proposals")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", userId),
+  ]);
+
+  const accreditationWeight = (accResult.data ?? []).reduce(
+    (s: number, a: any) => s + (a.weight ?? 1),
+    0
+  );
+  const votesCast = votesResult.count ?? 0;
+  const proposalsAuthored = propsResult.count ?? 0;
+
   let delegationsReceived = 0;
-  let accreditationWeight = 0;
-  let votesCast = 0;
-  let proposalsAuthored = 0;
   let communitiesJoined = 0;
   let totalEarnings = 0;
 
   if (communityIds.length > 0) {
-    const [del, acc, votes, props, mems, earn] = await Promise.all([
+    const [del, mems, earn] = await Promise.all([
       admin
         .from("delegations")
         .select("*", { count: "exact", head: true })
         .eq("delegate_id", userId)
         .eq("active", true)
         .in("community_id", communityIds),
-      admin
-        .from("accreditations")
-        .select("weight")
-        .eq("receiver_id", userId)
-        .eq("active", true)
-        .in("community_id", communityIds),
-      admin
-        .from("votes")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId),
-      admin
-        .from("proposals")
-        .select("*", { count: "exact", head: true })
-        .eq("author_id", userId),
       admin
         .from("community_memberships")
         .select("*", { count: "exact", head: true })
@@ -100,20 +107,14 @@ export default async function BadgePage() {
         .eq("user_id", userId)
         .in("community_id", communityIds),
     ]);
-
     delegationsReceived = del.count ?? 0;
-    accreditationWeight = (acc.data ?? []).reduce(
-      (s: number, a: any) => s + (a.weight ?? 1),
-      0
-    );
-    votesCast = votes.count ?? 0;
-    proposalsAuthored = props.count ?? 0;
     communitiesJoined = mems.count ?? 0;
     totalEarnings = (earn.data ?? []).reduce(
       (s: number, e: any) => s + Number(e.amount),
       0
     );
   }
+
 
   const powerScore =
     delegationsReceived * 10 +
