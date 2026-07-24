@@ -1,4 +1,8 @@
-import { getPurchases } from "./actions";
+import {
+  getPurchases,
+  getAllocationSlices,
+  listDirectableCommunities,
+} from "./actions";
 import { ClaimPanel } from "./claim-panel";
 
 export default async function ClaimPage({
@@ -6,7 +10,11 @@ export default async function ClaimPage({
 }: {
   searchParams: Promise<{ purchased?: string }>;
 }) {
-  const purchases = await getPurchases();
+  const [purchases, slices, communities] = await Promise.all([
+    getPurchases(),
+    getAllocationSlices(),
+    listDirectableCommunities(),
+  ]);
   const params = await searchParams;
   const justPurchased = params.purchased === "true";
 
@@ -20,7 +28,12 @@ export default async function ClaimPage({
           confirmed on-chain instantly.
         </p>
       </div>
-      <ClaimPanel purchases={purchases} justPurchased={justPurchased} />
+      <ClaimPanel
+        purchases={purchases}
+        justPurchased={justPurchased}
+        slices={slices}
+        communities={communities}
+      />
     </div>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@loop/console",
+  "installCommand": "cd ../.. && pnpm install",
+  "crons": [
+    {
+      "path": "/api/cron/sweep-expired-allocations",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

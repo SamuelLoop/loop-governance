@@ -1,16 +1,20 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { PageDescription } from "@/components/page-description";
+import { ImpactTreasuryCard } from "./impact-treasury-card";
+import { publicClient, chainConfig, LOOP_TOKEN_ABI, isConfigured, fromTokenUnits } from "@/lib/loop-token";
+import type { Address } from "viem";
 
 function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 export default async function TreasuryPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createServiceClient();
+  const isPlatformAdmin = session.platformRole === "platform_admin";
 
-  const [{ data: balances }, { data: communities }, { data: recentTx }] = await Promise.all([
+  const [{ data: balances }, { data: communities }, { data: recentTx }, { data: recentImpact }] = await Promise.all([
     admin.from("community_treasury_balance").select("*"),
     admin.from("communities").select("id, name, subject, level"),
     admin
@@ -18,7 +22,39 @@ export default async function TreasuryPage() {
       .select("id, community_id, type, direction, amount, token_type, description, created_at")
       .order("created_at", { ascending: false })
       .limit(50),
+    isPlatformAdmin
+      ? admin
+          .from("impact_treasury_transfers")
+          .select("id, recipient_wallet, recipient_label, amount, reason, tx_hash, created_at")
+          .order("created_at", { ascending: false })
+          .limit(20)
+      : Promise.resolve({ data: [] }),
   ]);
+
+  // Read on-chain state for the Impact Treasury card if platform_admin
+  let onChainBalance: number | null = null;
+  let treasuryAddress: string | null = null;
+  const chainConfigured = isConfigured();
+  if (isPlatformAdmin && chainConfigured) {
+    try {
+      const { address } = chainConfig();
+      const client = publicClient();
+      treasuryAddress = (await client.readContract({
+        address,
+        abi: LOOP_TOKEN_ABI,
+        functionName: "impactTreasury",
+      })) as string;
+      const raw = (await client.readContract({
+        address,
+        abi: LOOP_TOKEN_ABI,
+        functionName: "balanceOf",
+        args: [treasuryAddress as Address],
+      })) as bigint;
+      onChainBalance = fromTokenUnits(raw);
+    } catch {
+      // ignore; card renders with — placeholders
+    }
+  }
 
   const communityMap = new Map(
     (communities ?? []).map((c) => [c.id, { name: c.name, subject: c.subject, level: c.level }])
@@ -55,6 +91,22 @@ export default async function TreasuryPage() {
         purpose="A financial overview of every community treasury: current balance, cumulative inflows and outflows, and the 50 most recent transactions across the platform."
         whenToUse="Use this page for financial oversight and audit: reconciling monthly reports, checking a community balance a member asked about, or investigating a suspicious spike in outflows. All figures are derived live from the treasury_transactions ledger, so numbers here are always current."
       />
+
+      {isPlatformAdmin && (
+        <div className="mb-8">
+          <ImpactTreasuryCard
+            communities={(communities ?? []).map((c) => ({
+              id: c.id, name: c.name, level: c.level, subject: c.subject,
+            }))}
+            recent={(recentImpact ?? []).map((r: any) => ({
+              ...r, amount: Number(r.amount),
+            }))}
+            onChainBalance={onChainBalance}
+            treasuryAddress={treasuryAddress}
+            chainConfigured={chainConfigured}
+          />
+        </div>
+      )}
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4">

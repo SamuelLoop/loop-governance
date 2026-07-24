@@ -1,7 +1,14 @@
 "use client";
 
 import { useActionState, useState, useCallback } from "react";
-import { claimPurchase, setDefaultWallet, type Purchase } from "./actions";
+import {
+  claimAndMint,
+  claimAllAndMint,
+  type Purchase,
+  type AllocationSlice,
+  type CommunityOption,
+} from "./actions";
+import { AllocationSection } from "./allocation-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +81,7 @@ function PaymentMethod({ purchase }: { purchase: Purchase }) {
 }
 
 function PurchaseRow({ purchase }: { purchase: Purchase }) {
-  const [state, action] = useActionState(claimPurchase, { error: "" });
+  const [state, action] = useActionState(claimAndMint, { error: "", success: "" });
   const [wallet, setWallet] = useState("");
   const isCrypto = purchase.stripe_payment_intent_id?.startsWith("crypto:");
   const needsWallet = !isCrypto && !purchase.wallet_address && !purchase.minted_at;
@@ -157,6 +164,24 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
       {state.error && (
         <p className="mt-2 text-xs text-destructive">{state.error}</p>
       )}
+      {state.success && (
+        <p className="mt-2 text-xs text-emerald-400">
+          {state.success}
+          {state.txHash && (
+            <>
+              {" "}
+              <a
+                href={`https://basescan.org/tx/${state.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:underline"
+              >
+                view tx <ExternalLink className="inline h-3 w-3" />
+              </a>
+            </>
+          )}
+        </p>
+      )}
     </div>
   );
 }
@@ -164,12 +189,17 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
 export function ClaimPanel({
   purchases,
   justPurchased,
+  slices,
+  communities,
 }: {
   purchases: Purchase[];
   justPurchased?: boolean;
+  slices: AllocationSlice[];
+  communities: CommunityOption[];
 }) {
-  const [walletState, walletAction] = useActionState(setDefaultWallet, {
+  const [walletState, walletAction] = useActionState(claimAllAndMint, {
     error: "",
+    success: "",
   });
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
 
@@ -331,13 +361,16 @@ export function ClaimPanel({
               {walletState.error}
             </p>
           )}
+          {walletState.success && (
+            <p className="mt-2 text-xs text-emerald-400">{walletState.success}</p>
+          )}
         </div>
       )}
 
-      {/* Purchase list */}
+      {/* Claim cash purchased Tokens */}
       <div>
         <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-          Purchase history ({purchases.length})
+          Claim cash purchased Tokens ({purchases.length})
         </h3>
         <div className="space-y-3">
           {purchases.map((p) => (
@@ -345,6 +378,9 @@ export function ClaimPanel({
           ))}
         </div>
       </div>
+
+      {/* Your allocation - direct to a community */}
+      <AllocationSection slices={slices} communities={communities} />
 
       {/* Buy more */}
       <div className="text-center">
