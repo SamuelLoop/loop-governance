@@ -43,7 +43,7 @@ const NAV_ITEMS = [
   { href: "/treasury", label: "Treasury", icon: Coins, minRole: "org_admin" as const },
   { href: "/allocations", label: "Allocations", icon: PieChart, minRole: "org_admin" as const },
   { href: "/moderation", label: "Moderation", icon: Flag, minRole: "org_manager" as const },
-  { href: "/audit-log", label: "Audit Log", icon: ScrollText, minRole: "org_manager" as const },
+  { href: "/audit", label: "Audit Log", icon: ScrollText, minRole: "org_manager" as const },
   { href: "/settings", label: "Settings", icon: Settings, minRole: "org_admin" as const },
 ];
 
