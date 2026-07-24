@@ -66,10 +66,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
+    const next = encodeURIComponent("/account?prompt_password=1");
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${next}`,
       },
     });
     setLoading(false);
@@ -319,7 +320,7 @@ export default function LoginPage() {
                     onClick={() => { setError(""); setMode("magic"); }}
                     className="text-primary hover:underline"
                   >
-                    Use magic link
+                    Use magic link to sign up
                   </button>
                 </p>
                 <p>

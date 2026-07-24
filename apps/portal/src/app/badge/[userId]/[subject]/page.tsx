@@ -29,7 +29,8 @@ export async function generateMetadata({
 
   const label = SUBJECT_LABELS[subject] ?? subject;
   const title = `${stats.userName} | ${stats.tier} ${label} Governor`;
-  const description = `${stats.powerScore} power score in ${label}. ${stats.delegationsReceived} delegations, ${stats.accreditationsReceived} accreditations, ${stats.communitiesJoined} communities.`;
+  const displayScore = Number(stats.powerScore).toFixed(2);
+  const description = `${displayScore} power score in ${label}. ${stats.delegationsReceived} delegations, ${stats.accreditationsReceived} accreditations, ${stats.communitiesJoined} communities.`;
 
   return {
     title,
@@ -63,6 +64,7 @@ export default async function BadgePage({ params }: { params: Params }) {
 
   const label = SUBJECT_LABELS[subject] ?? subject;
   const badgeUrl = `https://gov.loopcmbntr.live/badge/${userId}/${subject}`;
+  const displayScore = Number(stats.powerScore).toFixed(2);
 
   const statItems = [
     { label: "Delegations", value: stats.delegationsReceived, icon: "shield" },
@@ -179,7 +181,7 @@ export default async function BadgePage({ params }: { params: Params }) {
               className="mt-1 text-5xl font-black tabular-nums tracking-tight"
               style={{ color: stats.tierColor }}
             >
-              {stats.powerScore}
+              {displayScore}
             </p>
             <div className="mx-auto mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-neutral-800">
               <div

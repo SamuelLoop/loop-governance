@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { RebalanceButton } from "./rebalance-button";
 
 type Community = {
   id: string;
@@ -148,7 +147,6 @@ export default async function CommunitiesPage() {
             {totalMembers} total membership{totalMembers !== 1 ? "s" : ""}
           </p>
         </div>
-        <RebalanceButton />
       </div>
 
       <Card className="mb-4">

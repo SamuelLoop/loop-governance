@@ -58,7 +58,16 @@ export async function changePassword(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated", success: false };
 
-  const { error } = await supabase.auth.updateUser({ password });
+  // Use the admin API to set the password AND confirm the email. This is
+  // the reliable path for accounts that were originally created via OAuth
+  // (Google, X, etc), which sometimes lack an 'email' identity in
+  // auth.identities. Without that identity signInWithPassword returns
+  // 'Invalid login credentials' even when encrypted_password is set.
+  const admin = createServiceClient();
+  const { error } = await admin.auth.admin.updateUserById(user.id, {
+    password,
+    email_confirm: true,
+  });
 
   if (error) {
     if (error.message.includes("different from the old")) {

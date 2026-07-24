@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileForm } from "./profile-form";
 import { PasswordForm } from "./password-form";
+import { FirstPasswordPrompt } from "./first-password-prompt";
+import { Suspense } from "react";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -22,6 +24,9 @@ export default async function AccountPage() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <FirstPasswordPrompt />
+      </Suspense>
       <h1 className="mb-1 text-2xl font-semibold tracking-tight">
         My Account
       </h1>

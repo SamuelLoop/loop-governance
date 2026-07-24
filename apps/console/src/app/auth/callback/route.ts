@@ -5,16 +5,22 @@ import { cookies } from "next/headers";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const next = searchParams.get("next");
+
+  // Only accept same-origin relative redirects to prevent open-redirect abuse
+  const safeNext =
+    next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
   if (!code) {
-    const errorDesc = searchParams.get("error_description") || searchParams.get("error") || "no_code";
+    const errorDesc =
+      searchParams.get("error_description") || searchParams.get("error") || "no_code";
     return NextResponse.redirect(
       `${origin}/login?error=${encodeURIComponent(errorDesc)}`
     );
   }
 
   const cookieStore = await cookies();
-  const response = NextResponse.redirect(`${origin}/`);
+  const response = NextResponse.redirect(`${origin}${safeNext}`);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
