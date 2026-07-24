@@ -1,6 +1,7 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { AuditTable } from "./audit-table";
+import { PageDescription } from "@/components/page-description";
 
 export default async function AuditPage() {
   const session = await requireAdminSession();
@@ -49,6 +50,11 @@ export default async function AuditPage() {
           Append-only trail of admin actions ({events.length} most recent events)
         </p>
       </div>
+
+      <PageDescription
+        purpose="An append-only record of every admin action taken on the platform: role changes, allocation edits, moderation decisions, settings updates. Each row is stamped with the actor, the target and a full JSON detail you can click to expand."
+        whenToUse="Come here to investigate 'who changed what and when' - after a mystery role change, before a compliance report, or when reviewing an admin's recent activity. Entries are immutable: nothing on the platform can edit or delete them, so they are safe to cite as evidence."
+      />
 
       <AuditTable events={events} showOrg={isPlatformAdmin} />
     </div>

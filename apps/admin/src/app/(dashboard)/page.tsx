@@ -1,5 +1,6 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
+import { PageDescription } from "@/components/page-description";
 
 export default async function AdminDashboard() {
   const session = await requireAdminSession();
@@ -51,6 +52,11 @@ export default async function AdminDashboard() {
             : `Managing ${session.whiteLabel?.name ?? "organization"}`}
         </p>
       </div>
+
+      <PageDescription
+        purpose="A live snapshot of the health of your platform: total users, active communities, flags awaiting review, and (for platform admins) the number of organizations on Loop_cmbntr."
+        whenToUse="Land here at the start of each admin session to get oriented. If any number looks unusual, click the matching quick-action card to jump straight to the page that lets you act on it."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (

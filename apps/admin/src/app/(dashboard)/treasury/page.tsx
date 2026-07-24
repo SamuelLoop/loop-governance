@@ -1,5 +1,6 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
+import { PageDescription } from "@/components/page-description";
 
 function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -49,6 +50,11 @@ export default async function TreasuryPage() {
           Token balances and flows across {rows.length} community treasuries
         </p>
       </div>
+
+      <PageDescription
+        purpose="A financial overview of every community treasury: current balance, cumulative inflows and outflows, and the 50 most recent transactions across the platform."
+        whenToUse="Use this page for financial oversight and audit: reconciling monthly reports, checking a community balance a member asked about, or investigating a suspicious spike in outflows. All figures are derived live from the treasury_transactions ledger, so numbers here are always current."
+      />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4">

@@ -1,5 +1,6 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
+import { PageDescription } from "@/components/page-description";
 
 export default async function CommunitiesPage() {
   const session = await requireAdminSession();
@@ -37,6 +38,11 @@ export default async function CommunitiesPage() {
           {communities?.length ?? 0} communities across {subjects.length} subjects
         </p>
       </div>
+
+      <PageDescription
+        purpose="A read-only inventory of every community on the platform, grouped by subject and indented by hierarchy depth. Shows the leadership group size, per-community proposal spending cap and visibility of each."
+        whenToUse="Reference this page when investigating a report, sizing a new campaign, or verifying that a community's spending cap or visibility is set correctly. Community-level edits still happen inside each community in the member console; this view is where you get the big picture."
+      />
 
       {subjects.map((subject) => {
         const subjectCommunities = (communities ?? []).filter((c) => c.subject === subject);

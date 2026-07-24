@@ -1,6 +1,7 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { MembersTable } from "./members-table";
+import { PageDescription } from "@/components/page-description";
 
 export default async function MembersPage() {
   const session = await requireAdminSession();
@@ -78,6 +79,11 @@ export default async function MembersPage() {
             : `Manage users for ${session.whiteLabel?.name ?? "your organization"}`}
         </p>
       </div>
+
+      <PageDescription
+        purpose="The full list of users on the platform, with each person's role: platform_admin (global), org_admin (per white-label organization), org_manager (read-only per organization), or member. Roles can be changed or revoked here."
+        whenToUse="Use this page to onboard new admins, adjust an existing person's permissions, or revoke access when someone leaves the team. Anyone who signs up starts as a member; promote them here to give them access to this admin console."
+      />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-lg border border-border bg-card p-3">

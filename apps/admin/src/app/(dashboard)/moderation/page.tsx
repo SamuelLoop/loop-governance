@@ -1,6 +1,7 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { FlagQueue } from "./flag-queue";
+import { PageDescription } from "@/components/page-description";
 
 export default async function ModerationPage() {
   const session = await requireAdminSession();
@@ -63,6 +64,11 @@ export default async function ModerationPage() {
           {pendingCount} pending {pendingCount === 1 ? "flag" : "flags"} awaiting review
         </p>
       </div>
+
+      <PageDescription
+        purpose="The queue of content that members have flagged: messages, proposals, users and communities. Each flag carries the reporter's reason and the target it refers to. Actioned flags mean you took a moderation step; dismissed flags mean the report was rejected."
+        whenToUse="Work this queue whenever the sidebar badge shows pending flags. Every decision is written to the audit log with your optional resolution note, so future admins can see why a call was made. Aim to clear pending flags at least daily so reporters know the platform is responsive."
+      />
 
       <FlagQueue
         flags={flags}
