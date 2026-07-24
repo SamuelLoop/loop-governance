@@ -75,6 +75,7 @@ async function getTopLeaders(supabase: any) {
   }
 
   return [...leaderMap.entries()]
+    .filter(([, data]) => data.seats.some((s) => s.level !== "global"))
     .sort((a, b) => b[1].seats.length - a[1].seats.length)
     .slice(0, 6)
     .map(([id, data]) => ({ id, ...data }));
@@ -112,7 +113,7 @@ export default async function Home() {
     SUBJECT_LABELS[s.slug] = s.name;
   }
 
-  const LEVEL_ORDER = ["global", "continental", "national", "city", "local"];
+  const LEVEL_ORDER = ["local", "city", "national", "continental", "global"];
 
   return (
     <main className="min-h-screen">
@@ -324,7 +325,7 @@ export default async function Home() {
                 Earn while you govern
               </h3>
               <p className="text-sm leading-relaxed text-neutral-500">
-                Win quorum seats through elections. Leaders earn asset-backed
+                Win leadership group seats through elections. Leaders earn asset-backed
                 tokens representing fractional ownership in the ventures and
                 funds your community stewards.
               </p>
@@ -500,7 +501,7 @@ export default async function Home() {
               People already governing
             </h2>
             <p className="mx-auto mb-14 max-w-lg text-center text-sm text-neutral-500">
-              These participants hold quorum seats across communities. Their
+              These participants hold leadership group seats across communities. Their
               power trees are public. Build yours to join them.
             </p>
 
@@ -526,35 +527,45 @@ export default async function Home() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {leader.seats
-                      .sort(
-                        (a, b) =>
-                          LEVEL_ORDER.indexOf(a.level) -
-                          LEVEL_ORDER.indexOf(b.level)
-                      )
-                      .map((seat, i) => {
-                        const subjectConfig = subjects.find(
-                          (s) => s.slug === seat.subject
-                        );
-                        return (
-                          <span
-                            key={i}
-                            className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                            style={{
-                              backgroundColor: subjectConfig
-                                ? `${subjectConfig.accent}15`
-                                : "rgb(38 38 38)",
-                              color: subjectConfig?.accent ?? "#737373",
-                            }}
-                          >
-                            {seat.community}
-                          </span>
-                        );
-                      })}
+                    {(() => {
+                      const lowestPerSubject = new Map<string, typeof leader.seats[0]>();
+                      for (const seat of leader.seats) {
+                        const existing = lowestPerSubject.get(seat.subject);
+                        if (!existing || LEVEL_ORDER.indexOf(seat.level) < LEVEL_ORDER.indexOf(existing.level)) {
+                          lowestPerSubject.set(seat.subject, seat);
+                        }
+                      }
+                      return [...lowestPerSubject.values()]
+                        .sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level))
+                        .map((seat, i) => {
+                          const subjectConfig = subjects.find((s) => s.slug === seat.subject);
+                          const subjectLabel = subjectConfig?.name ?? seat.subject;
+                          const locationPart = seat.community.includes(": ")
+                            ? seat.community.split(": ")[1]
+                            : seat.community;
+                          const label = seat.level === "global"
+                            ? subjectLabel
+                            : `${subjectLabel}: ${locationPart}`;
+                          return (
+                            <span
+                              key={i}
+                              className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              style={{
+                                backgroundColor: subjectConfig
+                                  ? `${subjectConfig.accent}15`
+                                  : "rgb(38 38 38)",
+                                color: subjectConfig?.accent ?? "#737373",
+                              }}
+                            >
+                              {label}
+                            </span>
+                          );
+                        });
+                    })()}
                   </div>
                   <p className="mt-3 text-xs text-neutral-500">
-                    {leader.seats.length} quorum seat
-                    {leader.seats.length !== 1 ? "s" : ""}
+                    {leader.seats.filter((s) => s.level !== "global").length} leadership seat
+                    {leader.seats.filter((s) => s.level !== "global").length !== 1 ? "s" : ""}
                   </p>
                 </div>
               ))}

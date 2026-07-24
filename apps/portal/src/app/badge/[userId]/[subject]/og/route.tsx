@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getPowerStats } from "../power";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 const SUBJECT_LABELS: Record<string, string> = {
   governance: "Governance",
@@ -16,6 +16,21 @@ const SUBJECT_LABELS: Record<string, string> = {
   housing: "Housing",
 };
 
+async function fetchAvatarDataUri(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; OpenGraph/1.0)" },
+    });
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const b64 = Buffer.from(buf).toString("base64");
+    return `data:${contentType};base64,${b64}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ userId: string; subject: string }> }
@@ -28,6 +43,9 @@ export async function GET(
   }
 
   const label = SUBJECT_LABELS[subject] ?? subject;
+  const avatarDataUri = stats.avatarUrl
+    ? await fetchAvatarDataUri(stats.avatarUrl)
+    : null;
 
   return new ImageResponse(
     (
@@ -95,9 +113,9 @@ export async function GET(
           </div>
 
           {/* Avatar */}
-          {stats.avatarUrl ? (
+          {avatarDataUri ? (
             <img
-              src={stats.avatarUrl}
+              src={avatarDataUri}
               width={100}
               height={100}
               style={{
