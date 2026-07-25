@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getPowerStats } from "../power";
-import { fetchPowerTree, generateTreeSVG } from "@/lib/power-tree";
-import { createServiceClient } from "@/lib/supabase-server";
+import { DEMO_TIERS, generateTreeSVG, type TierSlug } from "@/lib/power-tree";
 
 export const runtime = "nodejs";
 
@@ -18,50 +16,29 @@ const SUBJECT_LABELS: Record<string, string> = {
   housing: "Housing",
 };
 
-async function fetchAvatarDataUri(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; OpenGraph/1.0)" } });
-    if (!res.ok) return null;
-    const buf = await res.arrayBuffer();
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-    return `data:${contentType};base64,${Buffer.from(buf).toString("base64")}`;
-  } catch {
-    return null;
-  }
-}
-
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ userId: string; subject: string }> }
+  { params }: { params: Promise<{ tier: string; subject: string }> }
 ) {
-  const { userId, subject } = await params;
-  const admin = createServiceClient();
-
-  const [stats, tree] = await Promise.all([
-    getPowerStats(userId, subject),
-    fetchPowerTree(userId, subject, admin),
-  ]);
-  if (!stats) return new Response("Not found", { status: 404 });
+  const { tier, subject } = await params;
+  const demo = DEMO_TIERS[tier as TierSlug];
+  if (!demo) return new Response("Not found", { status: 404 });
 
   const label = SUBJECT_LABELS[subject] ?? subject;
-  const avatarDataUri = stats.avatarUrl ? await fetchAvatarDataUri(stats.avatarUrl) : null;
-  const tc = stats.tierColor;
-
-  const delegators = tree.nodes.filter(n => n.depth === 1).length;
-  const networkTotal = tree.nodes.length;
+  const tc = demo.tierColor;
 
   const treeSvg = generateTreeSVG({
-    tree,
+    tree: demo.tree,
     tierColor: tc,
-    powerScore: stats.powerScore,
-    tier: stats.tier,
-    userName: stats.userName,
+    powerScore: demo.powerScore,
+    tier: demo.tier,
+    userName: "Demo Governor",
     subject: label,
-    delegators,
-    networkTotal,
-    votes: stats.votesCast,
-    proposals: stats.proposalsAuthored,
-    communities: stats.communitiesJoined,
+    delegators: demo.delegators,
+    networkTotal: demo.networkTotal,
+    votes: demo.votes,
+    proposals: demo.proposals,
+    communities: demo.communities,
     mode: "og",
   });
   const treeDataUri = `data:image/svg+xml;base64,${Buffer.from(treeSvg).toString("base64")}`;
@@ -78,7 +55,7 @@ export async function GET(
           position: "relative",
         }}
       >
-        {/* Ambient glow behind tree */}
+        {/* Ambient glow */}
         <div
           style={{
             position: "absolute",
@@ -88,7 +65,7 @@ export async function GET(
             width: "500px",
             height: "500px",
             borderRadius: "50%",
-            background: stats.tierGlow,
+            background: demo.tierGlow,
             filter: "blur(80px)",
           }}
         />
@@ -104,10 +81,8 @@ export async function GET(
             justifyContent: "center",
             padding: "40px",
             position: "relative",
-            gap: "0px",
           }}
         >
-          {/* Accent line across top */}
           <div
             style={{
               position: "absolute",
@@ -131,54 +106,42 @@ export async function GET(
             }}
           >
             <span style={{ fontSize: "13px", fontWeight: 800, letterSpacing: "2px", color: tc }}>
-              {stats.tier.toUpperCase()}
+              {demo.tier.toUpperCase()}
             </span>
           </div>
 
-          {/* Avatar */}
-          {avatarDataUri ? (
-            <img
-              src={avatarDataUri}
-              width={88}
-              height={88}
-              style={{ width: "88px", height: "88px", borderRadius: "50%", objectFit: "cover", border: `3px solid ${tc}50`, marginBottom: "14px" }}
-            />
-          ) : (
-            <div
-              style={{
-                width: "88px", height: "88px", borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "36px", fontWeight: 700, color: tc,
-                backgroundColor: `${tc}20`, border: `3px solid ${tc}50`,
-                marginBottom: "14px",
-              }}
-            >
-              {stats.userName[0]?.toUpperCase() ?? "?"}
-            </div>
-          )}
+          {/* Avatar placeholder */}
+          <div
+            style={{
+              width: "88px", height: "88px", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "36px", fontWeight: 700, color: tc,
+              backgroundColor: `${tc}20`, border: `3px solid ${tc}50`,
+              marginBottom: "14px",
+            }}
+          >
+            DG
+          </div>
 
-          {/* Name + subject */}
           <h1 style={{ fontSize: "40px", fontWeight: 800, color: "#f5f5f5", margin: "0 0 4px 0" }}>
-            {stats.userName}
+            Demo Governor
           </h1>
           <p style={{ fontSize: "16px", color: tc, margin: "0 0 18px 0" }}>
             {label} Governor
           </p>
 
-          {/* Score */}
           <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "20px" }}>
             <span style={{ fontSize: "70px", fontWeight: 900, color: tc, lineHeight: "1" }}>
-              {Math.round(stats.powerScore)}
+              {demo.powerScore}
             </span>
             <span style={{ fontSize: "13px", color: "#737373", letterSpacing: "2px" }}>POWER</span>
           </div>
 
-          {/* Tree stats row */}
           <div style={{ display: "flex", gap: "16px" }}>
             {[
-              { label: "delegators", value: delegators },
-              { label: "in network", value: networkTotal },
-              { label: "beyond", value: tree.tailCount > 0 ? `+${tree.tailCount}` : "0" },
+              { label: "delegators", value: demo.delegators },
+              { label: "in network", value: demo.networkTotal },
+              { label: "beyond", value: demo.tree.tailCount > 0 ? `+${demo.tree.tailCount}` : "0" },
             ].map(s => (
               <div
                 key={s.label}
@@ -194,7 +157,6 @@ export async function GET(
             ))}
           </div>
 
-          {/* Domain */}
           <p style={{ position: "absolute", bottom: "18px", fontSize: "12px", color: "#404040" }}>
             gov.loopcmbntr.live
           </p>
@@ -203,12 +165,14 @@ export async function GET(
         {/* Right: tree SVG */}
         <div
           style={{
-            width: "640px", height: "630px",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            width: "640px",
+            height: "630px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             overflow: "hidden",
           }}
         >
-          {/* 500:582 at height 630 → width 541 */}
           <img src={treeDataUri} style={{ width: "541px", height: "630px" }} />
         </div>
       </div>

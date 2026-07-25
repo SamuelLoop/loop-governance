@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getPowerStats } from "./power";
-import { fetchPowerTree, generateTreeSVG } from "@/lib/power-tree";
-import { createServiceClient } from "@/lib/supabase-server";
-import { ShareButtons } from "./share-buttons";
+import { DEMO_TIERS, generateTreeSVG, type TierSlug } from "@/lib/power-tree";
+import { ShareButtons } from "../../../[userId]/[subject]/share-buttons";
 
-type Params = Promise<{ userId: string; subject: string }>;
+type Params = Promise<{ tier: string; subject: string }>;
 
 const SUBJECT_LABELS: Record<string, string> = {
   governance: "Governance",
@@ -21,15 +19,12 @@ const SUBJECT_LABELS: Record<string, string> = {
 };
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { userId, subject } = await params;
-  const stats = await getPowerStats(userId, subject);
-  if (!stats) return { title: "Not found" };
-
+  const { tier, subject } = await params;
+  const demo = DEMO_TIERS[tier as TierSlug];
+  if (!demo) return { title: "Not found" };
   const label = SUBJECT_LABELS[subject] ?? subject;
-  const title = `${stats.userName} | ${stats.tier} ${label} Governor`;
-  const displayScore = Number(stats.powerScore).toFixed(2);
-  const description = `${displayScore} power score in ${label}. ${stats.delegationsReceived} delegations, ${stats.accreditationsReceived} accreditations, ${stats.communitiesJoined} communities.`;
-
+  const title = `${demo.tier} ${label} Governor | Demo Badge`;
+  const description = `${demo.powerScore} power score · ${demo.delegators} delegations · ${demo.networkTotal} in network`;
   return {
     title,
     description,
@@ -37,47 +32,49 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       title,
       description,
       siteName: "Loop_cmbntr",
-      images: [{ url: `/badge/${userId}/${subject}/og`, width: 1200, height: 630, alt: title }],
+      images: [{ url: `/badge/demo/${tier}/${subject}/og`, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [`/badge/${userId}/${subject}/og`],
+      images: [`/badge/demo/${tier}/${subject}/og`],
     },
   };
 }
 
-export default async function BadgePage({ params }: { params: Params }) {
-  const { userId, subject } = await params;
-  const [stats, tree] = await Promise.all([
-    getPowerStats(userId, subject),
-    fetchPowerTree(userId, subject, createServiceClient()),
-  ]);
-  if (!stats) notFound();
+export default async function DemoBadgePage({ params }: { params: Params }) {
+  const { tier, subject } = await params;
+  const demo = DEMO_TIERS[tier as TierSlug];
+  if (!demo) notFound();
 
   const label = SUBJECT_LABELS[subject] ?? subject;
-  const badgeUrl = `https://gov.loopcmbntr.live/badge/${userId}/${subject}`;
-  const networkTotal = tree.nodes.length;
-  const delegators = tree.nodes.filter(n => n.depth === 1).length;
+  const badgeUrl = `https://gov.loopcmbntr.live/badge/demo/${tier}/${subject}`;
 
   const treeSvg = generateTreeSVG({
-    tree,
-    tierColor: stats.tierColor,
-    powerScore: stats.powerScore,
-    tier: stats.tier,
-    userName: stats.userName,
+    tree: demo.tree,
+    tierColor: demo.tierColor,
+    powerScore: demo.powerScore,
+    tier: demo.tier,
+    userName: "Demo Governor",
     subject: label,
-    delegators,
-    networkTotal,
-    votes: stats.votesCast,
-    proposals: stats.proposalsAuthored,
-    communities: stats.communitiesJoined,
+    delegators: demo.delegators,
+    networkTotal: demo.networkTotal,
+    votes: demo.votes,
+    proposals: demo.proposals,
+    communities: demo.communities,
     mode: "badge",
   });
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center px-4 py-12">
+      {/* Demo banner */}
+      <div className="mb-6 max-w-lg w-full rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-center">
+        <p className="text-xs text-amber-400/80">
+          Demo badge — {demo.tier} tier · Share to see how it renders on WhatsApp
+        </p>
+      </div>
+
       {/* Platform intro */}
       <div className="mb-8 max-w-lg text-center">
         <p className="text-xs font-medium uppercase tracking-widest text-amber-400">
@@ -96,19 +93,19 @@ export default async function BadgePage({ params }: { params: Params }) {
       {/* Power Tree badge card */}
       <div
         className="w-full max-w-lg overflow-hidden rounded-2xl"
-        style={{ boxShadow: `0 0 80px ${stats.tierGlow}, 0 0 30px ${stats.tierGlow}` }}
+        style={{ boxShadow: `0 0 80px ${demo.tierGlow}, 0 0 30px ${demo.tierGlow}` }}
         dangerouslySetInnerHTML={{ __html: treeSvg.replace("<svg ", '<svg style="width:100%;height:auto" ') }}
       />
 
       {/* Share section */}
       <div className="mt-8 text-center">
-        <p className="mb-3 text-sm text-neutral-400">Share your badge</p>
+        <p className="mb-3 text-sm text-neutral-400">Share this demo badge</p>
         <ShareButtons
           url={badgeUrl}
-          userName={stats.userName}
+          userName="Demo Governor"
           subject={label}
-          tier={stats.tier}
-          score={stats.powerScore}
+          tier={demo.tier}
+          score={demo.powerScore}
         />
       </div>
 
