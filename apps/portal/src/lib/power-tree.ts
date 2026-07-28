@@ -37,6 +37,19 @@ export interface TreeSVGOptions {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPowerTree(userId: string, subject: string, admin: any): Promise<TreeData> {
+  // Fast path: read materialised snapshot from user_power_scores (Problem 4)
+  const { data: scoreRow } = await admin
+    .from('user_power_scores')
+    .select('tree_snapshot')
+    .eq('user_id', userId)
+    .eq('subject', subject)
+    .maybeSingle()
+
+  if (scoreRow?.tree_snapshot) {
+    return scoreRow.tree_snapshot as TreeData
+  }
+
+  // Fallback: live multi-query walk (new user before first trigger fires)
   const [l1DelRes, l1AccRes] = await Promise.all([
     admin.from("delegations").select("delegator_id").eq("delegate_id", userId).eq("subject_tag", subject).eq("active", true),
     admin.from("accreditations").select("giver_id").eq("receiver_id", userId).eq("subject_tag", subject).eq("active", true),
