@@ -122,7 +122,7 @@ export function CampaignForm({
             >
               <p className="text-sm font-medium">Campaign poster</p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                "Vote for me" page
+                &quot;Vote for me&quot; page
               </p>
             </button>
             <button
@@ -219,7 +219,7 @@ export function CampaignForm({
               {campaignType === "campaign" ? "Your campaign" : "Your flyer"}
             </Label>
             <p className="mb-2 text-[11px] text-muted-foreground">
-              We've pre-filled a template to get you started. Edit the text
+              We&apos;ve pre-filled a template to get you started. Edit the text
               below, add images, embed videos, and make it yours.
             </p>
             <TiptapEditor content={content} onChange={setContent} />

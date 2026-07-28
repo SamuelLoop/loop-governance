@@ -72,7 +72,7 @@ export function TokenInfoCard({
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
             To see your tokens in-wallet after minting, most wallets need
-            you to "Import token" and paste this contract address. Symbol is{" "}
+            you to &quot;Import token&quot; and paste this contract address. Symbol is{" "}
             <span className="font-medium text-foreground">LOOP</span>, decimals{" "}
             <span className="font-medium text-foreground">18</span>.
           </p>

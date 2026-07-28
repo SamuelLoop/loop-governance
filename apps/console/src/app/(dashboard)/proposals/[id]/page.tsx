@@ -267,7 +267,7 @@ export default async function ProposalPage({
             </p>
             {proposal.disbursed_at ? (
               <p className="mt-2 text-xs text-green-400">
-                Distributed on {new Date(proposal.disbursed_at).toLocaleDateString()} per the community's leader / participant / delegator rules.
+                Distributed on {new Date(proposal.disbursed_at).toLocaleDateString()} per the community&apos;s leader / participant / delegator rules.
               </p>
             ) : proposal.status === "approved" ? (
               <p className="mt-2 text-xs text-amber-400">
@@ -275,7 +275,7 @@ export default async function ProposalPage({
               </p>
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">
-                If approved, this amount will be distributed to members per the community's distribution rules.
+                If approved, this amount will be distributed to members per the community&apos;s distribution rules.
               </p>
             )}
           </CardContent>

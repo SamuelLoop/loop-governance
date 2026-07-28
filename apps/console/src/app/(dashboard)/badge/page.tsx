@@ -137,17 +137,16 @@ export default async function BadgePage() {
 
   const communityIds = (subjectCommunities ?? []).map((c: any) => c.id);
 
-  const [accResult, votesResult, propsResult, scoreResult, tree] = await Promise.all([
+  const [accResult, countsResult, scoreResult, tree] = await Promise.all([
     admin.from("accreditations").select("weight").eq("receiver_id", userId).eq("active", true).eq("subject_tag", activeSubject),
-    admin.from("votes").select("*", { count: "exact", head: true }).eq("user_id", userId),
-    admin.from("proposals").select("*", { count: "exact", head: true }).eq("author_id", userId),
+    admin.from("user_vote_proposal_counts").select("votes_cast, proposals_authored").eq("user_id", userId).maybeSingle(),
     admin.from("accreditation_scores").select("score, rank").eq("user_id", userId).eq("subject_tag", activeSubject).is("community_id", null).maybeSingle(),
     fetchConsoleTree(userId, activeSubject, admin),
   ]);
 
   const accreditationWeight = (accResult.data ?? []).reduce((s: number, a: any) => s + (a.weight ?? 1), 0);
-  const votesCast = votesResult.count ?? 0;
-  const proposalsAuthored = propsResult.count ?? 0;
+  const votesCast = (countsResult.data as { votes_cast: number } | null)?.votes_cast ?? 0;
+  const proposalsAuthored = (countsResult.data as { proposals_authored: number } | null)?.proposals_authored ?? 0;
 
   let delegationsReceived = 0;
   let communitiesJoined = 0;

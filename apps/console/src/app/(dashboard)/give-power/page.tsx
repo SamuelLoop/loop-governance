@@ -100,7 +100,7 @@ export default async function GivePowerPage() {
         <p>
           This is not permanent and it is not blind. If you ever feel your
           power was used incorrectly, or in a way that goes against your
-          interests or the wider community's interests, you can revoke it
+          interests or the wider community&apos;s interests, you can revoke it
           immediately. You can then either vote directly yourself or give your
           power to someone else who you believe will act with integrity.
         </p>
@@ -147,7 +147,7 @@ export default async function GivePowerPage() {
             Accredit a peer
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Recognise someone's competence in this subject. Accreditation
+            Recognise someone&apos;s competence in this subject. Accreditation
             builds their reputation and signals to others that they are
             worth delegating to.
           </p>
@@ -193,7 +193,7 @@ export default async function GivePowerPage() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              You haven't delegated any votes yet.
+              You haven&apos;t delegated any votes yet.
             </p>
           )}
         </div>

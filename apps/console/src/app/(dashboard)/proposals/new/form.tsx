@@ -238,7 +238,7 @@ export function CreateProposalForm({
               placeholder="e.g. 5000"
             />
             <p className="mt-1 text-xs text-neutral-500">
-              If approved, the community's distribution rules
+              If approved, the community&apos;s distribution rules
               (leader/participant/delegator split) fire and pay members from
               this amount.
             </p>

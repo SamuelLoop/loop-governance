@@ -298,8 +298,8 @@ export function ClaimPanel({
           </div>
         </div>
         <p className="mt-3 text-[11px] text-muted-foreground">
-          All purchased tokens are yours regardless of status. "Held securely" means
-          we are holding them until you provide a wallet address. "Being minted" means
+          All purchased tokens are yours regardless of status. &quot;Held securely&quot; means
+          we are holding them until you provide a wallet address. &quot;Being minted&quot; means
           your wallet is set and tokens will be sent to it shortly.
         </p>
       </div>

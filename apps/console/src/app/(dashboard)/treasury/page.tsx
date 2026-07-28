@@ -447,7 +447,7 @@ export default async function TreasuryPage() {
           <strong>{Number(pool.balance).toLocaleString()} LOOP</strong> in
           reserve. Community leadership groups can submit proposals to draw
           from this pool for their region or subject area. Approved requests
-          are disbursed directly into the requesting community's treasury,
+          are disbursed directly into the requesting community&apos;s treasury,
           where they can then be cascaded further down the hierarchy or
           distributed to members.
         </p>
@@ -560,7 +560,7 @@ export default async function TreasuryPage() {
           {subjectLabel} treasury hierarchy
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
-          Funds flow from top to bottom. Each community's leadership group
+          Funds flow from top to bottom. Each community&apos;s leadership group
           controls the regional allocation percentages that determine how much
           cascades to sub-regions and how much is retained for local
           distribution. Local and city-level treasuries can also receive

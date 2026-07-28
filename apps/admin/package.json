@@ -7,7 +7,7 @@
     "dev": "next dev --port 3300",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "node tests/admin-console.test.mjs"
   },
@@ -27,11 +27,18 @@
     "viem": "^2.55.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@loop/config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.2.12",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.65.0"
   }
 }

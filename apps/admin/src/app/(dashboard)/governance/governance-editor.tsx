@@ -209,6 +209,9 @@ export function GovernanceEditor({
 
   const [formKey, setFormKey] = useState(0);
   useEffect(() => {
+    // Intentional: force-remount the form when the selected scope changes,
+    // discarding any unsaved edits from the previous scope. Not a cascading-render bug.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormKey((k) => k + 1);
   }, [scope?.type, orgId, subject, communityId]);
 

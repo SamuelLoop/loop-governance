@@ -102,7 +102,7 @@ export function FlagQueue({
                     Resolved by {f.resolved_by_name ?? "Unknown"}
                     {f.resolved_at && ` on ${new Date(f.resolved_at).toLocaleString()}`}
                     {f.resolution_note && (
-                      <span className="mt-0.5 block italic">"{f.resolution_note}"</span>
+                      <span className="mt-0.5 block italic">&quot;{f.resolution_note}&quot;</span>
                     )}
                   </p>
                 )}
