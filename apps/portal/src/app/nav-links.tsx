@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type Profile = {
   display_name: string;
@@ -20,21 +21,31 @@ export function NavLinks({ profile }: { profile: Profile }) {
     <>
       {/* Desktop */}
       <div className="hidden items-center gap-5 sm:flex">
-        <a
+        <Link
           href="/buy"
           className="rounded-md bg-emerald-500 px-4 py-1.5 text-xs font-bold text-neutral-950 transition hover:bg-emerald-400"
         >
           Buy Loop
-        </a>
-        {links.map((l) => (
-          <a
-            key={l.href}
-            href={l.href}
-            className="text-xs font-medium text-neutral-400 transition hover:text-neutral-100"
-          >
-            {l.label}
-          </a>
-        ))}
+        </Link>
+        {links.map((l) =>
+          l.href.startsWith("http") ? (
+            <a
+              key={l.href}
+              href={l.href}
+              className="text-xs font-medium text-neutral-400 transition hover:text-neutral-100"
+            >
+              {l.label}
+            </a>
+          ) : (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="text-xs font-medium text-neutral-400 transition hover:text-neutral-100"
+            >
+              {l.label}
+            </Link>
+          )
+        )}
         {profile ? (
           <a
             href="https://console.loopcmbntr.live/account"
@@ -86,23 +97,34 @@ export function NavLinks({ profile }: { profile: Profile }) {
       {open && (
         <div className="absolute left-0 right-0 top-full border-b border-neutral-800/50 bg-neutral-950/95 px-6 py-4 backdrop-blur-md sm:hidden">
           <div className="flex flex-col gap-3">
-            <a
+            <Link
               href="/buy"
               onClick={() => setOpen(false)}
               className="rounded-md bg-emerald-500 px-4 py-2.5 text-center text-sm font-bold text-neutral-950 transition hover:bg-emerald-400"
             >
               Buy Loop
-            </a>
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-4 py-2.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-800/50 hover:text-neutral-100"
-              >
-                {l.label}
-              </a>
-            ))}
+            </Link>
+            {links.map((l) =>
+              l.href.startsWith("http") ? (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-4 py-2.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-800/50 hover:text-neutral-100"
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-4 py-2.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-800/50 hover:text-neutral-100"
+                >
+                  {l.label}
+                </Link>
+              )
+            )}
             {profile ? (
               <a
                 href="https://console.loopcmbntr.live/account"

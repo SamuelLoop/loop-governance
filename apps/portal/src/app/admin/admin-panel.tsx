@@ -224,7 +224,7 @@ export function AdminPanel() {
             subject expertise
           </li>
           <li>
-            Delegations to human users increase those users' governance voting
+            Delegations to human users increase those users&apos; governance voting
             weight
           </li>
         </ul>

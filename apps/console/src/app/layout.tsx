@@ -32,13 +32,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html
+      lang="en"
+      className="dark"
+      style={{ backgroundColor: "oklch(0.12 0.005 250)" }}
+    >
       <body
         className={cn(
           geistSans.variable,
           geistMono.variable,
           "min-h-screen font-sans antialiased"
         )}
+        style={{
+          backgroundColor: "oklch(0.12 0.005 250)",
+          color: "oklch(0.95 0 0)",
+        }}
       >
         <TooltipProvider>{children}</TooltipProvider>
       </body>

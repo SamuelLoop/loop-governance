@@ -391,7 +391,7 @@ export default async function Home() {
 
           <div className="mx-auto mb-14 max-w-2xl rounded-xl border border-neutral-800 bg-neutral-900/40 px-6 py-5 text-center">
             <p className="mb-2 text-sm font-medium text-neutral-200">
-              Don't see your thing? Create your own.
+              Don&apos;t see your thing? Create your own.
             </p>
             <p className="mb-3 text-sm leading-relaxed text-neutral-500">
               Woodworking expertise. Save the whales. How to make more money.

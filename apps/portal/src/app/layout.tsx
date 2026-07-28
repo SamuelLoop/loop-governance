@@ -25,8 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
+    <html lang="en" style={{ backgroundColor: "#0a0a0a" }}>
+      <body
+        className="min-h-screen bg-neutral-950 text-neutral-100 antialiased"
+        style={{ backgroundColor: "#0a0a0a", color: "#f5f5f5" }}
+      >
         <PortalNav />
         {children}
       </body>

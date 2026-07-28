@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase-server";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PosterCTA } from "./poster-cta";
 
 type Params = Promise<{ slug: string }>;
@@ -215,9 +216,9 @@ export default async function CampaignPosterPage({
         <p className="text-xs text-amber-300/90">
           <strong>Loop_cmbntr</strong> is the new Global Governance Community.
           Make your voice matter.{" "}
-          <a href="/" className="underline hover:text-amber-200">
+          <Link href="/" className="underline hover:text-amber-200">
             Learn more
-          </a>
+          </Link>
         </p>
       </div>
 

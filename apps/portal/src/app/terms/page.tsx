@@ -21,10 +21,10 @@ export default function TermsPage() {
           </h2>
           <p>
             By accessing or using the Loop_cmbntr governance platform
-            ("Platform"), including gov.loopcmbntr.live and
+            (&quot;Platform&quot;), including gov.loopcmbntr.live and
             console.loopcmbntr.live, you agree to be bound by these Terms of
-            Service. The Platform is operated by Loop TGP LLC ("we", "us",
-            "our"). If you do not agree to these terms, do not use the Platform.
+            Service. The Platform is operated by Loop TGP LLC (&quot;we&quot;, &quot;us&quot;,
+            &quot;our&quot;). If you do not agree to these terms, do not use the Platform.
           </p>
         </section>
 
@@ -83,7 +83,7 @@ export default function TermsPage() {
               or discriminate against individuals or groups.
             </li>
             <li>
-              Not interfere with the Platform's operation, security, or
+              Not interfere with the Platform&apos;s operation, security, or
               infrastructure.
             </li>
             <li>
@@ -171,7 +171,7 @@ export default function TermsPage() {
           </h2>
           <ul className="list-disc space-y-1 pl-5">
             <li>
-              The Platform is provided "as is" without warranties of any kind,
+              The Platform is provided &quot;as is&quot; without warranties of any kind,
               express or implied.
             </li>
             <li>
