@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import type { ReactElement } from "react";
 import { getPowerStats } from "./power";
 import { fetchPowerTree, generateTreeSVG } from "@/lib/power-tree";
 import { createServiceClient } from "@/lib/supabase-server";
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function BadgePage({ params }: { params: Params }) {
+export default async function BadgePage({ params }: { params: Params }): Promise<ReactElement> {
   const { userId, subject } = await params;
   const [stats, tree] = await Promise.all([
     getPowerStats(userId, subject),

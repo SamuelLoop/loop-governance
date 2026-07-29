@@ -18,6 +18,7 @@ export function SubjectSwitcher({ communities, activeCommunityId, onSelect }: Pr
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scrollView}
       contentContainerStyle={styles.container}
     >
       {visible.map((c) => {
@@ -52,6 +53,10 @@ export function SubjectSwitcher({ communities, activeCommunityId, onSelect }: Pr
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   container: {
     paddingHorizontal: 16,
     paddingVertical: 8,

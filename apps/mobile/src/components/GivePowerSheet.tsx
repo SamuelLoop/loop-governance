@@ -149,11 +149,12 @@ export function GivePowerSheet({
   }
 
   async function accredit() {
-    if (!selected) return;
+    if (!selected || !communityId) return;
     setLoading(true);
     const { error } = await supabase.from('accreditations').insert({
       giver_id: currentUserId,
       receiver_id: selected.id,
+      community_id: communityId,
       subject_tag: activeSubject,
       weight: 1,
       active: true,

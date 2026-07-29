@@ -6,8 +6,10 @@ import { colors, spacing, fontSize, radius } from '../../theme/tokens';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   async function sendMagicLink() {
     if (!email.trim()) return;
@@ -25,14 +27,50 @@ export default function LoginScreen() {
     }
   }
 
+  async function verifyCode() {
+    if (!code.trim()) return;
+    setVerifying(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'email',
+    });
+    setVerifying(false);
+    if (error) {
+      Alert.alert('Error', error.message);
+    }
+    // On success, onAuthStateChange in the root layout picks up the new
+    // session and redirects away from here automatically.
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.wordmark}>Loop</Text>
       <Text style={styles.subtitle}>Governance</Text>
 
       {sent ? (
-        <View style={styles.sentBox}>
-          <Text style={styles.sentText}>Check your email for the magic link.</Text>
+        <View style={styles.form}>
+          <Text style={styles.sentText}>
+            Check your email — click the link, or enter the code below.
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="123456"
+            placeholderTextColor={colors.text.muted}
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={10}
+          />
+          <TouchableOpacity
+            style={[styles.button, verifying && styles.buttonDisabled]}
+            onPress={verifyCode}
+            disabled={verifying}
+          >
+            <Text style={styles.buttonText}>{verifying ? 'Verifying...' : 'Verify code'}</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.form}>
@@ -106,13 +144,6 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: fontSize.md,
     fontWeight: '600',
-  },
-  sentBox: {
-    padding: spacing.xl,
-    backgroundColor: colors.bg.card,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   sentText: {
     color: colors.text.primary,

@@ -7,8 +7,8 @@ import {
   Pressable,
   SectionList,
   Alert,
-  Linking,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -65,10 +65,34 @@ export default function ProfileScreen() {
     setProfile(null);
   }
 
-  function openFeature(path: string) {
-    Linking.openURL(`${CONSOLE_BASE}${path}`).catch(() =>
-      Alert.alert('Error', 'Could not open link.')
-    );
+  async function openFeature(path: string) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      Alert.alert('Error', 'Please sign in again.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${CONSOLE_BASE}/api/mobile-auth-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ path }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.url) throw new Error(body.error ?? 'Could not open link.');
+
+      // In-app browser sheet, not a switch to the external Safari app —
+      // and the link carries the user's own session so they land signed in.
+      await WebBrowser.openBrowserAsync(body.url);
+    } catch {
+      Alert.alert('Error', 'Could not open link.');
+    }
   }
 
   function cycleSubject() {
