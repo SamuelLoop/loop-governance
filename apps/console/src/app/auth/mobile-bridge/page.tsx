@@ -21,29 +21,34 @@ export default function MobileBridgePage() {
 
     const supabase = createClient();
 
+    // Prefer parsing the hash fragment directly — createBrowserClient from
+    // @supabase/ssr does not reliably fire onAuthStateChange from implicit-flow
+    // hash tokens in a WebView, so we call setSession explicitly instead.
+    const hash = window.location.hash.substring(1);
+    const hashParams = new URLSearchParams(hash);
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
+
+    if (accessToken && refreshToken) {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ data: { session }, error }) => {
+          if (session && !error) {
+            window.location.replace(safeNext);
+          } else {
+            setFailed(true);
+          }
+        });
+      return;
+    }
+
+    // Fallback: already signed in (e.g. page reload after session set)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         window.location.replace(safeNext);
-        return;
-      }
-      // detectSessionInUrl hasn't resolved the hash fragment yet on this
-      // first tick; onAuthStateChange fires once it does.
-      const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-          sub.subscription.unsubscribe();
-          window.location.replace(safeNext);
-        }
-      });
-
-      const timeout = setTimeout(() => {
-        sub.subscription.unsubscribe();
+      } else {
         setFailed(true);
-      }, 8000);
-
-      return () => {
-        clearTimeout(timeout);
-        sub.subscription.unsubscribe();
-      };
+      }
     });
   }, []);
 

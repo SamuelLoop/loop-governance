@@ -141,7 +141,11 @@ export function GivePowerSheet({
     });
     setLoading(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      if (error.code === '23505') {
+        Alert.alert('Already delegated', 'You already delegate to this person in this community.');
+      } else {
+        Alert.alert('Error', error.message);
+      }
       return;
     }
     onSuccess?.();
@@ -161,7 +165,11 @@ export function GivePowerSheet({
     });
     setLoading(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      if (error.code === '23505') {
+        Alert.alert('Already accredited', 'You already vouch for this person in this community.');
+      } else {
+        Alert.alert('Error', error.message);
+      }
       return;
     }
     onSuccess?.();
