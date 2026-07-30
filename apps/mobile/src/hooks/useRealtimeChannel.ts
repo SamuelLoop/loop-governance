@@ -23,75 +23,76 @@ export function useRealtimeChannel(
     if (!communityId) return;
     if (!afterTimestamp) setLoading(true);
 
-    const { data: msgs } = await supabase
-      .from('messages')
-      .select('id, content, created_at, author_id, community_id')
-      .eq('community_id', communityId)
-      .eq('channel', 'community')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (!msgs || msgs.length === 0) {
-      setLoading(false);
-      if (!afterTimestamp) setMessages([]);
-      return;
-    }
-
-    const authorIds = [...new Set(msgs.map((m: any) => m.author_id as string))];
-
-    const [usersRes, scoresRes] = await Promise.all([
-      supabase
-        .from('users')
-        .select('id, display_name, avatar_url')
-        .in('id', authorIds),
-      supabase
-        .from('accreditation_scores')
-        .select('user_id, score, rank')
+    try {
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('id, content, created_at, author_id, community_id')
         .eq('community_id', communityId)
-        .in('user_id', authorIds),
-    ]);
+        .eq('channel', 'community')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-    const userMap = new Map(
-      (usersRes.data ?? []).map((u: any) => [u.id, u])
-    );
-    const scoreMap = new Map(
-      (scoresRes.data ?? []).map((s: any) => [s.user_id, s])
-    );
-
-    const chatMsgs: ChatMessage[] = msgs.map((m: any) => {
-      const user = userMap.get(m.author_id);
-      const sc = scoreMap.get(m.author_id);
-      const rank = sc?.rank ?? 0;
-      const score = sc?.score ?? 0;
-      return {
-        id: m.id,
-        communityId: m.community_id,
-        authorId: m.author_id,
-        content: m.content,
-        createdAt: m.created_at,
-        author: user
-          ? {
-              id: m.author_id,
-              displayName: user.display_name,
-              avatarUrl: user.avatar_url,
-              tier: rankToTier(rank),
-              score,
-            }
-          : null,
-        isLeadership: score >= 80,
-      };
-    });
-
-    if (afterTimestamp) {
-      chatMsgs.forEach((m) => prependMessage(m));
-    } else {
-      setMessages(chatMsgs);
-      if (chatMsgs.length > 0) {
-        lastTimestampRef.current = chatMsgs[0].createdAt;
+      if (!msgs || msgs.length === 0) {
+        if (!afterTimestamp) setMessages([]);
+        return;
       }
-    }
 
-    setLoading(false);
+      const authorIds = [...new Set(msgs.map((m: any) => m.author_id as string))];
+
+      const [usersRes, scoresRes] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, display_name, avatar_url')
+          .in('id', authorIds),
+        supabase
+          .from('accreditation_scores')
+          .select('user_id, score, rank')
+          .eq('community_id', communityId)
+          .in('user_id', authorIds),
+      ]);
+
+      const userMap = new Map(
+        (usersRes.data ?? []).map((u: any) => [u.id, u])
+      );
+      const scoreMap = new Map(
+        (scoresRes.data ?? []).map((s: any) => [s.user_id, s])
+      );
+
+      const chatMsgs: ChatMessage[] = msgs.map((m: any) => {
+        const user = userMap.get(m.author_id);
+        const sc = scoreMap.get(m.author_id);
+        const rank = sc?.rank ?? 0;
+        const score = sc?.score ?? 0;
+        return {
+          id: m.id,
+          communityId: m.community_id,
+          authorId: m.author_id,
+          content: m.content,
+          createdAt: m.created_at,
+          author: user
+            ? {
+                id: m.author_id,
+                displayName: user.display_name,
+                avatarUrl: user.avatar_url,
+                tier: rankToTier(rank),
+                score,
+              }
+            : null,
+          isLeadership: score >= 80,
+        };
+      });
+
+      if (afterTimestamp) {
+        chatMsgs.forEach((m) => prependMessage(m));
+      } else {
+        setMessages(chatMsgs);
+        if (chatMsgs.length > 0) {
+          lastTimestampRef.current = chatMsgs[0].createdAt;
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   function subscribe() {

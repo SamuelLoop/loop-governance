@@ -132,20 +132,38 @@ export function GivePowerSheet({
   async function delegate() {
     if (!selected || !communityId) return;
     setLoading(true);
-    const { error } = await supabase.from('delegations').insert({
-      delegator_id: currentUserId,
-      delegate_id: selected.id,
-      subject_tag: activeSubject,
-      community_id: communityId,
-      active: true,
-    });
+
+    // Update existing active delegation if one exists for this slot,
+    // otherwise insert. The unique index is on (delegator_id, community_id,
+    // subject_tag) so each user can only hold one active delegation per subject.
+    const { data: existing } = await supabase
+      .from('delegations')
+      .select('id')
+      .eq('delegator_id', currentUserId)
+      .eq('community_id', communityId)
+      .eq('subject_tag', activeSubject)
+      .eq('active', true)
+      .maybeSingle();
+
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from('delegations')
+        .update({ delegate_id: selected.id })
+        .eq('id', existing.id));
+    } else {
+      ({ error } = await supabase.from('delegations').insert({
+        delegator_id: currentUserId,
+        delegate_id: selected.id,
+        subject_tag: activeSubject,
+        community_id: communityId,
+        active: true,
+      }));
+    }
+
     setLoading(false);
     if (error) {
-      if (error.code === '23505') {
-        Alert.alert('Already delegated', 'You already delegate to this person in this community.');
-      } else {
-        Alert.alert('Error', error.message);
-      }
+      Alert.alert('Error', error.message);
       return;
     }
     onSuccess?.();
