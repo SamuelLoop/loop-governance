@@ -40,7 +40,7 @@ export async function sendPurchaseReceipt({
 
     <!-- Header -->
     <div style="text-align:center; margin-bottom:32px;">
-      <img src="https://gov.loopcmbntr.live/logo.png" alt="Loop_cmbntr" width="48" height="48" style="border-radius:10px; margin-bottom:16px;" />
+      <img src="https://gov.loopcmbntr.live/icon-mark-256.png" alt="Loop_" width="48" height="48" style="border-radius:10px; margin-bottom:16px;" />
       <h1 style="margin:0; font-size:22px; font-weight:600; color:#fafafa; letter-spacing:-0.02em;">
         Purchase Receipt
       </h1>

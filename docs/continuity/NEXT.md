@@ -144,6 +144,103 @@ directory. Confirmed via `git status`/`git ls-files` and committed this
 session alongside the security migrations (051-054) and all session
 outputs. If you're reading this from a fresh clone, that commit is why.
 
+**Session 7 done (2026-08-10):** scaffold session at `sessions/web-07-
+scaffold.md` — first real code changes, all three apps now import from a
+real `@loop/ui`. `packages/ui` stood up for real: `package.json` (mirrors
+`@loop/db`'s exports pattern), `src/components/ui/*` (all 19 shadcn
+primitives — console's copies were byte-identical to admin's 14-item
+subset, verified by diff before consolidating; portal had zero local
+copies, now consumes `@loop/ui` directly for the first time), `src/lib/
+utils.ts` (`cn()`), `src/hooks/use-mobile.ts`, and new `src/theme/`
+(font loaders for all 3 self-hosted faces, a flash-of-wrong-theme-
+prevention init script, and the sun/moon `ThemeToggle` — console/admin
+only). `theme.css` wired into all 3 apps' `globals.css` via a relative
+import plus a `@source` directive (Tailwind v4 doesn't scan workspace
+packages by default — verified live against real production builds, not
+just dev, per eng-plan task T3.6: grepped each app's emitted `.next/
+static/css/*.css` for a class that only exists inside `packages/ui`
+source, e.g. `.bg-sidebar`, confirmed present in console/admin/portal's
+prod CSS). `transpilePackages: ["@loop/ui"]` added to all 3 apps'
+`next.config.ts` (admin had none at all before this — eng-plan T4.7,
+done). `data-app`/`data-theme` attribute contract wired on all 3 root
+layouts per `theme.css`'s own documented contract.
+
+**Scoping decision, not in the original brief, made explicit:** wiring
+console/admin to `@loop/ui` did NOT rewrite the 58 existing `@/components/
+ui/*` import call sites (eng-plan task T3.5's full 143-site rewrite across
+console+admin is unchanged, tracked separately). Instead each local
+`components/ui/*.tsx` file became a one-line re-export shim
+(`export { X } from "@loop/ui"`), so `packages/ui` is the real source of
+truth end-to-end with zero call-site churn this session. Cheap, reversible
+cleanup whenever T3.5 actually runs — full rationale in `packages/ui/
+README.md`.
+
+Brand wiring checklist from `packages/ui/assets/brand/README.md` executed
+in full: favicons/apple-touch-icon swapped in-place in all 3 apps'
+`public/`, new `wordmark-{app}.svg`/`icon-mark-256.png`/`og-{app}.png`
+copied in, `openGraph.images` + `metadataBase` added to all 3 layouts
+(console/portal use their real production domains; admin's left unset
+since `NEXT.md` itself records admin as having no public URL — guessing
+one would've been worse than the harmless dev warning), old crimson
+`logo.png`/`logo-full.png` removed from all 3 apps' `public/` and every
+source call site (sidebar headers, both login pages, portal nav/homepage/
+footer, the Stripe receipt email) repointed at the new assets — 8 call
+sites from the checklist, all done, zero remaining `grep`
+hits confirmed before deleting the old files.
+
+`community-map.tsx`'s `LEVEL_COLORS` fixed per `web-brand-output.md` §5:
+the 7 unrelated saturated hues replaced with a single-hue intensity ramp
+along the accent gradient (computed at module load from the same
+`--accent-start`/`--accent-end` hex values as `theme.css`, since Leaflet
+draws to canvas and can't read a CSS custom property — same duplication
+pattern already accepted for tier colours in `power-tree.ts`).
+`LEVEL_RADIUS` untouched. Polylines flattened to `--color-text-secondary`
+dashed. Selected-node ring now uses the accent-glow colour instead of a
+fill change.
+
+**Bug found and fixed, would have broken every app's CSS build:** a
+`/* ... apps/*/src/lib/power-tree.ts ... */` block comment in both
+`theme.css` (pre-existing, from session 6) and this session's own
+`community-map.tsx` addition contained a literal `*/` substring inside
+`apps/*/src` — which prematurely closes a CSS/JS block comment. Portal's
+dev server actually hit this live (`CssSyntaxError`, 500 on every route)
+before it was caught; console/admin hadn't rendered any page that forced
+the CSS compile yet. Fixed by rewording both comments to avoid the
+`*/`-as-substring trap. Worth a `LESSONS.md` entry (added).
+
+**Verification, not just `pnpm dev`:** all 3 apps type-check clean, lint
+clean (0 errors, only pre-existing warnings), and — critically — **all 3
+apps' production builds (`pnpm build`) pass**, including portal's
+`/buy`, `/buy/success`, `/api/stripe/checkout`, `/api/stripe/webhook`
+routes (untouched by this session, confirmed still compiling and
+generating). `/design-review` was deliberately **not** run — it requires
+a clean git tree and runs its own autonomous multi-commit fix loop that
+can rewrite spacing/typography beyond this session's own "zero
+feature-level redesign" boundary; this repo's tree wasn't clean (a
+concurrent audit-readiness session had its own uncommitted work in
+flight), so running it risked either committing unrelated work or an
+uncontrolled scope-creep fix loop. Manual verification against
+`DESIGN.web.md`'s own rules substituted instead (see WORKLOG.md).
+
+**Not done this session, explicitly deferred:**
+- Power-tree consolidation into `packages/ui/power-tree` (eng-plan T1,
+  decision 6) — out of scope per this session's own brief, badge/
+  power-tree component stays untouched.
+- `apps/mobile` still has zero `@loop/ui` dependency (eng-plan T4.6).
+- DB-backed cross-app theme sync (eng-plan decision 8 / task T8) — the
+  toggle built this session is localStorage-only, console and admin
+  won't share a light-mode choice across origins yet.
+- The 143-site `@/components/ui/*` import rewrite (eng-plan T3.5).
+- `/design-review` (see above) — worth running properly once this
+  session's commit lands and the tree is clean.
+- `/plan-ceo-review` — flagged for the fourth session running now
+  (4, 5, 6, 7) as still not run; this redesign still doesn't appear on
+  this file's own priority list below.
+
+Next up: `sessions/web-implementation-backlog.md` — per-page migration
+of all 44 pages (24 console + 9 admin + 11 portal) onto the shell this
+session landed, following the 9 canonical patterns from session 3.
+
 ### 0. Audit readiness + BMM self-assessment prep (2026-08-09 — external trigger)
 Full brief: `sessions/security-05-audit-readiness-and-bmm.md`
 
@@ -196,24 +293,42 @@ audit badge and a GBA BMM self-assessment before they'll pair Loop Token.
   separate background task, not touched (different product, same shared DB).
 
 - **BMM SDP + self-assessment done**: `docs/bmm/solution-documentation-package.md`
-  and `docs/bmm/self-assessment.md`. Rated honestly, not aspirationally —
-  platform-wide effective level is **1**, capped by Distribution, Identity
-  Management, Resilience, and Infrastructure Sustainability (all Level 1).
+  and `docs/bmm/self-assessment.md`. Rated honestly, not aspirationally.
   Governance (4) and Security (3) are the strongest elements — this
-  session's fixes are exactly why Security cleared Validated. Identity
-  Management is the one gap with no quick fix (KYC/biometric Sybil
-  resistance is a documented product intent, never built). See the self-
-  assessment's "What would move the platform-wide rating" section for the
-  prioritized next steps.
+  session's fixes are exactly why Security cleared Validated.
+- **2026-08-10: Infrastructure Sustainability + Resilience plans written.**
+  `docs/bmm/infrastructure-sustainability-plan.md` and `docs/bmm/
+  continuity-of-operations-plan.md` — both move their elements from
+  Level 1 to Level 2 per BMM's own "documented" definition, without
+  pretending the underlying gaps are closed. Confirmed live (not assumed)
+  via `supabase backups list --project-ref oztfzqkpwwfnxrydmsuo`:
+  **`pitr_enabled: false`** — point-in-time recovery is off on the shared
+  project. Named as the single highest-leverage open action in the COOP.
+  Infrastructure Sustainability plan names the real gap plainly: one
+  maintainer (Samuel), no succession plan, no operating-budget carve-out
+  from token economics.
+- **2026-08-10: multisig deployment started, stalled on hardware.**
+  Confirmed live via direct `eth_call` to Base mainnet that `LoopTokenV2`'s
+  current owner (`0xdb113f65D3368e5C0379486755fc3Fc0b7Fb97CE`) is already
+  a Ledger, not a hot key — this is "harden further," not urgent exposure.
+  Attempted to deploy a 1-of-1 Gnosis Safe via app.safe.global as an
+  interim step (path to 2-of-3 once real co-signers are lined up) — blocked
+  by a persistent Ledger error (`OpenAppCommandError` / code 6807,
+  "Unknown application name") that a firmware update didn't resolve.
+  Recommended next: try Ledger Live Mobile + WalletConnect instead of
+  desktop USB, or resolve directly with Ledger support. **Platform-wide
+  BMM rating is now capped by only two elements: Distribution (this) and
+  Identity Management** — see self-assessment's "What would move the
+  platform-wide rating" section.
 
 **Still open:**
-- Move `owner()` off single EOA (Gnosis Safe multisig + Timelock) —
-  highest-leverage remaining item per the self-assessment.
+- Resume the multisig deployment once the Ledger connection issue is
+  sorted (owner's call on timing — not urgent).
 - Delete dead `LoopToken.sol` (V1) — needs your go-ahead, it's a deletion.
-- Write the actual Infrastructure Sustainability plan (pure writing, zero
-  engineering cost, closes a Level-1 gap outright).
-- Confirm/document Supabase backup/PITR config + write a one-page COOP
-  (Resilience element).
+- Enable PITR on the Supabase project (billing/dashboard action, Samuel
+  only) — moves Resilience Level 2 → 3.
+- Identity Management design decision (KYC/biometric approach) — the one
+  remaining gap with no quick fix.
 - Get 2-3 real audit quotes once contract ownership is off a single EOA.
 
 ### 1. Scale power scores + tree (HIGH — session prompt ready)

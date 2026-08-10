@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { cn } from "@/lib/utils";
+import {
+  ThemeInitScript,
+  generalSans,
+  geist,
+  jetbrainsMono,
+  cn,
+} from "@loop/ui";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Loop_cmbntr Admin",
+  title: "Loop_ Admin",
   description: "Platform administration console",
   icons: {
     icon: [
@@ -22,6 +17,12 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: "Loop_ Admin",
+    description: "Platform administration console",
+    siteName: "Loop_",
+    images: ["/og-admin.png"],
   },
 };
 
@@ -31,21 +32,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className="dark"
-      style={{ backgroundColor: "oklch(0.12 0.005 250)" }}
-    >
+    <html lang="en" data-app="admin" data-theme="dark">
+      <ThemeInitScript />
       <body
         className={cn(
-          geistSans.variable,
-          geistMono.variable,
-          "min-h-screen font-sans antialiased"
+          generalSans.variable,
+          geist.variable,
+          jetbrainsMono.variable,
+          "min-h-screen font-body antialiased"
         )}
-        style={{
-          backgroundColor: "oklch(0.12 0.005 250)",
-          color: "oklch(0.95 0 0)",
-        }}
       >
         {children}
       </body>

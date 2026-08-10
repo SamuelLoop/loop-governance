@@ -1,13 +1,8 @@
-import { cn } from "@/lib/utils"
-
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
-      {...props}
-    />
-  )
-}
-
-export { Skeleton }
+// Re-exported from @loop/ui (packages/ui/src/components/ui/skeleton.tsx) —
+// see packages/ui/README.md. This shim exists so the existing
+// `@/components/ui/*` call sites across this app don't need touching
+// this session (mechanical cleanup to import `@loop/ui` directly is
+// eng-plan task T3.5, tracked separately). Do not add new logic here.
+export {
+  Skeleton,
+} from "@loop/ui";

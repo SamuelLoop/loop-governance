@@ -5,6 +5,101 @@
 
 ---
 
+## 2026-08-10 — Web redesign session 7 (scaffold)
+
+**Done:**
+- `packages/ui` stood up for real: `package.json` (mirrors `@loop/db`'s
+  `exports` pattern), `tsconfig.json`, `README.md`, `src/lib/utils.ts`
+  (`cn()`), `src/hooks/use-mobile.ts`, `src/components/ui/*` (all 19
+  shadcn primitives, consolidated from `apps/console`'s copies — verified
+  byte-identical to admin's 14-item subset by diff before merging, so
+  nothing was silently dropped), and new `src/theme/` (`fonts.ts` — all 3
+  self-hosted font loaders in one place; `theme-init-script.tsx` — flash-
+  of-wrong-theme prevention via `next/script` `beforeInteractive`;
+  `theme-toggle.tsx` — the sun/moon control, console/admin only).
+- All three apps wired to `@loop/ui`: `theme.css` imported into each app's
+  `globals.css` (relative path, plus a `@source` directive — verified this
+  actually matters by grepping each app's real production build output,
+  not just trusting dev mode), `transpilePackages: ["@loop/ui"]` added to
+  all 3 `next.config.ts` (admin had *no* `transpilePackages` at all before
+  this, eng-plan T4.7), `data-app`/`data-theme` set on all 3 root layouts.
+- **Scoping call:** did not rewrite the 58 existing `@/components/ui/*`
+  import sites in console+admin (that's eng-plan T3.5, deliberately left
+  as its own task). Instead turned each local `components/ui/*.tsx` file
+  into a one-line re-export shim pointing at `@loop/ui`, so the package is
+  the real source of truth with zero call-site churn. Also deleted the now
+  fully-dead local `lib/utils.ts` and `hooks/use-mobile.ts` copies in both
+  apps once confirmed (via grep) nothing referenced them anymore.
+- Brand wiring checklist from `packages/ui/assets/brand/README.md`
+  executed in full — all 8+ call sites (both login pages, both sidebar
+  headers, portal nav/homepage/footer, the Stripe receipt email,
+  `openGraph` blocks on all 3 layouts) repointed at the new wordmark/icon/
+  OG assets; old crimson `logo.png`/`logo-full.png` deleted from all 3
+  apps' `public/` after confirming zero remaining references.
+- `community-map.tsx`'s `LEVEL_COLORS` fixed per `web-brand-output.md`
+  §5 — 7 unrelated saturated hues replaced with a single-hue intensity
+  ramp along the brand accent gradient (computed in JS from the same hex
+  values as `theme.css`, since Leaflet can't read a CSS custom property).
+  `LEVEL_RADIUS` untouched. Polylines flattened to `--color-text-secondary`
+  dashed. Selected node now gets an accent-glow ring instead of a fill
+  change.
+- Added `metadataBase` to console/portal's layout metadata (surfaced by a
+  Next.js dev warning once `openGraph.images` was added — admin left
+  unset since it has no public URL per this file's own "Deployed state"
+  table).
+
+**Bug found and fixed — would have broken every app's CSS build:** a
+`/* ... apps/*/src/lib/power-tree.ts ... */`-style comment (in both
+`theme.css`, pre-existing from session 6, and this session's own
+`community-map.tsx` addition) contains a literal `*/` inside `apps/*/src`
+— which closes a CSS/JS block comment early. Portal's dev server hit this
+live (every route 500'd with a `CssSyntaxError`) before it was caught.
+Fixed by rewording both comments. Added to `LESSONS.md`.
+
+**Verification:** all 3 apps type-check clean, lint clean (0 new errors —
+same pre-existing warning set as before this session), and all 3 apps'
+**production builds** pass (`pnpm build`, not just `pnpm dev`) — including
+portal's `/buy`, `/buy/success`, and both Stripe API routes, confirmed
+still compiling untouched. Verified `@source` is actually working by
+grepping each app's real emitted `.next/static/css/*.css` for a class
+that only exists inside `packages/ui` source (e.g. `.bg-sidebar`) —
+present in all 3 apps' prod CSS, not just dev.
+
+**Deliberately not run:** `/design-review`. It requires a clean git tree
+(this repo's wasn't — a concurrent audit-readiness session had its own
+unrelated uncommitted work in flight) and runs its own autonomous,
+multi-commit fix loop that can rewrite spacing/typography past what it
+judges as "AI slop" — a real risk of violating this session's own "zero
+feature-level redesign" scope and the badge/power-tree no-touch rule with
+commits made faster than they could be reviewed. Did a manual pass against
+`DESIGN.web.md`'s own rules instead (tier-colour/accent-gradient
+separation held, no AI-slop patterns introduced, all new chrome uses the
+same token set). Recommend running it properly in its own session once
+this one's commit lands on a clean tree.
+
+**Left open (unchanged from before this session, still tracked):**
+- Power-tree consolidation into `packages/ui/power-tree` (eng-plan T1) —
+  explicitly out of scope per this session's own brief.
+- `apps/mobile` has zero `@loop/ui` dependency (eng-plan T4.6).
+- DB-backed cross-app theme sync (eng-plan T8) — this session's toggle is
+  localStorage-only; console and admin won't share a light-mode choice
+  across origins yet, same gap the eng-plan flagged as a "same-day bug"
+  once both apps have a real toggle (they now do).
+- The 143-site `@/components/ui/*` import rewrite (eng-plan T3.5).
+- `/plan-ceo-review` — 4th session in a row (4, 5, 6, 7) flagging this
+  redesign still isn't on `NEXT.md`'s own priority list with no stated
+  success metric, cost, or kill criteria.
+
+**Note on concurrent work:** this session ran alongside an active,
+separate "audit readiness / identity verification" session in the same
+working directory (new DB migrations, `governance-settings.ts`, claim
+flow, Stripe webhook changes, `docs/bmm/*` updates — none of it touched
+here). Only files this session actually changed were staged for commit;
+the other session's in-flight work was left as-is for it to commit
+separately.
+
+---
+
 ## 2026-08-10 — Web redesign session 6 (brand)
 
 **Done:**

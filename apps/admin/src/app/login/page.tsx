@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
       <main className="flex min-h-screen items-center justify-center px-6">
         <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6">
           <div className="text-center">
-            <img src="/logo.png" alt="Loop" className="mx-auto mb-3 h-12 w-12 rounded-lg" />
+            <img src="/wordmark-admin.svg" alt="Loop_ Admin" className="mx-auto mb-3 h-9 w-auto" />
             <h1 className="text-xl font-semibold">Check your email</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               We sent a magic link to your email. Click it to sign in.
@@ -87,12 +87,7 @@ export default function AdminLoginPage() {
     <main className="flex min-h-screen items-center justify-center px-6">
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6">
         <div className="text-center mb-6">
-          <img src="/logo.png" alt="Loop" className="mx-auto mb-3 h-12 w-12 rounded-lg" />
-          <h1 className="text-xl font-semibold">
-            Loop<span className="text-muted-foreground">_</span>
-            <span className="text-red-500">cmbntr</span>{" "}
-            <span className="font-normal text-muted-foreground">Admin</span>
-          </h1>
+          <img src="/wordmark-admin.svg" alt="Loop_ Admin" className="mx-auto mb-3 h-9 w-auto" />
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "magic" ? "Sign in with a magic link" : "Sign in to the admin console"}
           </p>

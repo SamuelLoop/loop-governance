@@ -116,3 +116,13 @@ Promoting `stage → main` with a merge commit creates a commit that exists only
 ## 11. A prior session's claim that an asset was "already sourced and reusable" needs re-verifying, not just re-reading
 
 `web-eng-plan-output.md` recorded that real font files for `packages/ui/fonts` were already downloaded during session 3's review-artifact build and could be reused. Session 6 checked before relying on this and found nothing reachable — no `.woff2` files anywhere in the repo, git history, or any local scratchpad. Most likely explanation: session 3's interactive review was published as an external Claude Artifact with fonts embedded as base64 inside that HTML, which never left a file on disk this session could read. Session-local scratchpad state (and, per the harness, published Artifacts) does not durably persist across sessions the way a committed file does — a session prompt that says "X was already produced, just reuse it" needs the same verify-before-trusting treatment as any other claim in a prior session's output (see lesson 9), even when it's about a build artifact rather than a code claim.
+
+---
+
+## 12. A `/*...*/` comment mentioning a glob path like `apps/*/src/...` breaks CSS/JS parsing
+
+**What happened:** A comment written as `/* ... apps/*/src/lib/power-tree.ts ... */` (session 7, web scaffold) contains the literal two-character substring `*/` inside `apps/*/src` — the asterisk from the glob immediately followed by the slash in `/src`. Both CSS and JS/TSX block comments end at the *first* `*/` they find, so the comment closes right there, and everything after it (including the real closing `*/`) is parsed as live code/CSS. This bit twice in the same session: once already-present in `packages/ui/theme.css` (from session 6), once freshly introduced in `community-map.tsx`.
+
+**Effect:** In CSS (`theme.css`, imported by all 3 apps), this is silent in some code paths and loud in others — portal's dev server 500'd on every route with a `CssSyntaxError` the moment it actually compiled `globals.css`; console/admin hadn't hit a page that forced the compile yet, so they looked fine until they did. In TSX, it's a hard syntax error (`tsc`/webpack refuses to parse) — caught immediately, not silent.
+
+**Correct pattern:** Never write a real glob-with-asterisk path (`apps/*/src/...`, `packages/*/dist/...`) inside a `/* ... */` comment. Rephrase to avoid the literal `*/` substring — e.g. "each app's lib/power-tree.ts" instead of "apps/*/src/lib/power-tree.ts". If you must reference a real glob pattern in a comment, break it up (`apps/`+`*`+`/src`) or use a different delimiter style entirely.

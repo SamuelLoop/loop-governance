@@ -3,15 +3,52 @@
 import { useEffect, useRef, useState } from "react";
 import type { MapCommunity } from "./actions";
 
-const LEVEL_COLORS: Record<string, string> = {
-  global: "#f59e0b",
-  continental: "#ef4444",
-  national: "#3b82f6",
-  state: "#8b5cf6",
-  city: "#10b981",
-  local: "#06b6d4",
-  micro: "#6b7280",
-};
+/**
+ * Session 7 (web scaffold) — replaced 7 unrelated saturated hues with a
+ * single-hue intensity ramp along the brand accent gradient, per
+ * DESIGN.web.md's data-viz rule ("do not invent a second saturated hue")
+ * and the exact spec in sessions/web-brand-output.md §5 "Map". Hierarchy
+ * depth is now encoded by intensity (colour + opacity), not by which of
+ * 7 unrelated colours a level happens to get — LEVEL_RADIUS (size) is
+ * unchanged, it already encoded depth correctly and isn't a colour
+ * decision.
+ *
+ * --accent-start / --accent-end below are the same values as
+ * packages/ui/theme.css §6 — duplicated as plain JS constants because
+ * Leaflet draws to canvas/SVG directly and can't read a CSS custom
+ * property. Same pattern already used by each app's lib/power-tree.ts
+ * for tier colours (see DESIGN.web.md's own note on that file being the
+ * source of truth despite the duplication).
+ */
+const ACCENT_END = { r: 0x8b, g: 0x5c, b: 0xf6 }; // --accent-end, global (root)
+const ACCENT_START = { r: 0x4f, g: 0x6b, b: 0xff }; // --accent-start, micro (leaf)
+const TEXT_SECONDARY = "#9297ad"; // --color-text-secondary — edges are structure, not data
+const ACCENT_GLOW_RING = "rgba(124, 109, 255, 0.9)"; // --accent-glow colour, selected-node ring
+
+const LEVEL_ORDER = [
+  "global",
+  "continental",
+  "national",
+  "state",
+  "city",
+  "local",
+  "micro",
+] as const;
+
+function mixAccent(t: number): string {
+  const r = Math.round(ACCENT_END.r + (ACCENT_START.r - ACCENT_END.r) * t);
+  const g = Math.round(ACCENT_END.g + (ACCENT_START.g - ACCENT_END.g) * t);
+  const b = Math.round(ACCENT_END.b + (ACCENT_START.b - ACCENT_END.b) * t);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+const LEVEL_COLORS: Record<string, string> = {};
+const LEVEL_OPACITY: Record<string, number> = {};
+LEVEL_ORDER.forEach((level, i) => {
+  const t = i / (LEVEL_ORDER.length - 1);
+  LEVEL_COLORS[level] = mixAccent(t);
+  LEVEL_OPACITY[level] = 1 - t * 0.45; // 100% (global) easing to 55% (micro)
+});
 
 const LEVEL_RADIUS: Record<string, number> = {
   global: 20,
@@ -70,15 +107,17 @@ export function CommunityMap({
         if (c.parentId) {
           const parent = parentMap.get(c.parentId);
           if (parent) {
+            // Edges are structure, not data — flat text-secondary, not a
+            // per-level colour (session 7, web-brand-output.md §5).
             L.polyline(
               [
                 [parent.lat, parent.lng],
                 [c.lat, c.lng],
               ],
               {
-                color: LEVEL_COLORS[c.level] ?? "#6b7280",
+                color: TEXT_SECONDARY,
                 weight: 1,
-                opacity: 0.3,
+                opacity: 0.25,
                 dashArray: "4 4",
               }
             ).addTo(map);
@@ -86,18 +125,29 @@ export function CommunityMap({
         }
       }
 
-      for (const c of communities) {
-        const color = LEVEL_COLORS[c.level] ?? "#6b7280";
+      function ringFor(c: MapCommunity) {
+        const color = LEVEL_COLORS[c.level] ?? ACCENT_GLOW_RING;
+        const opacity = LEVEL_OPACITY[c.level] ?? 0.7;
         const radius = LEVEL_RADIUS[c.level] ?? 6;
+        return { color, opacity, radius };
+      }
+
+      const markersById = new Map<string, L.CircleMarker>();
+      let selectedId: string | null = null;
+
+      for (const c of communities) {
+        const { color, opacity, radius } = ringFor(c);
 
         const marker = L.circleMarker([c.lat, c.lng], {
           radius,
           fillColor: color,
           color: color,
           weight: 2,
-          opacity: 0.8,
-          fillOpacity: 0.4,
+          opacity,
+          fillOpacity: opacity * 0.5,
         }).addTo(map);
+
+        markersById.set(c.id, marker);
 
         marker.bindTooltip(
           `<strong>${c.name}</strong><br/>${c.level} · ${c.memberCount} members`,
@@ -105,6 +155,17 @@ export function CommunityMap({
         );
 
         marker.on("click", () => {
+          // Selected node: ring using --accent-glow, not a fill colour
+          // change (session 7, web-brand-output.md §5).
+          if (selectedId && selectedId !== c.id) {
+            const prevMarker = markersById.get(selectedId);
+            const prevCommunity = parentMap.get(selectedId);
+            if (prevMarker && prevCommunity) {
+              prevMarker.setStyle({ color: ringFor(prevCommunity).color, weight: 2 });
+            }
+          }
+          marker.setStyle({ color: ACCENT_GLOW_RING, weight: 4 });
+          selectedId = c.id;
           setSelected(c);
         });
       }

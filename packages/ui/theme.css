@@ -211,8 +211,8 @@
 
 /* ────────────────────────────────────────────────────────────────────
  * 7. Tier colour — identical on every platform (mobile, console, admin,
- *    portal). Source of truth: apps/*/src/lib/power-tree.ts. Fills are
- *    the same value everywhere; only text colour changes per §8.
+ *    portal). Source of truth: each app's own lib/power-tree.ts. Fills
+ *    are the same value everywhere; only text colour changes per §8.
  *    NEVER substitute a tier hex for the accent gradient or vice versa
  *    — see DESIGN.web.md "Tier colour vs. brand accent — the resolution".
  * ──────────────────────────────────────────────────────────────────── */
@@ -363,4 +363,52 @@
   --color-tier-gold-text: var(--tier-gold-text);
   --color-tier-silver-text: var(--tier-silver-text);
   --color-tier-bronze-text: var(--tier-bronze-text);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 11. Sidebar chrome — bridge added session 7 (scaffold)
+ *
+ * The base @loop/ui `sidebar.tsx` primitive (ported unmodified from the
+ * old shadcn scaffold) calls `bg-sidebar`, `text-sidebar-foreground`,
+ * `border-sidebar-border`, etc. — variable names DESIGN.web.md never
+ * separately specced, since Signal Pulse's console/admin layout doesn't
+ * call for a sidebar shade distinct from the rest of the dark chrome (no
+ * darker-panel treatment like the old amber scaffold's `--sidebar: oklch
+ * (0.10 ...)`). Mapped onto the existing surface/accent tokens rather
+ * than inventing new colour values — the sidebar is glass-on-background
+ * like every other panel, differentiated by its border only. If a later
+ * session wants a visually distinct sidebar shade, change it here, not
+ * per-app.
+ * ──────────────────────────────────────────────────────────────────── */
+
+:root {
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-start);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--surface-border);
+  --sidebar-ring: var(--accent-end);
+}
+
+[data-app="console"][data-theme="light"],
+[data-app="admin"][data-theme="light"] {
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-start);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--surface-border);
+  --sidebar-ring: var(--accent-end);
 }

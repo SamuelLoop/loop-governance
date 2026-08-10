@@ -1,25 +1,8 @@
-"use client"
-
-import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
-
-import { cn } from "@/lib/utils"
-
-function Separator({
-  className,
-  orientation = "horizontal",
-  ...props
-}: SeparatorPrimitive.Props) {
-  return (
-    <SeparatorPrimitive
-      data-slot="separator"
-      orientation={orientation}
-      className={cn(
-        "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Separator }
+// Re-exported from @loop/ui (packages/ui/src/components/ui/separator.tsx) —
+// see packages/ui/README.md. This shim exists so the existing
+// `@/components/ui/*` call sites across this app don't need touching
+// this session (mechanical cleanup to import `@loop/ui` directly is
+// eng-plan task T3.5, tracked separately). Do not add new logic here.
+export {
+  Separator,
+} from "@loop/ui";

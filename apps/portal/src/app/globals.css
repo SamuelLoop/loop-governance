@@ -1,1 +1,40 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * Signal Pulse tokens — single source of truth, packages/ui/theme.css.
+ * Portal is fixed-light (see theme.css §9) — it sets data-app="portal"
+ * only, never data-theme. Do not add colour/type/spacing/radius/motion
+ * values here; add them upstream in theme.css so console/admin/portal
+ * never drift from each other.
+ */
+@import "../../../../packages/ui/theme.css";
+
+/*
+ * Tailwind v4 does not scan workspace packages by default — without this,
+ * a class used only inside a @loop/ui component gets purged from the
+ * production build (works in dev, silently breaks `pnpm build`). See
+ * sessions/web-eng-plan-output.md task T3.6.
+ */
+@source "../../../../packages/ui/src";
+
+/*
+ * Portal never sets data-theme="dark" on <html>, so this variant simply
+ * never activates here — same rule shape as console/admin (theme.css's
+ * single-toggle-mechanism contract), kept consistent rather than special-
+ * cased, even though portal has no toggle of its own.
+ */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-body;
+  }
+}
