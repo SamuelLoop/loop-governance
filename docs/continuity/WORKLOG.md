@@ -5,6 +5,56 @@
 
 ---
 
+## 2026-08-10 — Web redesign session 6 (brand)
+
+**Done:**
+- Formally recorded the mobile/web brand relationship decision (deliberate
+  partial divergence — already implicit since session 2, now explicit) and
+  a second decision the brief surfaced: `/brand-loop`'s marketing identity
+  (crimson/Roboto) is adopted for naming/dark-mode conventions only, not
+  colour — Signal Pulse stays the locked product system.
+- Produced `packages/ui/theme.css` — the real Tailwind v4 `@theme` source
+  T4.5's rebind spike will point at, structured around a
+  `data-app`/`data-theme` attribute contract so one file serves console
+  (dark default + light toggle), admin (same), and portal (fixed light,
+  own separate light token set).
+- Sourced and license-verified real font files (General Sans, Geist,
+  JetBrains Mono) at the exact weights `DESIGN.web.md`'s type scale uses —
+  vendored at `packages/ui/fonts/` with each family's actual license text.
+- Produced `packages/ui/assets/brand/`: favicon set, 4 wordmark SVG
+  lockups, 3 static OG images (1200×630) — generated via a persisted
+  script (`scripts/generate-brand-assets.py`), sourced from the existing
+  Loop Cmbntr infinity glyph (already blue-violet, reused not redrawn).
+- Wrote precise component-level brand specs (stat tiles, chart colour
+  application, map, badge cards, chat) — `sessions/web-brand-output.md` §5.
+
+**Corrections made to prior sessions' output:**
+- `web-eng-plan-output.md` decision 11's claim that font files were
+  "already sourced during session 3 and reusable" checked and found false
+  in practice — unreachable from this session (likely inside an external
+  Claude Artifact from session 3's review, not the repo). Re-sourced fresh;
+  documented in `packages/ui/fonts/README.md` so it isn't hunted for again.
+- `DESIGN.web.md`'s Display type spec (weight 800) doesn't exist in
+  General Sans's actual released family (max weight is 700, verified via
+  the font's own `fvar` axis) — corrected in `DESIGN.web.md` directly plus
+  a Decisions Log entry.
+- The brief assumed badge pages had no OG image — checked source
+  (`apps/portal/src/app/badge/[userId]/[subject]/og/route.tsx`), found a
+  real working dynamic one already. Nothing to fix.
+
+**Left open for session 7:**
+- Wiring checklist (8+ call sites still pointing at the old crimson
+  `logo.png`/favicon set) — `packages/ui/assets/brand/README.md`.
+- `apps/console/src/app/(dashboard)/map/community-map.tsx`'s
+  `LEVEL_COLORS` uses 7 unrelated saturated hues, violating the already-
+  locked "no second saturated hue" data-viz rule — exact single-hue
+  replacement spec in `sessions/web-brand-output.md` §5, not applied yet
+  (this session didn't touch app code, per the session-6/session-7 split).
+
+Output: `sessions/web-brand-output.md`.
+
+---
+
 ## 2026-08-10 — Web redesign sessions 3-5 (frontend design, eng plan, devex review) + repo hygiene
 
 **Done:**

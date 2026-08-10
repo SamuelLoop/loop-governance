@@ -1,0 +1,366 @@
+/**
+ * Loop Governance — Signal Pulse design tokens
+ * Source of truth for: apps/console, apps/portal, apps/admin
+ * Spec: DESIGN.web.md (repo root) — every value below traces to a line in
+ * that file. Do not hand-edit values here without updating DESIGN.web.md
+ * to match, or the two will drift the way packages/db's Drizzle schema
+ * drifted from the live SQL (see SOUL.md #2) — same failure mode, same fix.
+ *
+ * Written: session web-06-brand, 2026-08-10. Consumed by: session
+ * web-07-scaffold's rebind spike (eng-plan task T4.5) and T1 (packages/ui
+ * bring-up). This file is imported once, from packages/ui, by all three
+ * apps' globals.css — never copy these values into an app-local file.
+ *
+ * ── Attribute contract (each app's root layout must set) ──────────────
+ * <html data-app="console|portal|admin"> — always required, selects the
+ *   app-specific branch below (only portal currently branches on it).
+ * <html data-app="console" data-theme="dark|light"> — console/admin only.
+ *   Omitting data-theme (or setting "dark") = dark, the default identity.
+ *   Portal never sets data-theme — it is fixed-light and ignores it.
+ * <html class="dark"> from next-themes is NOT used here — data-theme is
+ *   the single toggle mechanism so console/admin/portal share one rule
+ *   shape. If session 7 wires next-themes, point its attribute at
+ *   `data-theme` (supported directly: `attribute="data-theme"`).
+ */
+
+/* ────────────────────────────────────────────────────────────────────
+ * 1. Fonts — next/font/local contract
+ *
+ * These are NOT @font-face declarations. Self-hosted font loading is
+ * next/font/local's job (eng-plan decision 11) — it generates its own
+ * hashed @font-face rules at build time. This block only declares the
+ * CSS variable *names* each app's layout.tsx must produce via the
+ * loader's `variable` option, so the font stack below resolves.
+ *
+ * Files (already sourced + licensed this session, see fonts/README.md):
+ *   packages/ui/fonts/general-sans/GeneralSans-Bold.woff2   (weight 700)
+ *   packages/ui/fonts/geist/Geist-Regular.woff2             (weight 400)
+ *   packages/ui/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2 (500)
+ *   packages/ui/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2   (700)
+ *
+ * Example (apps/admin/src/app/layout.tsx):
+ *   const generalSans = localFont({
+ *     src: "../../../../packages/ui/fonts/general-sans/GeneralSans-Bold.woff2",
+ *     weight: "700", variable: "--font-general-sans", display: "swap",
+ *   });
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --font-display: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 2. Type scale (DESIGN.web.md "Typography" table)
+ *
+ * CORRECTION from DESIGN.web.md: Display was specified at weight 800.
+ * General Sans (Fontshare/ITF release) tops out at Bold — its variable
+ * font's own `wght` axis is clamped 200-700, there is no 800 instance to
+ * ship. Verified against the actual downloaded font (fvar axis dump),
+ * not assumed. Display now specs at 700, same weight as H1 — the two
+ * are still visually distinct via the 32px/22px size jump, so nothing
+ * is lost; requesting font-weight 800 would just make the browser
+ * synthetically embolden 700, which renders inconsistently across
+ * engines (Chrome fakes it, Safari sometimes doesn't). DESIGN.web.md's
+ * type table should be corrected to match on next edit.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --text-display: 2rem;
+  --text-display--line-height: 1.15;
+  --font-weight-display: 700; /* was 800 in DESIGN.web.md — see correction note above */
+
+  --text-h1: 1.375rem;
+  --text-h1--line-height: 1.25;
+  --font-weight-h1: 700;
+
+  --text-h2: 1rem;
+  --text-h2--line-height: 1.3;
+  --font-weight-h2: 700;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --font-weight-body: 400;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --font-weight-caption: 400;
+
+  --text-data-lg: 1.375rem;
+  --text-data-lg--line-height: 1.2;
+  --font-weight-data-lg: 700;
+
+  --text-data-sm: 0.75rem;
+  --text-data-sm--line-height: 1.3;
+  --font-weight-data-sm: 500;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 3. Spacing (DESIGN.web.md "Spacing", 8px base)
+ *
+ * Tailwind v4's default numeric spacing scale already lands on every
+ * value DESIGN.web.md specifies (space-2=8px, space-4=16px, space-6=24px,
+ * space-8=32px, space-12=48px) — no override needed for the scale itself.
+ * These named aliases exist only so component code and non-Tailwind
+ * consumers (e.g. inline SVG in power-tree.ts, chart libs) can reference
+ * "space-md" instead of memorising which multiple of 4 that is, without
+ * a second hand-maintained set of pixel values to drift from Tailwind's.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --spacing-xs: var(--spacing-1); /* 4px */
+  --spacing-sm: var(--spacing-2); /* 8px */
+  --spacing-md: var(--spacing-4); /* 16px */
+  --spacing-lg: var(--spacing-6); /* 24px */
+  --spacing-xl: var(--spacing-8); /* 32px */
+  --spacing-2xl: var(--spacing-12); /* 48px */
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 4. Radius (DESIGN.web.md "Radius")
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --radius-button: 0.5rem; /* 8px */
+  --radius-card: 0.625rem; /* 10px */
+  --radius-panel: 0.75rem; /* 12px */
+  --radius-pill: 999px;
+  --radius-avatar: 999px;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 5. Motion (DESIGN.web.md "Motion")
+ *
+ * Durations/easings only — the `prefers-reduced-motion` fallback is a
+ * per-component obligation (DESIGN.web.md: "every glow/pulse animation
+ * must have a reduced-motion fallback"), not something a token file can
+ * enforce by itself. Pattern for consumers:
+ *
+ *   .live-dot { animation: pulse var(--duration-live-dot) var(--ease-live) infinite; }
+ *   @media (prefers-reduced-motion: reduce) {
+ *     .live-dot { animation: none; }
+ *   }
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --duration-live-dot: 1600ms;
+  --duration-hover: 150ms;
+  --duration-vote-bar: 400ms;
+  --duration-bottom-sheet-open: 280ms;
+  --duration-bottom-sheet-close: 200ms;
+
+  --ease-live: ease-in-out;
+  --ease-hover: ease-out;
+  --ease-vote-bar: ease-out;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 6. Colour — dark identity (console/admin default; the platform's
+ *    primary "command-center" mode)
+ * ──────────────────────────────────────────────────────────────────── */
+
+:root {
+  --background: #0a0a0a;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --blur-glass: 14px;
+
+  --text-primary: #f5f5f4;
+  --text-secondary: #9297ad;
+  --text-muted: #6b6f80;
+
+  /* Brand/action accent — never used for tier/status meaning, see §7 */
+  --accent-start: #4f6bff;
+  --accent-end: #8b5cf6;
+  --accent-gradient: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+  --accent-glow: 0 0 16px rgba(124, 109, 255, 0.4);
+
+  /* Semantic */
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b; /* = tier-gold, intentionally reused, see DESIGN.web.md "Semantic" */
+
+  /* Data-viz (non-tier charts only — tier composition charts use §7 fills) */
+  --dataviz-primary: var(--accent-gradient);
+  --dataviz-comparison: var(--text-secondary);
+
+  /* shadcn semantic rebind — Tailwind v4 @theme reads these via the
+   * `@theme inline` block below. This is the "rebind, don't replace"
+   * strategy from eng-plan decision 1: existing shadcn component code
+   * (Button, Card, Sheet, ...) already calls `bg-background`,
+   * `text-foreground`, `border-border` etc. Only the values move. */
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: #141414;
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-start);
+  --primary-foreground: #ffffff;
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: var(--text-primary);
+  --muted: rgba(255, 255, 255, 0.045);
+  --muted-foreground: var(--text-muted);
+  --accent: rgba(139, 92, 246, 0.12);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--error);
+  --destructive-foreground: #ffffff;
+  --border: var(--surface-border);
+  --input: var(--surface-border);
+  --ring: var(--accent-end);
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 7. Tier colour — identical on every platform (mobile, console, admin,
+ *    portal). Source of truth: apps/*/src/lib/power-tree.ts. Fills are
+ *    the same value everywhere; only text colour changes per §8.
+ *    NEVER substitute a tier hex for the accent gradient or vice versa
+ *    — see DESIGN.web.md "Tier colour vs. brand accent — the resolution".
+ * ──────────────────────────────────────────────────────────────────── */
+
+:root {
+  --tier-diamond: #b9f2ff;
+  --tier-platinum: #e5e4e2;
+  --tier-gold: #f59e0b;
+  --tier-silver: #94a3b8;
+  --tier-bronze: #cd7f32;
+
+  /* Default (dark) tier TEXT colour = the fill itself — only light mode
+   * needs a separate value, see §8. */
+  --tier-diamond-text: var(--tier-diamond);
+  --tier-platinum-text: var(--tier-platinum);
+  --tier-gold-text: var(--tier-gold);
+  --tier-silver-text: var(--tier-silver);
+  --tier-bronze-text: var(--tier-bronze);
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 8. Colour — console/admin light mode (toggle, default remains dark)
+ *    DESIGN.web.md "Console/admin light mode" — own token set, NOT
+ *    reused from portal (different density/mood, see §9).
+ * ──────────────────────────────────────────────────────────────────── */
+
+[data-app="console"][data-theme="light"],
+[data-app="admin"][data-theme="light"] {
+  --background: #f4f4f8;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-border: rgba(20, 20, 40, 0.08);
+  --blur-glass: 14px;
+
+  --text-primary: #15151d;
+  --text-secondary: #5b5b6b;
+  --text-muted: #8d8d9b;
+
+  --accent-glow: 0 0 14px rgba(124, 109, 255, 0.25);
+  /* --accent-start/-end/-gradient unchanged — validated on light ground
+   * already in portal's round-1 review, DESIGN.web.md §"Console/admin
+   * light mode" final paragraph. */
+
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--text-primary);
+  --secondary: rgba(20, 20, 40, 0.045);
+  --secondary-foreground: var(--text-primary);
+  --muted: rgba(20, 20, 40, 0.04);
+  --muted-foreground: var(--text-muted);
+  --accent: rgba(79, 107, 255, 0.08);
+  --accent-foreground: var(--text-primary);
+  --border: var(--surface-border);
+  --input: var(--surface-border);
+
+  /* Tier fills stay identical (§7) — only text-on-tint changes, per the
+   * WCAG contrast fix: 4 of 5 tier hexes fail 4.5:1 on #f4f4f8. */
+  --tier-diamond-text: #0e7fa3;
+  --tier-platinum-text: #6b6f78;
+  --tier-gold-text: #92400e;
+  --tier-silver-text: #475569;
+  --tier-bronze-text: #92562a;
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 9. Colour — portal (fixed light, no toggle, no dark variant)
+ *    DESIGN.web.md "Portal — light mode". Marketing-spacious mood, a
+ *    different token set from console/admin's light mode above even
+ *    though both are "light" — see DESIGN.web.md's explicit note that
+ *    conflating the two was considered and rejected.
+ *
+ *    Verified this session: portal renders zero tier-colour TEXT outside
+ *    the untouched badge component (grepped apps/portal/src — only
+ *    badge/* references tier), so unlike console/admin, portal needs no
+ *    tier text-contrast override. If a future portal page ever renders
+ *    a tier pill as text (not just the badge SVG), it must reuse §8's
+ *    tier-*-text values, not invent new ones.
+ * ──────────────────────────────────────────────────────────────────── */
+
+[data-app="portal"] {
+  --background: #faf9f6;
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-border: rgba(20, 20, 40, 0.08);
+  --blur-glass: 8px;
+
+  --text-primary: #15151d;
+  --text-secondary: #5b5b6b;
+  --text-muted: #8d8d9b;
+
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--text-primary);
+  --secondary: rgba(20, 20, 40, 0.045);
+  --secondary-foreground: var(--text-primary);
+  --muted: rgba(20, 20, 40, 0.04);
+  --muted-foreground: var(--text-muted);
+  --accent: rgba(79, 107, 255, 0.08);
+  --accent-foreground: var(--text-primary);
+  --border: var(--surface-border);
+  --input: var(--surface-border);
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * 10. Tailwind v4 @theme mapping — makes the above usable as utilities
+ *     (bg-background, text-foreground, border-border, ...). This is the
+ *     "rebind" step: shadcn components already call these class names.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-surface: var(--surface);
+  --color-surface-border: var(--surface-border);
+
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+
+  --color-tier-diamond: var(--tier-diamond);
+  --color-tier-platinum: var(--tier-platinum);
+  --color-tier-gold: var(--tier-gold);
+  --color-tier-silver: var(--tier-silver);
+  --color-tier-bronze: var(--tier-bronze);
+  --color-tier-diamond-text: var(--tier-diamond-text);
+  --color-tier-platinum-text: var(--tier-platinum-text);
+  --color-tier-gold-text: var(--tier-gold-text);
+  --color-tier-silver-text: var(--tier-silver-text);
+  --color-tier-bronze-text: var(--tier-bronze-text);
+}

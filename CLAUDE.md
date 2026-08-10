@@ -12,7 +12,8 @@ A Turborepo monorepo for the Loop community governance platform:
 - `packages/db` — Drizzle schema + raw SQL migrations (single source of truth for table shapes)
 - `packages/contracts` — Solidity/Hardhat (LOOP token contracts on Base L2)
 - `packages/config`, `packages/contracts`, `packages/db` — populated shared packages
-- `packages/ui`, `packages/chain`, `packages/email`, `packages/geo`, `packages/governance` — empty directories, not yet built (as of 2026-08-10; `packages/ui` bring-up is planned in `sessions/web-eng-plan-output.md`)
+- `packages/ui` — has `theme.css` (Signal Pulse tokens), `fonts/`, `assets/brand/` as of 2026-08-10 (session `web-06-brand.md`), but no `package.json` yet and nothing imports it — full bring-up (component split, power-tree consolidation) still planned per `sessions/web-eng-plan-output.md` task T1
+- `packages/chain`, `packages/email`, `packages/geo`, `packages/governance` — empty directories, not yet built
 
 ## Continuity vault
 

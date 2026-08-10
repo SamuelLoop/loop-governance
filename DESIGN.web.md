@@ -57,7 +57,7 @@ This was flagged as an open item after the shotgun round and is now resolved:
 
 | Level | Font | Size | Weight | Usage |
 |---|---|---|---|---|
-| Display | General Sans | 32px | 800 | Treasury balance, hero numerals |
+| Display | General Sans | 32px | 700 | Treasury balance, hero numerals |
 | H1 | General Sans | 22px | 700 | Page titles |
 | H2 | General Sans | 16px | 700 | Section headers, card titles |
 | Body | Geist | 14px | 400 | UI copy, table cells, form labels |
@@ -244,3 +244,4 @@ Deliberate partial divergence, decided explicitly rather than by accident:
 | 2026-08-09 | General Sans (display) + Geist (body, reused) + JetBrains Mono (data, reused from mobile) | Avoids new font-loading infra for body text; kills the "zero customisation" complaint without abandoning what's already wired |
 | 2026-08-09 | No second saturated data-viz hue | Civic Mint's critique holds regardless of which direction won — a second bright colour competes with tier colour for attention |
 | 2026-08-09 | Badge/power-tree component structurally untouched | Explicit instruction — highly detailed, already invested, colours already fit, no redesign |
+| 2026-08-10 | Display weight corrected 800 → 700 | General Sans's actual released family tops out at Bold (700) — verified against the downloaded variable font's `fvar` axis (`wght` 200–700, no 800 instance). Requesting 800 would make browsers synthetically embolden inconsistently. Session `web-06-brand.md`, see `sessions/web-brand-output.md` §3-4 |

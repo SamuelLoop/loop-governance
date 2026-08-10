@@ -111,6 +111,32 @@ priority list below and has no stated success metric, cost, or kill
 criteria. Worth resolving before scaffold if you want it resolved formally,
 otherwise it stays an acknowledged open question.
 
+**Session 6 done (2026-08-10):** brand session at `sessions/web-brand-
+output.md`. Mobile/web relationship formally restated as a decision (was
+already implicit in `DESIGN.web.md` since session 2, now on record as
+deliberate). New: also decided the *Loop Cmbntr marketing brand* vs
+*Signal Pulse product brand* relationship (the `/brand-loop` skill loads
+crimson/Roboto marketing identity — adopted its naming conventions only,
+not its colour system, which stays Signal Pulse). Produced
+`packages/ui/theme.css` (the real rebind source for T4.5), `packages/ui/
+fonts/` (General Sans + Geist + JetBrains Mono, actually downloaded and
+license-verified this session, not just referenced), and `packages/ui/
+assets/brand/` (favicons, wordmark SVGs, 3 static OG images). **Two
+corrections to prior sessions' output, both applied:** (1)
+`web-eng-plan-output.md` decision 11 claimed real font files were already
+sourced and reusable from session 3 — checked, found unreachable (likely
+sourced into an external Claude Artifact, not the repo), re-sourced fresh
+instead, no repo change needed beyond a note in `packages/ui/fonts/
+README.md`. (2) `DESIGN.web.md`'s Display type spec said weight 800 —
+General Sans doesn't ship that weight (verified via the font's own `fvar`
+axis), corrected to 700 in `DESIGN.web.md` directly. Also found and
+documented (not yet fixed — session 7's job): the live `community-map.tsx`
+uses 7 unrelated saturated hues for community level, which the already-
+locked data-viz rule (no second saturated hue) forbids; exact single-hue
+replacement spec is in `web-brand-output.md` §5. Confirmed the brief's
+badge-OG-image concern was already resolved (dynamic per-badge OG images
+exist and work) — nothing to fix there.
+
 **Unrelated but discovered this session, already fixed:** `CLAUDE.md`,
 `DESIGN.web.md`, and the entire `docs/` directory (this file included) were
 untracked in git — never committed, existed only in the local working

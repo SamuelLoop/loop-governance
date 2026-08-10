@@ -110,3 +110,9 @@ Promoting `stage → main` with a merge commit creates a commit that exists only
 ## 10. Score formula divergence between TypeScript and SQL is a real risk
 
 `buildStats()` in `apps/portal/src/app/badge/[userId]/[subject]/power.ts` computes power scores in TypeScript. The planned `recompute_power_score()` SQL function (Problem 2 in the scaling session) must match it exactly — they cover the same computation in two languages. Test B8 in the scaling session exists specifically to catch drift. Whenever either implementation changes, update both.
+
+---
+
+## 11. A prior session's claim that an asset was "already sourced and reusable" needs re-verifying, not just re-reading
+
+`web-eng-plan-output.md` recorded that real font files for `packages/ui/fonts` were already downloaded during session 3's review-artifact build and could be reused. Session 6 checked before relying on this and found nothing reachable — no `.woff2` files anywhere in the repo, git history, or any local scratchpad. Most likely explanation: session 3's interactive review was published as an external Claude Artifact with fonts embedded as base64 inside that HTML, which never left a file on disk this session could read. Session-local scratchpad state (and, per the harness, published Artifacts) does not durably persist across sessions the way a committed file does — a session prompt that says "X was already produced, just reuse it" needs the same verify-before-trusting treatment as any other claim in a prior session's output (see lesson 9), even when it's about a build artifact rather than a code claim.
