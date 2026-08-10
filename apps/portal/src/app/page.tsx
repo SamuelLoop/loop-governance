@@ -650,11 +650,11 @@ export default async function Home() {
           <img src="/wordmark-portal.svg" alt="Loop_ Governance" className="h-6 w-auto opacity-70" />
         </div>
         <p>Connecting, rewarding, and empowering communities.</p>
-        <p className="mt-2 text-neutral-700">
+        <p className="mt-2 text-text-muted">
           Part of the{" "}
           <a
             href="https://www.loopcmbntr.live"
-            className="text-neutral-500 underline decoration-neutral-700 transition hover:text-neutral-300"
+            className="text-text-secondary underline decoration-border transition hover:text-foreground"
           >
             Loop_cmbntr
           </a>{" "}
