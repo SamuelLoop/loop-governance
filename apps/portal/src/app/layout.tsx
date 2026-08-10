@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { generalSans, geist, jetbrainsMono } from "@loop/ui";
 import "./globals.css";
 import { PortalNav } from "./portal-nav";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gov.loopcmbntr.live"),
-  title: "Loop_ Governance",
+  title: "Loop_cmbntr Governance",
   description: "Rule the world. And get paid for it.",
   icons: {
     icon: [
@@ -15,10 +13,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Loop_ Governance",
+    title: "Loop_cmbntr Governance",
     description: "Rule the world. And get paid for it.",
-    siteName: "Loop_",
-    images: ["/og-portal.png"],
+    siteName: "Loop_cmbntr",
   },
 };
 
@@ -28,12 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      data-app="portal"
-      className={`${generalSans.variable} ${geist.variable} ${jetbrainsMono.variable}`}
-    >
-      <body className="min-h-screen bg-background text-foreground font-body antialiased">
+    <html lang="en" style={{ backgroundColor: "#0a0a0a" }}>
+      <body
+        className="min-h-screen bg-neutral-950 text-neutral-100 antialiased"
+        style={{ backgroundColor: "#0a0a0a", color: "#f5f5f5" }}
+      >
         <PortalNav />
         {children}
       </body>

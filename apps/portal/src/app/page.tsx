@@ -125,8 +125,8 @@ export default async function Home() {
 
         <div className="relative z-10 max-w-3xl text-center">
           <img
-            src="/icon-mark-256.png"
-            alt="Loop_"
+            src="/logo.png"
+            alt="Loop_cmbntr"
             className="mx-auto mb-8 h-16 w-16 rounded-xl"
           />
 
@@ -645,16 +645,20 @@ export default async function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border px-6 py-10 text-center text-xs text-text-muted">
-        <div className="mb-3 flex items-center justify-center">
-          <img src="/wordmark-portal.svg" alt="Loop_ Governance" className="h-6 w-auto opacity-70" />
+      <footer className="border-t border-neutral-800/50 px-6 py-10 text-center text-xs text-neutral-600">
+        <div className="mb-3 flex items-center justify-center gap-2">
+          <img src="/logo.png" alt="Loop_cmbntr" className="h-6 w-6 rounded" />
+          <span className="font-medium text-neutral-500">
+            Loop<span className="text-neutral-600">_</span>
+            <span className="text-red-500/60">cmbntr</span>
+          </span>
         </div>
         <p>Connecting, rewarding, and empowering communities.</p>
-        <p className="mt-2 text-text-muted">
+        <p className="mt-2 text-neutral-700">
           Part of the{" "}
           <a
             href="https://www.loopcmbntr.live"
-            className="text-text-secondary underline decoration-border transition hover:text-foreground"
+            className="text-neutral-500 underline decoration-neutral-700 transition hover:text-neutral-300"
           >
             Loop_cmbntr
           </a>{" "}

@@ -116,12 +116,17 @@ export function AppSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between gap-2 px-2 py-2">
-          <img
-            src="/wordmark-console.svg"
-            alt="Loop_ Console"
-            className="h-7 w-auto"
-          />
+        <div className="flex items-center justify-between gap-2.5 px-2 py-2">
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="Loop_cmbntr" className="h-8 w-8 rounded-md" />
+            <div>
+              <p className="text-sm font-semibold tracking-tight">
+                Loop<span className="text-muted-foreground">_</span>
+                <span className="text-red-500">cmbntr</span>
+              </p>
+              <p className="text-xs text-muted-foreground">Console</p>
+            </div>
+          </div>
           <ThemeToggle />
         </div>
       </SidebarHeader>

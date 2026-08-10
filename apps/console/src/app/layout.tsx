@@ -10,8 +10,7 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://console.loopcmbntr.live"),
-  title: "Loop_ Console",
+  title: "Loop_cmbntr Console",
   description: "Governance administration console",
   icons: {
     icon: [
@@ -19,12 +18,6 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
-  },
-  openGraph: {
-    title: "Loop_ Console",
-    description: "Governance administration console",
-    siteName: "Loop_",
-    images: ["/og-console.png"],
   },
 };
 

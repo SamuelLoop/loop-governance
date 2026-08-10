@@ -115,9 +115,9 @@ export default function LoginPage() {
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             <img
-              src="/wordmark-console.svg"
-              alt="Loop_ Console"
-              className="mx-auto mb-2 h-9 w-auto"
+              src="/logo.png"
+              alt="Loop_cmbntr"
+              className="mx-auto mb-2 h-12 w-12 rounded-lg"
             />
             <CardTitle className="text-xl">Check your email</CardTitle>
           </CardHeader>
@@ -150,11 +150,15 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <img
-            src="/wordmark-console.svg"
-            alt="Loop_ Console"
-            className="mx-auto mb-2 h-9 w-auto"
+            src="/logo.png"
+            alt="Loop_cmbntr"
+            className="mx-auto mb-2 h-12 w-12 rounded-lg"
           />
-          <CardTitle className="sr-only">Loop_ Console</CardTitle>
+          <CardTitle className="text-xl">
+            Loop<span className="text-muted-foreground">_</span>
+            <span className="text-red-500">cmbntr</span>{" "}
+            <span className="font-normal text-muted-foreground">Console</span>
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             {mode === "signup"
               ? "Create your account"

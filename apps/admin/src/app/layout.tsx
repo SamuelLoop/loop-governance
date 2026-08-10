@@ -9,7 +9,7 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Loop_ Admin",
+  title: "Loop_cmbntr Admin",
   description: "Platform administration console",
   icons: {
     icon: [
@@ -17,12 +17,6 @@ export const metadata: Metadata = {
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
-  },
-  openGraph: {
-    title: "Loop_ Admin",
-    description: "Platform administration console",
-    siteName: "Loop_",
-    images: ["/og-admin.png"],
   },
 };
 
