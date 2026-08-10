@@ -241,6 +241,37 @@ Next up: `sessions/web-implementation-backlog.md` — per-page migration
 of all 44 pages (24 console + 9 admin + 11 portal) onto the shell this
 session landed, following the 9 canonical patterns from session 3.
 
+**Post-deploy correction (2026-08-10, same day):** the real user checked
+the live deploy and found gov.loopcmbntr.live "totally broken" and never
+authorized the logo change. Root cause: portal's `<body>` was switched to
+`theme.css`'s Signal Pulse **light**-mode tokens (per `DESIGN.web.md`'s
+"portal — fixed light" call, sessions 2/3), but portal's actual page
+content (hero, sections) was never retouched and still had 90+ instances
+of near-white hardcoded text (`text-neutral-50`) and dark-only section
+backgrounds — a real contrast failure the moment the shell flipped light
+underneath it, not a stylistic disagreement. **`packages/ui`'s decision
+that portal is fixed-light was never actually validated with the real
+user** — it was carried forward from session 2 through 6 as an internal
+design-doc decision without a live sign-off checkpoint. Same root issue
+for the logo swap: the brand wiring checklist (session 6) and its
+execution (session 7) were never shown to the user before shipping.
+
+**Reverted same day:** `apps/portal` fully reverted to its pre-session-7
+state (hardcoded dark, zero `@loop/ui` usage, old logo). `apps/console`
+and `apps/admin` had their logo/branding reverted to the original
+`logo.png` + "Loop_cmbntr" (the Signal Pulse dark theme/tokens and the
+new light/dark toggle were **not** reverted — not flagged as broken).
+Deployed and confirmed live. Full detail in WORKLOG.md.
+
+**Standing rule going forward, this redesign specifically:** get an
+explicit visual sign-off from the real user before extending Signal
+Pulse's light-mode application to any more of portal's actual page
+content, and before any further brand-asset swap ships to production.
+`packages/ui/assets/brand/` and `theme.css`'s portal-light-mode section
+still exist and are still a valid option — they're just unconfirmed with
+the person who actually has to approve it, not unconfirmed as in
+"wrong."
+
 ### 0. Audit readiness + BMM self-assessment prep (2026-08-09 — external trigger)
 Full brief: `sessions/security-05-audit-readiness-and-bmm.md`
 

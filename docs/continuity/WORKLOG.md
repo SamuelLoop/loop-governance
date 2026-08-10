@@ -5,6 +5,67 @@
 
 ---
 
+## 2026-08-10 — Web redesign: post-deploy revert (portal dark, logo everywhere)
+
+**Trigger:** real user checked the live deploy right after session 7 shipped
+and reported gov.loopcmbntr.live "totally broken", and that the logo change
+was never authorized.
+
+**Diagnosis (checked, not assumed):** curled the live homepage and counted
+class usage — `bg-neutral-950`/`text-neutral-100`/`text-neutral-50` (dark-
+theme hardcoded classes) still appeared 20-90+ times each across the hero
+and content sections, while the `<body>`'s own `bg-background`/
+`text-foreground` had flipped to portal's *light* theme.css values. Session
+7 only touched shell/nav/footer per its own "zero feature-level redesign"
+scope — it never retouched page.tsx's actual hero/section content, which
+was written entirely against the old hardcoded-dark assumption. Flipping
+the shell to light while 90%+ of the page content stayed dark-only
+produced a genuine contrast/readability failure (near-white text on a
+near-white background in places), not a subjective color complaint.
+
+**Broader finding:** `DESIGN.web.md`'s "portal = fixed light" decision
+(session 2, reaffirmed sessions 3/6/7) was never actually shown to or
+approved by the real user before being implemented and shipped — it was
+carried forward purely as an internal design-doc decision across multiple
+sessions. Same gap for the brand/logo swap (session 6 wrote the wiring
+checklist, session 7 executed it, neither got a pre-ship look from the
+person who has to live with it).
+
+**Fix, scoped to exactly what was reported:**
+- `apps/portal`: `git checkout` to the pre-session-7 commit (`b3ae289`)
+  for every file session 7 touched (`globals.css`, `layout.tsx`,
+  `nav-links.tsx`, `portal-nav.tsx`, `page.tsx`, `receipt-email.ts`,
+  `next.config.ts`, `package.json`), old `logo.png`/`logo-full.png`
+  restored, new brand asset files removed, `pnpm-lock.yaml` resynced.
+  Portal now has zero `@loop/ui` usage again, same as before session 7.
+- `apps/console`, `apps/admin`: **logo/branding only** reverted — old
+  `logo.png`/`logo-full.png` + favicons restored, both login pages fully
+  reverted, sidebar headers restored to the original `logo.png` +
+  "Loop_cmbntr" text (admin: the Shield icon badge), `openGraph`/
+  `metadataBase` additions removed. **Deliberately kept:** the Signal
+  Pulse dark theme/tokens and the new sun/moon theme toggle on both apps
+  — the user's report only named portal as broken and only objected to
+  the logo, not console/admin's color system.
+
+**Verified before pushing:** all 3 apps type-check clean and production-
+build clean post-revert. Confirmed locally (dev servers) that portal is
+back to hardcoded dark and console/admin show the old logo with the
+toggle still functional, before committing.
+
+**Deployed and confirmed live:** all 3 Vercel projects redeployed
+(`loop-governance`, `loop-console`, `loop-admin`), all `● Ready`. Curled
+all 3 production domains post-deploy: portal shows `bg-neutral-950`
+(dark) with zero `wordmark-*` references, console/admin both serve
+`logo.png` with zero `wordmark-*` references. Commit `68722ac`.
+
+**Left open:** `packages/ui/assets/brand/` and `theme.css`'s portal
+light-mode section are untouched (still exist as options) — just not
+live anywhere and not going live again without an explicit look-and-
+approve step from the actual user first. This applies to any future
+continuation of the web redesign, not just this incident.
+
+---
+
 ## 2026-08-10 — Web redesign session 7 (scaffold)
 
 **Done:**
