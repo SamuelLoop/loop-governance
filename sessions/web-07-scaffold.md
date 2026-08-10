@@ -5,8 +5,12 @@
 - `sessions/web-eng-plan-output.md` — approved package structure and
   migration order
 - `sessions/web-devex-checklist.md` — Turbo wiring, dev-loop setup
-- `packages/ui/tokens.css` (or equivalent) — if session 6 ran; otherwise
-  use the values in `sessions/web-brand-output.md` directly
+- `sessions/web-brand-output.md` — session 6's output, done 2026-08-10.
+  `packages/ui/theme.css`, `packages/ui/fonts/`, and `packages/ui/assets/
+  brand/` already exist — this session wires them in, it doesn't create
+  them. Note the filename is `theme.css`, not `tokens.css` as an earlier
+  draft of this brief said — matches eng-plan/devex-checklist, corrected
+  in session 6.
 
 ---
 
