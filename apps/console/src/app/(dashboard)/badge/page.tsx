@@ -239,7 +239,7 @@ export default async function BadgePage() {
               <Badge variant="outline" className="mb-1 text-xs font-bold" style={{ color: tier.color, borderColor: `${tier.color}40` }}>
                 {tier.name}
               </Badge>
-              <p className="text-3xl font-black tabular-nums" style={{ color: tier.color }}>{powerScore}</p>
+              <p className="text-3xl font-black tabular-nums" style={{ color: tier.color }}>{powerScore.toFixed(2)}</p>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Power score</p>
             </div>
           </div>
