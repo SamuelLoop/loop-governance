@@ -106,15 +106,28 @@
  * consumers (e.g. inline SVG in power-tree.ts, chart libs) can reference
  * "space-md" instead of memorising which multiple of 4 that is, without
  * a second hand-maintained set of pixel values to drift from Tailwind's.
+ *
+ * CORRECTION (session 7 post-deploy fix, 2026-08-10): these were
+ * originally named `--spacing-xs/sm/md/lg/xl/2xl`. That collides with
+ * Tailwind v4's own reserved `--spacing-*` theme namespace, which backs
+ * `max-w-*` (and other sizing utilities) for named T-shirt keys —
+ * defining `--spacing-sm`/`--spacing-md`/`--spacing-xl`/`--spacing-2xl`
+ * silently shadowed Tailwind's built-in `--container-sm/md/xl/2xl`
+ * tokens, so `max-w-sm`→8px, `max-w-md`→16px, `max-w-xl`→32px,
+ * `max-w-2xl`→48px instead of their real 384/448/576/672px values —
+ * broke every card/dialog/page-width constraint across the app the
+ * moment this file got imported (session 7). Renamed to `--space-*`
+ * (a prefix Tailwind doesn't reserve) to make this collision structurally
+ * impossible to reintroduce. See LESSONS.md for the full writeup.
  * ──────────────────────────────────────────────────────────────────── */
 
 @theme inline {
-  --spacing-xs: var(--spacing-1); /* 4px */
-  --spacing-sm: var(--spacing-2); /* 8px */
-  --spacing-md: var(--spacing-4); /* 16px */
-  --spacing-lg: var(--spacing-6); /* 24px */
-  --spacing-xl: var(--spacing-8); /* 32px */
-  --spacing-2xl: var(--spacing-12); /* 48px */
+  --space-xs: var(--spacing-1); /* 4px */
+  --space-sm: var(--spacing-2); /* 8px */
+  --space-md: var(--spacing-4); /* 16px */
+  --space-lg: var(--spacing-6); /* 24px */
+  --space-xl: var(--spacing-8); /* 32px */
+  --space-2xl: var(--spacing-12); /* 48px */
 }
 
 /* ────────────────────────────────────────────────────────────────────
