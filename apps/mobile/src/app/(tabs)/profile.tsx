@@ -153,7 +153,7 @@ export default function ProfileScreen() {
           <Text style={[styles.heroTier, { color: tierColor }]}>
             {profile.tier.toUpperCase()}
           </Text>
-          <Text style={styles.heroScore}>{Math.round(profile.score)} pts</Text>
+          <Text style={styles.heroScore}>{profile.score.toFixed(2)} pts</Text>
         </View>
 
         <View style={styles.divider} />

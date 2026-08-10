@@ -1,6 +1,6 @@
 "use server";
 
-import { createServiceClient } from "@/lib/supabase-server";
+import { createServiceClient, createClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
 type State = { error: string };
@@ -9,10 +9,25 @@ export async function castVote(
   _prev: State,
   formData: FormData
 ): Promise<State> {
+  // Resolve the acting user from the verified session, not from the form —
+  // a client-supplied "userId" field was previously trusted directly here,
+  // which let anyone vote as anyone else. See sessions/security-03-treasury-function-audit.md.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated." };
+
   const admin = createServiceClient();
+  const { data: profile } = await admin
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+  if (!profile) return { error: "No profile found." };
+  const userId = profile.id;
 
   const proposalId = formData.get("proposalId") as string;
-  const userId = formData.get("userId") as string;
   const choice = formData.get("choice") as string;
 
   if (!["for", "against", "abstain"].includes(choice)) {

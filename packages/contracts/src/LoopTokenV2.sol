@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -69,8 +69,8 @@ contract LoopTokenV2 is ERC20, Ownable, Pausable {
     event CommunityWalletSet(bytes32 indexed communityId, address wallet);
     event ImpactTreasuryTransferred(address indexed to, uint256 amount);
     event PriceUpdated(uint256 newPrice);
-    event TreasuryUpdated(address newTreasury);
-    event SwapContractSet(address swapContract);
+    event TreasuryUpdated(address indexed newTreasury);
+    event SwapContractSet(address indexed swapContract);
     event OwnershipTransferredToHardware(address indexed newOwner);
 
     constructor(address _impactTreasury, uint256 _pricePerToken)
@@ -88,6 +88,8 @@ contract LoopTokenV2 is ERC20, Ownable, Pausable {
         require(amount > 0 && amount % 2 == 0, "Amount must be positive and even");
         require(msg.value >= amount * pricePerToken, "Insufficient ETH");
 
+        // `amount % 2 == 0` is enforced above, so `amount / 2` is exact —
+        // no truncation before the `* 10 ** decimals()` multiplications below.
         uint256 impactAmount = amount / 2;
         uint256 allocationAmount = amount / 2;
 
@@ -100,12 +102,16 @@ contract LoopTokenV2 is ERC20, Ownable, Pausable {
         totalImpactMinted += impactAmount;
         totalAllocationMinted += allocationAmount;
 
+        emit TokensPurchased(msg.sender, amount, impactAmount, allocationAmount);
+
+        // Event emitted above, before the refund's external call below
+        // (checks-effects-interactions) — `.transfer()` also caps forwarded
+        // gas at 2300, so this was never exploitable, but the ordering is
+        // cleaner and matches what an auditor expects to see.
         uint256 cost = amount * pricePerToken;
         if (msg.value > cost) {
             payable(msg.sender).transfer(msg.value - cost);
         }
-
-        emit TokensPurchased(msg.sender, amount, impactAmount, allocationAmount);
     }
 
     // ── V2: platform-managed cash-purchase mint ────────────────────────
@@ -119,6 +125,8 @@ contract LoopTokenV2 is ERC20, Ownable, Pausable {
         require(buyer != address(0), "Zero buyer");
         require(amount > 0 && amount % 2 == 0, "Amount must be positive and even");
 
+        // `amount % 2 == 0` is enforced above, so `amount / 2` is exact —
+        // no truncation before the `* 10 ** decimals()` multiplications below.
         uint256 impactAmount = amount / 2;
         uint256 allocationAmount = amount / 2;
 
@@ -220,9 +228,10 @@ contract LoopTokenV2 is ERC20, Ownable, Pausable {
         emit TreasuryUpdated(newTreasury);
     }
 
-    function setSwapContract(address _swapContract) external onlyOwner {
-        swapContract = _swapContract;
-        emit SwapContractSet(_swapContract);
+    function setSwapContract(address newSwapContract) external onlyOwner {
+        require(newSwapContract != address(0), "Zero address");
+        swapContract = newSwapContract;
+        emit SwapContractSet(newSwapContract);
     }
 
     function pause() external onlyOwner { _pause(); }

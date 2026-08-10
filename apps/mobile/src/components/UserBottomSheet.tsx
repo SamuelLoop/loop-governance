@@ -189,7 +189,7 @@ export function UserBottomSheet({
                 ? `${userData.tier.toUpperCase()} · `
                 : ''}
               <Text style={styles.score}>
-                {Math.round(userData?.score ?? 0)} pts
+                {(userData?.score ?? 0).toFixed(2)} pts
               </Text>
             </Text>
           </View>

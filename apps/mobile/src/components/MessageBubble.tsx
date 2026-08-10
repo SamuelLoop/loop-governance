@@ -60,7 +60,7 @@ export function MessageBubble({ message, isOwn, onAvatarPress }: Props) {
           <Text style={styles.authorName}>{displayName}</Text>
           <View style={[styles.scorePill, { borderColor: tierColor }]}>
             <Text style={[styles.scoreText, { color: tierColor }]}>
-              {Math.round(author?.score ?? 0)}
+              {(author?.score ?? 0).toFixed(2)}
             </Text>
           </View>
         </View>

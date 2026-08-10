@@ -109,7 +109,7 @@ export function PowerCard({ userId, communityId, subjectTag, displayName, avatar
             <Text style={[styles.tierLabel, { color: tierColor }]}>
               {tier.toUpperCase()}
             </Text>
-            <Text style={styles.score}>{Math.round(score)} pts</Text>
+            <Text style={styles.score}>{score.toFixed(2)} pts</Text>
           </View>
           <View style={styles.track}>
             <View style={[styles.fill, { backgroundColor: tierColor, width: `${progress * 100}%` }]} />

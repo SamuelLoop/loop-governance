@@ -13,3 +13,5 @@ supabase/
 # Hardhat
 packages/contracts/artifacts/
 packages/contracts/cache/
+packages/contracts/coverage/
+packages/contracts/coverage.json

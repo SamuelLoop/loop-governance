@@ -1,7 +1,26 @@
 "use server";
 
-import { createServiceClient } from "@/lib/supabase-server";
+import { createServiceClient, createClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+
+// Resolve the caller's internal users.id from the verified Supabase Auth
+// session. Used by createDelegation/revokeDelegation below instead of
+// trusting a client-supplied id — see sessions/security-03-treasury-function-audit.md.
+async function requireCallerProfileId(): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const admin = createServiceClient();
+  const { data: profile } = await admin
+    .from("users")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+  return profile?.id ?? null;
+}
 
 export type OverlappingCommunity = {
   id: string;
@@ -59,9 +78,11 @@ export async function createDelegation(
   _prev: State,
   formData: FormData
 ): Promise<State> {
+  const delegatorId = await requireCallerProfileId();
+  if (!delegatorId) return { error: "Not authenticated.", success: false };
+
   const admin = createServiceClient();
 
-  const delegatorId = formData.get("delegatorId") as string;
   const delegateId = formData.get("delegateId") as string;
   const communityIdsJson = formData.get("communityIds") as string;
   const subjectTag = formData.get("subjectTag") as string;
@@ -176,17 +197,30 @@ export async function revokeDelegation(
   _prev: RevokeState,
   formData: FormData
 ): Promise<RevokeState> {
+  const callerId = await requireCallerProfileId();
+  if (!callerId) return { error: "Not authenticated." };
+
   const admin = createServiceClient();
 
   const delegationId = formData.get("delegationId") as string;
 
-  const { error } = await admin
+  // Scoped to the caller's own delegator_id — previously this trusted
+  // delegationId alone, so anyone could revoke anyone else's delegation
+  // by ID. See sessions/security-03-treasury-function-audit.md.
+  const { error, count } = await admin
     .from("delegations")
-    .update({ active: false, revoked_at: new Date().toISOString() })
-    .eq("id", delegationId);
+    .update(
+      { active: false, revoked_at: new Date().toISOString() },
+      { count: "exact" }
+    )
+    .eq("id", delegationId)
+    .eq("delegator_id", callerId);
 
   if (error) {
     return { error: error.message };
+  }
+  if (count === 0) {
+    return { error: "Delegation not found, or it does not belong to you." };
   }
 
   revalidatePath("/give-power");

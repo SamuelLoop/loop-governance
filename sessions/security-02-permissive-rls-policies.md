@@ -1,143 +1,114 @@
 # Loop Governance: review permissive RLS policies — 2026-07-28
 
-## Context
+## Status: done, 2026-08-09
 
-Part 2 of the security advisor backlog (see `security-01-quick-wins.md` for
-part 1, and `ARCHITECTURE.md` for the shared-database context). This session
-covers `rls_policy_always_true`: 21 policies across ~13 tables where the
-`USING` or `WITH CHECK` clause is the literal `true` for an INSERT, UPDATE,
-or DELETE operation.
+## What Step 1 actually found
 
-**This is a review-and-judgment session, not a mechanical fix.** A policy
-with `WITH CHECK (true)` is not automatically wrong — it's fine if the real
-access control is happening via the policy's `roles` restriction (e.g. a
-policy scoped to `service_role` only, which the app already trusts
-completely). It's a problem if the policy is scoped to `anon` or
-`authenticated` with no row-level restriction, meaning any logged-in (or
-even anonymous) user can insert/update/delete rows they shouldn't be able to
-touch.
+Ran the brief's own Step 1 query. Result was worse than the brief
+anticipated: **every single flagged policy — all 15 in scope, across all 7
+loop-governance tables — was scoped to `roles: {public}`**, none of them
+were actually `service_role`-scoped despite some names implying it. `{public}`
+in `pg_policies.roles` means the policy applies to every connecting role:
+`anon` and `authenticated` included, not just `service_role`. This included
+the policy literally named `"Service role can insert purchases"` on
+`token_purchases` — the name described the intent, not the enforced
+reality.
 
-**Critical rule for this session:** do not blindly tighten every policy.
-For each one: identify what role(s) it applies to, read the surrounding
-application code to understand the intended access model, and only change
-policies that are actually wrong for their role. If a policy's row-level
-condition is `true` but it's scoped to `service_role`, leave it — that's
-correct and intentional (service_role is already fully trusted).
+Confirmed `service_role` has `BYPASSRLS` at the Postgres role level
+(`select rolbypassrls from pg_roles` → `true`), so tightening any of these
+policies for `anon`/`authenticated` can never break a
+`createServiceClient()` call path, by database guarantee — this made the
+"will this break something" question entirely about grepping for direct
+non-service-role writes, not about second-guessing the service-role paths.
 
----
+## Findings, worst first
 
-## Step 1: Get current policy details
+1. **`admin_assignments`** — any `anon`/`authenticated` caller could
+   insert or update rows in the table that grants `platform_admin`/
+   `org_admin`/`org_manager` roles. Zero auth check. A direct
+   privilege-escalation path to full platform admin.
+2. **`governance_settings`** — anyone could rewrite platform-wide quorum
+   sizes and the `governance_motivation_pct`/cap settings directly —
+   bypassing everything `security-03`'s migration had just locked down at
+   the function-grant layer. This RLS gap would have let an attacker route
+   around that entire fix by just editing the settings row instead of
+   calling the function.
+3. **`token_purchases`** (insert) — anyone could insert a fabricated
+   purchase row directly, despite the policy's name implying this was
+   already closed.
+4. **`moderation_flags`**, **`admin_audit_log`** — anyone could flag/unflag
+   any user as a bad actor or write tampered audit-log entries.
+5. **`delegations`**, **`messages`** — genuinely mixed. Confirmed real
+   direct writes as `authenticated` (not `service_role`) from
+   `apps/mobile/src/components/GivePowerSheet.tsx` (delegations,
+   accreditations) and `MessageInput.tsx` (messages) — mobile can never
+   hold the service-role key, so this is a legitimate, necessary pattern,
+   just never enforced at the row level (`delegator_id`/`author_id` were
+   trusted from app code alone, same shape as the identity-spoofing bug
+   fixed in `security-03`, just one layer lower in the stack).
+6. **`subject_allocations`** — zero write call sites found anywhere in any
+   app; default-deny to `service_role` is a safe, low-risk tightening.
 
-```bash
-cd "/Users/samuelbarlow/Documents/Coding Loop Enrolment/loop-trading"
-supabase db query --linked --output json "
-select tablename, policyname, cmd, roles, qual, with_check
-from pg_policies
-where tablename in (
-  'admin_assignments','admin_audit_log','bank_waitlist','canada_signups',
-  'cmbntr_agents','cmbntr_knowledge','cmbntr_messages','cmbntr_sessions',
-  'cmbntr_users','delegations','governance_settings','messages',
-  'moderation_flags','subject_allocations','token_purchases'
-)
-order by tablename, policyname;
-"
-```
+## Fix applied and verified
 
-This gives you the `roles` array for every flagged policy — that's the key
-piece of information the advisor summary alone doesn't show you.
+`packages/db/migrations/053_tighten_governance_rls_policies.sql`:
+- 12 policies restricted to `TO service_role` (admin_assignments x2,
+  admin_audit_log, governance_settings x2, moderation_flags x2,
+  subject_allocations x2, token_purchases, messages update).
+- 3 policies given a real row-level check for `TO authenticated`
+  (delegations insert/update, messages insert), requiring the row's owner
+  column match the caller's own resolved `users.id` via
+  `(SELECT id FROM users WHERE auth_id = auth.uid())` — the same idiom
+  already proven working in `token_purchases`' pre-existing "Users can view
+  own purchases" policy.
 
----
+**Functional verification** — the brief was explicit that `tsc`/lint isn't
+enough here since this changes row-level access, and it caught something
+concrete. Simulated real user sessions with `SET request.jwt.claim.sub =
+'<real auth_id>'; SET ROLE authenticated;` inside a transaction, always
+ending in `ROLLBACK` so no live data was touched:
+- Self-insert into `messages` as the real owner → succeeded.
+- Impersonation attempt (insert `messages` with someone else's
+  `author_id`) → `new row violates row-level security policy for table
+  "messages"`.
+- Self-delegation into `delegations` → **initially failed** with
+  `permission denied for function recompute_power_score` — a real
+  regression, not from this migration but from `security-04`'s
+  `052_voting_function_hardening.sql`. `trg_recompute_on_delegation()` (and
+  `trg_recompute_on_accreditation()`) are `SECURITY INVOKER` triggers that
+  `PERFORM recompute_power_score(...)` — since mobile inserts delegations/
+  accreditations directly as `authenticated`, the trigger's internal call
+  ran under that same role, and `052` had revoked `authenticated`'s
+  EXECUTE on that function. `votes`/`proposals` triggers were unaffected
+  (always written via `service_role` in every app, and `052` never touched
+  `service_role`'s own grant).
+- Fixed with `packages/db/migrations/054_restore_recompute_power_score_grant.sql`
+  — a targeted re-grant of just this one function to `authenticated`,
+  not a reversal of any of `052`'s other 9 revocations. Re-verified after:
+  self-delegation succeeded, impersonation attempt still correctly denied
+  (`new row violates row-level security policy for table "delegations"`).
+- Self-grant of `platform_admin` via `admin_assignments` → denied
+  (`new row violates row-level security policy for table
+  "admin_assignments"`).
+- Final `pg_policies` query confirms all 15 policies now show the correct
+  `roles` value (`{service_role}` × 12, `{authenticated}` × 3 with real
+  `qual`/`with_check` expressions) — no leftover `{public}`/unconditional-
+  true policy remains on any loop-governance table.
 
-## Step 2: Triage by table ownership
+## Out of scope, flagged separately
 
-**Not `loop-governance` tables — do not fix without checking with the
-owning project first, just note them:**
-- `bank_waitlist` (loop-bank)
-- `canada_signups` (loop-canada)
-- `cmbntr_agents`, `cmbntr_knowledge`, `cmbntr_messages`, `cmbntr_sessions`,
-  `cmbntr_users` (Loop Cmbntr)
+`cmbntr_agents`/`cmbntr_knowledge`/`cmbntr_messages`/`cmbntr_sessions`/
+`cmbntr_users` (Loop Cmbntr, different product, same shared Supabase
+project) have the identical issue — a policy named `cmbntr_service_all`
+with `roles: {public}`, `qual: "true"` (unconditional, not even a
+`auth.role() = 'service_role'` check like `canada_signups`' equivalent
+policy correctly does). Per this brief's own table-ownership rule, not
+fixed here — flagged as a separate background task
+(`task_46c10fb5`) rather than touched.
 
-These share the same Supabase project but belong to different products.
-If their policies are genuinely scoped to `service_role` only (check
-Step 1's output), they're almost certainly fine as-is (the `cmbntr_*`
-policy name `cmbntr_service_all` strongly suggests this). Flag anything
-that looks scoped to `anon`/`authenticated` with an unrestricted check, but
-don't change it — that's Loop Cmbntr's or Loop Bank's call, not this
-session's.
-
-**`loop-governance` tables — in scope for this session:**
-- `admin_assignments` (2 policies: insert, update)
-- `admin_audit_log` (1 policy: insert)
-- `delegations` (2 policies: insert, update)
-- `governance_settings` (2 policies: insert, update)
-- `messages` (2 policies: insert, update)
-- `moderation_flags` (2 policies: insert, update)
-- `subject_allocations` (2 policies: insert, update)
-- `token_purchases` (1 policy: "Service role can insert purchases" — name
-  strongly suggests this is `service_role`-scoped and fine as-is; confirm
-  via Step 1 and skip if so)
-
----
-
-## Step 3: For each in-scope table, review and fix
-
-For each policy:
-1. Check the `roles` column from Step 1. If it's `{service_role}`, confirm
-   the app only ever writes to this table via `createServiceClient()`
-   (grep the relevant app's `src` for `.from("table_name")` and check which
-   client each call site uses — same method used in the 2026-07-28 RLS
-   session). If confirmed, this policy is fine — skip it.
-2. If the policy is scoped to `authenticated` or `anon` with `USING (true)`
-   / `WITH CHECK (true)`, figure out what the row-level restriction *should*
-   be:
-   - `delegations` insert/update — a user should presumably only be able to
-     insert/update their own delegation (`delegator_id = auth.uid()`), not
-     anyone's.
-   - `messages` insert/update — a user should presumably only post as
-     themselves and only edit their own messages.
-   - `admin_assignments`, `moderation_flags`, `governance_settings` — these
-     sound like they should be restricted to admin roles, not any
-     authenticated user.
-3. Write the tightened policy (`DROP POLICY` + `CREATE POLICY` with a real
-   `USING`/`WITH CHECK` expression), add it to
-   `packages/db/migrations/047_tighten_governance_rls_policies.sql`.
-4. **Before applying**, check whether the app itself relies on the current
-   loose behavior anywhere (e.g. does an admin action currently insert a
-   delegation on a user's behalf via the anon-scoped client rather than
-   service role — if so, tightening the policy could break that flow, and
-   you'd need to either scope the policy to include that case or switch
-   that code path to use `createServiceClient()` instead).
-
-This step is genuinely the slow part — don't rush it. Getting a policy
-wrong in either direction (too loose = security hole, too tight = breaks a
-legitimate flow) is worse than leaving it as a documented open item.
-
----
-
-## Step 4: Apply and verify
-
-```bash
-supabase db query --linked --file packages/db/migrations/047_tighten_governance_rls_policies.sql
-supabase db advisors --linked --type security --level warn
-```
-
-Confirm the `rls_policy_always_true` count dropped by exactly the number of
-policies you tightened (not more — if it dropped by more, something
-unexpected happened, investigate before moving on).
-
-**Then functionally test each affected flow as the relevant role** —
-this is the one place in the security backlog where "run tsc and lint" isn't
-enough verification, because you're changing row-level access. At minimum:
-- Delegate to someone in console, confirm it still works
-- Post a message in console chat, confirm it still works
-- If you tightened `admin_assignments`/`moderation_flags`/`governance_settings`,
-  test the relevant admin-app flow as an actual `org_admin` or
-  `platform_admin` session, not just as a superuser/service-role script
-
-## What success looks like
-
-- A migration file documenting exactly which policies were tightened and why
-- `rls_policy_always_true` count reduced only for `loop-governance`-owned
-  tables (the shared-project tables from other products are flagged in your
-  summary, not touched)
-- Every affected app flow manually re-tested and confirmed still working
+`bank_waitlist` and `canada_signups` were checked too: both are
+intentional public-signup-form patterns (insert-open, no read policy) or
+already correctly gated (`canada_signups`' `service_role_all` policy
+checks `auth.role() = 'service_role'` inside the condition even though
+`roles` shows `{public}` — a different, safe pattern from the
+unconditional-`true` ones above). Neither needed changes.
