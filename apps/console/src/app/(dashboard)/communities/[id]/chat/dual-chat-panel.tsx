@@ -4,8 +4,10 @@ import { useActionState, useRef, useEffect, useState } from "react";
 import { sendMessage, type Message } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star } from "lucide-react";
+import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const QUICK_EMOJI = ["👍", "❤️", "🎉", "😂", "👀", "🙏", "🔥", "✅"];
 
 function MessageBubble({
   message,
@@ -106,6 +108,7 @@ export function ThreadPanel({
   const [state, action] = useActionState(sendMessage, { error: "" });
   const scrollRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -119,6 +122,17 @@ export function ThreadPanel({
       clearReference();
     }
   }, [state]);
+
+  function insertEmoji(emoji: string) {
+    const textarea = formRef.current?.querySelector<HTMLTextAreaElement>(
+      "textarea[name=content]"
+    );
+    if (textarea) {
+      textarea.value += emoji;
+      textarea.focus();
+    }
+    setShowEmoji(false);
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -151,7 +165,22 @@ export function ThreadPanel({
       </div>
 
       {canPost && (
-        <div className="border-t px-3 py-2">
+        <div className="relative border-t px-3 py-2">
+          {showEmoji && (
+            <div className="absolute bottom-full left-3 z-10 mb-1 flex gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
+              {QUICK_EMOJI.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => insertEmoji(emoji)}
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-base hover:bg-accent"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+
           {referencedMsg && referencedMsg.channel !== channel && (
             <div className="mb-1.5 flex items-center gap-1.5 rounded border border-primary/30 bg-primary/5 px-2 py-1 text-[10px]">
               <MessageSquareQuote className="h-2.5 w-2.5 text-primary" />
@@ -184,6 +213,14 @@ export function ThreadPanel({
                 value={referencedMsg.id}
               />
             )}
+            <button
+              type="button"
+              onClick={() => setShowEmoji((v) => !v)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-input text-muted-foreground hover:border-primary/50 hover:text-primary md:h-8 md:w-8"
+              aria-label="Insert emoji"
+            >
+              <Smile className="h-4 w-4 md:h-3 md:w-3" />
+            </button>
             <Textarea
               name="content"
               placeholder={
@@ -233,7 +270,7 @@ export function DualChatPanel({
 
   return (
     <div className="flex flex-1 gap-3 overflow-hidden">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-panel border border-surface-border bg-surface backdrop-blur-[var(--blur-glass)]">
+      <div className="community-shade flex flex-1 flex-col overflow-hidden rounded-panel border border-surface-border backdrop-blur-[var(--blur-glass)]">
         <ThreadPanel
           title="Community"
           icon={<Users className="h-3.5 w-3.5 text-muted-foreground" />}

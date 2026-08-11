@@ -83,3 +83,18 @@
   );
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent-end) 6%, transparent);
 }
+
+/*
+ * Community panel shade — a flat, clearly-visible tint distinguishing
+ * Community from the plain page background, deliberately neutral (no
+ * brand-accent hue) so it doesn't compete with Leadership's gradient
+ * border for attention. Requested directly, not a token-driven value —
+ * doesn't warrant a theme.css entry on its own.
+ */
+.community-shade {
+  background: #17171b;
+}
+
+[data-theme="light"] .community-shade {
+  background: #e9eaee;
+}
