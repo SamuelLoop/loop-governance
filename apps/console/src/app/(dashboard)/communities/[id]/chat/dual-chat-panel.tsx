@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect, useState } from "react";
 import { sendMessage, type Message } from "./actions";
+import { toggleReaction, type Reaction } from "./reaction-actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star, Smile } from "lucide-react";
@@ -9,12 +10,84 @@ import { Badge } from "@/components/ui/badge";
 
 const QUICK_EMOJI = ["👍", "❤️", "🎉", "😂", "👀", "🙏", "🔥", "✅"];
 
+function ReactionBar({
+  messageId,
+  communityId,
+  reactions,
+}: {
+  messageId: string;
+  communityId: string;
+  reactions: Reaction[];
+}) {
+  const [, action] = useActionState(toggleReaction, { error: "" });
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-1">
+      {reactions.map((r) => (
+        <form key={r.emoji} action={action}>
+          <input type="hidden" name="message_id" value={messageId} />
+          <input type="hidden" name="community_id" value={communityId} />
+          <input type="hidden" name="emoji" value={r.emoji} />
+          <button
+            type="submit"
+            className={`flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[10px] transition ${
+              r.reactedByMe
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50"
+            }`}
+          >
+            <span>{r.emoji}</span>
+            <span>{r.count}</span>
+          </button>
+        </form>
+      ))}
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setPickerOpen((v) => !v)}
+          className="flex h-5 w-5 items-center justify-center rounded-md border border-border text-[11px] text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-primary"
+          aria-label="Add reaction"
+        >
+          +
+        </button>
+        {pickerOpen && (
+          <div className="absolute bottom-full left-0 z-10 mb-1 flex gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
+            {QUICK_EMOJI.map((emoji) => (
+              <form
+                key={emoji}
+                action={action}
+                onSubmit={() => setPickerOpen(false)}
+              >
+                <input type="hidden" name="message_id" value={messageId} />
+                <input type="hidden" name="community_id" value={communityId} />
+                <input type="hidden" name="emoji" value={emoji} />
+                <button
+                  type="submit"
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-base hover:bg-accent"
+                >
+                  {emoji}
+                </button>
+              </form>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({
   message,
   onReference,
+  communityId,
+  reactions,
 }: {
   message: Message;
   onReference: (msg: Message) => void;
+  communityId: string;
+  reactions: Reaction[];
 }) {
   return (
     <div className="group flex gap-2 px-3 py-1.5 hover:bg-accent/30">
@@ -79,6 +152,12 @@ function MessageBubble({
             <Badge variant="outline" className="shrink-0 text-[7px]">{message.metadata.reference.type}</Badge>
           </a>
         )}
+
+        <ReactionBar
+          messageId={message.id}
+          communityId={communityId}
+          reactions={reactions}
+        />
       </div>
     </div>
   );
@@ -94,6 +173,7 @@ export function ThreadPanel({
   onReference,
   referencedMsg,
   clearReference,
+  reactionsByMessage,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -104,6 +184,7 @@ export function ThreadPanel({
   onReference: (msg: Message) => void;
   referencedMsg: Message | null;
   clearReference: () => void;
+  reactionsByMessage: Record<string, Reaction[]>;
 }) {
   const [state, action] = useActionState(sendMessage, { error: "" });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -159,7 +240,13 @@ export function ThreadPanel({
           </div>
         ) : (
           messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} onReference={onReference} />
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              onReference={onReference}
+              communityId={communityId}
+              reactions={reactionsByMessage[msg.id] ?? []}
+            />
           ))
         )}
       </div>
@@ -260,11 +347,15 @@ export function DualChatPanel({
   communityMessages,
   quorumMessages,
   isQuorum,
+  communityReactions,
+  quorumReactions,
 }: {
   communityId: string;
   communityMessages: Message[];
   quorumMessages: Message[];
   isQuorum: boolean;
+  communityReactions: Record<string, Reaction[]>;
+  quorumReactions: Record<string, Reaction[]>;
 }) {
   const [referencedMsg, setReferencedMsg] = useState<Message | null>(null);
 
@@ -281,6 +372,7 @@ export function DualChatPanel({
           onReference={setReferencedMsg}
           referencedMsg={referencedMsg}
           clearReference={() => setReferencedMsg(null)}
+          reactionsByMessage={communityReactions}
         />
       </div>
       <div className="leadership-glow flex flex-1 flex-col overflow-hidden">
@@ -295,6 +387,7 @@ export function DualChatPanel({
             onReference={setReferencedMsg}
             referencedMsg={referencedMsg}
             clearReference={() => setReferencedMsg(null)}
+            reactionsByMessage={quorumReactions}
           />
         </div>
       </div>

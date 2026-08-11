@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { getMessages } from "./actions";
 import { getQuestions } from "./question-actions";
+import { getReactions } from "./reaction-actions";
 import { DualChatPanel } from "./dual-chat-panel";
 import { QuestionPanel } from "./question-panel";
 import { ChatMobileLayout } from "./chat-mobile-layout";
@@ -56,6 +57,11 @@ export default async function ChatPage({
     getQuestions(id),
   ]);
 
+  const [communityReactions, quorumReactions] = await Promise.all([
+    getReactions(communityMessages.map((m) => m.id)),
+    getReactions(quorumMessages.map((m) => m.id)),
+  ]);
+
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col md:h-[calc(100vh-4rem)]">
       <div className="flex items-center border-b px-4 py-3">
@@ -82,6 +88,8 @@ export default async function ChatPage({
             communityMessages={communityMessages}
             quorumMessages={quorumMessages}
             isQuorum={isQuorum}
+            communityReactions={communityReactions}
+            quorumReactions={quorumReactions}
           />
         </div>
         <div className="flex w-80 shrink-0 flex-col overflow-hidden">
@@ -100,6 +108,8 @@ export default async function ChatPage({
         quorumMessages={quorumMessages}
         questions={questions}
         isQuorum={isQuorum}
+        communityReactions={communityReactions}
+        quorumReactions={quorumReactions}
       />
     </div>
   );

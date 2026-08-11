@@ -6,6 +6,7 @@ import { ThreadPanel } from "./dual-chat-panel";
 import { QuestionPanel } from "./question-panel";
 import type { Message } from "./actions";
 import type { Question } from "./question-actions";
+import type { Reaction } from "./reaction-actions";
 
 type Tab = "community" | "quorum" | "questions";
 
@@ -15,12 +16,16 @@ export function ChatMobileLayout({
   quorumMessages,
   questions,
   isQuorum,
+  communityReactions,
+  quorumReactions,
 }: {
   communityId: string;
   communityMessages: Message[];
   quorumMessages: Message[];
   questions: Question[];
   isQuorum: boolean;
+  communityReactions: Record<string, Reaction[]>;
+  quorumReactions: Record<string, Reaction[]>;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("community");
   const [referencedMsg, setReferencedMsg] = useState<Message | null>(null);
@@ -61,6 +66,7 @@ export function ChatMobileLayout({
             onReference={setReferencedMsg}
             referencedMsg={referencedMsg}
             clearReference={() => setReferencedMsg(null)}
+            reactionsByMessage={communityReactions}
           />
         )}
         {activeTab === "quorum" && (
@@ -74,6 +80,7 @@ export function ChatMobileLayout({
             onReference={setReferencedMsg}
             referencedMsg={referencedMsg}
             clearReference={() => setReferencedMsg(null)}
+            reactionsByMessage={quorumReactions}
           />
         )}
         {activeTab === "questions" && (
