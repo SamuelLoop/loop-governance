@@ -75,7 +75,7 @@ export default async function ChatPage({
       </div>
 
       {/* Desktop: side-by-side panels */}
-      <div className="hidden flex-1 overflow-hidden md:flex">
+      <div className="hidden flex-1 gap-3 overflow-hidden p-3 md:flex">
         <div className="flex flex-[2] overflow-hidden">
           <DualChatPanel
             communityId={id}
@@ -84,7 +84,7 @@ export default async function ChatPage({
             isQuorum={isQuorum}
           />
         </div>
-        <div className="flex w-80 shrink-0 flex-col border-l">
+        <div className="flex w-80 shrink-0 flex-col overflow-hidden">
           <QuestionPanel
             communityId={id}
             questions={questions}

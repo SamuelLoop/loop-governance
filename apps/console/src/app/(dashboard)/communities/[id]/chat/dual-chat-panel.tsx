@@ -121,13 +121,19 @@ export function ThreadPanel({
   }, [state]);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden border-r last:border-r-0">
+    <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center gap-2 border-b px-3 py-2">
         {icon}
         <span className="text-xs font-medium">{title}</span>
+        {channel === "quorum" && (
+          <span className="rounded-full border border-[color-mix(in_srgb,var(--accent-end)_25%,transparent)] bg-[color-mix(in_srgb,var(--accent-end)_10%,transparent)] px-2 py-0.5 font-mono text-[9px] tracking-wide text-[color:var(--accent-end)] uppercase">
+            Members only
+          </span>
+        )}
         <span className="text-[10px] text-muted-foreground">
           ({messages.length})
         </span>
+        <span className="live-dot ml-auto" aria-hidden="true" title="Live" />
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-1">
@@ -192,7 +198,11 @@ export function ThreadPanel({
                 }
               }}
             />
-            <Button type="submit" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8">
+            <Button
+              type="submit"
+              size="sm"
+              className="h-10 w-10 border-transparent bg-[image:linear-gradient(90deg,var(--accent-start),var(--accent-end))] p-0 text-white hover:opacity-90 md:h-8 md:w-8"
+            >
               <Send className="h-4 w-4 md:h-3 md:w-3" />
             </Button>
           </form>
@@ -222,29 +232,35 @@ export function DualChatPanel({
   const [referencedMsg, setReferencedMsg] = useState<Message | null>(null);
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <ThreadPanel
-        title="Community"
-        icon={<Users className="h-3.5 w-3.5 text-muted-foreground" />}
-        messages={communityMessages}
-        communityId={communityId}
-        channel="community"
-        canPost={true}
-        onReference={setReferencedMsg}
-        referencedMsg={referencedMsg}
-        clearReference={() => setReferencedMsg(null)}
-      />
-      <ThreadPanel
-        title="Leadership group"
-        icon={<Shield className="h-3.5 w-3.5 text-primary" />}
-        messages={quorumMessages}
-        communityId={communityId}
-        channel="quorum"
-        canPost={isQuorum}
-        onReference={setReferencedMsg}
-        referencedMsg={referencedMsg}
-        clearReference={() => setReferencedMsg(null)}
-      />
+    <div className="flex flex-1 gap-3 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-panel border border-surface-border bg-surface backdrop-blur-[var(--blur-glass)]">
+        <ThreadPanel
+          title="Community"
+          icon={<Users className="h-3.5 w-3.5 text-muted-foreground" />}
+          messages={communityMessages}
+          communityId={communityId}
+          channel="community"
+          canPost={true}
+          onReference={setReferencedMsg}
+          referencedMsg={referencedMsg}
+          clearReference={() => setReferencedMsg(null)}
+        />
+      </div>
+      <div className="leadership-glow flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-panel bg-surface backdrop-blur-[var(--blur-glass)]">
+          <ThreadPanel
+            title="Leadership group"
+            icon={<Shield className="h-3.5 w-3.5 text-primary" />}
+            messages={quorumMessages}
+            communityId={communityId}
+            channel="quorum"
+            canPost={isQuorum}
+            onReference={setReferencedMsg}
+            referencedMsg={referencedMsg}
+            clearReference={() => setReferencedMsg(null)}
+          />
+        </div>
+      </div>
     </div>
   );
 }

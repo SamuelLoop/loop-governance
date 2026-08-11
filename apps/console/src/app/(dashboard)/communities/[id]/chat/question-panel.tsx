@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
+import { useActionState, useRef, useEffect, useLayoutEffect } from "react";
 import {
   submitQuestion,
   upvoteQuestion,
@@ -16,10 +16,14 @@ function QuestionCard({
   question,
   communityId,
   isQuorum,
+  rank,
+  cardRef,
 }: {
   question: Question;
   communityId: string;
   isQuorum: boolean;
+  rank: number;
+  cardRef: (el: HTMLDivElement | null) => void;
 }) {
   const [, upvoteAction] = useActionState(upvoteQuestion, { error: "" });
   const [, discussAction] = useActionState(markQuestionDiscussing, {
@@ -27,7 +31,10 @@ function QuestionCard({
   });
 
   return (
-    <div className="flex gap-3 rounded-lg border bg-card p-3">
+    <div ref={cardRef} className="flex gap-2 rounded-lg border bg-card p-3">
+      <span className="w-4 pt-1 text-center font-mono text-xs font-bold text-muted-foreground tabular-nums">
+        {rank}
+      </span>
       {/* Upvote */}
       <form action={upvoteAction} className="flex flex-col items-center">
         <input type="hidden" name="question_id" value={question.id} />
@@ -89,6 +96,8 @@ export function QuestionPanel({
 }) {
   const [state, action] = useActionState(submitQuestion, { error: "" });
   const formRef = useRef<HTMLFormElement>(null);
+  const cardEls = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevRects = useRef<Map<string, DOMRect>>(new Map());
 
   useEffect(() => {
     if (!state.error && formRef.current) {
@@ -96,10 +105,43 @@ export function QuestionPanel({
     }
   }, [state]);
 
+  // Live re-rank: when the server-sorted `questions` order changes (a vote
+  // landed), FLIP-animate each card from its previous position to its new
+  // one instead of just snapping — makes the "this is a ranked queue, not
+  // a feed" distinction visible, not just implied by the layout.
+  useLayoutEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const nextRects = new Map<string, DOMRect>();
+    cardEls.current.forEach((el, id) => {
+      nextRects.set(id, el.getBoundingClientRect());
+    });
+
+    if (!reduceMotion) {
+      questions.forEach((q) => {
+        const el = cardEls.current.get(q.id);
+        const prev = prevRects.current.get(q.id);
+        const next = nextRects.get(q.id);
+        if (!el || !prev || !next) return;
+        const deltaY = prev.top - next.top;
+        if (deltaY === 0) return;
+        el.style.transition = "none";
+        el.style.transform = `translateY(${deltaY}px)`;
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 400ms ease-out";
+          el.style.transform = "";
+        });
+      });
+    }
+
+    prevRects.current = nextRects;
+  }, [questions]);
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col rounded-panel border border-surface-border bg-surface backdrop-blur-[var(--blur-glass)]">
       <div className="flex items-center gap-2 border-b px-3 py-2">
-        <HelpCircle className="h-3.5 w-3.5 text-amber-500" />
+        <HelpCircle className="h-3.5 w-3.5 text-warning" />
         <span className="text-xs font-medium">
           Questions for leaders
         </span>
@@ -116,12 +158,17 @@ export function QuestionPanel({
             </p>
           </div>
         ) : (
-          questions.map((q) => (
+          questions.map((q, i) => (
             <QuestionCard
               key={q.id}
               question={q}
               communityId={communityId}
               isQuorum={isQuorum}
+              rank={i + 1}
+              cardRef={(el) => {
+                if (el) cardEls.current.set(q.id, el);
+                else cardEls.current.delete(q.id);
+              }}
             />
           ))
         )}
@@ -148,7 +195,11 @@ export function QuestionPanel({
               }
             }}
           />
-          <Button type="submit" size="sm" className="h-10 w-10 p-0 md:h-8 md:w-8">
+          <Button
+            type="submit"
+            size="sm"
+            className="h-10 w-10 border-transparent bg-[image:linear-gradient(90deg,var(--accent-start),var(--accent-end))] p-0 text-white hover:opacity-90 md:h-8 md:w-8"
+          >
             <HelpCircle className="h-4 w-4 md:h-3 md:w-3" />
           </Button>
         </form>
