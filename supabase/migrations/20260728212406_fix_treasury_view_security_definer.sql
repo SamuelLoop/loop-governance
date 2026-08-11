@@ -1,0 +1,25 @@
+-- Close public exposure flagged by Supabase's security advisor
+-- (security_definer_view, ERROR level, 2026-07-28).
+--
+-- community_treasury_balance was created as a plain view (no explicit
+-- security clause), which defaults to SECURITY DEFINER-equivalent
+-- behaviour in Postgres: it runs with the view owner's permissions,
+-- bypassing RLS on the underlying treasury_transactions table for
+-- whoever queries the view.
+--
+-- treasury_transactions has one RLS policy ("Authenticated read",
+-- USING (true), SELECT only, for the `authenticated` role) and no
+-- policy at all for `anon`. But `anon` has SELECT granted directly on
+-- this view, and the view's definer semantics bypass the table's RLS
+-- entirely — so any unauthenticated caller with just the public anon
+-- key could read every community's treasury balance via the REST API.
+--
+-- Fix: set security_invoker so the view enforces the querying role's
+-- own RLS grants, same as querying the table directly would.
+--
+-- Impact: none for the app (both callers use createServiceClient(),
+-- which bypasses RLS regardless of definer/invoker). Authenticated
+-- users are unaffected (the table's own policy already allows them to
+-- read everything). Only closes the anon-key public read path.
+
+ALTER VIEW public.community_treasury_balance SET (security_invoker = true);

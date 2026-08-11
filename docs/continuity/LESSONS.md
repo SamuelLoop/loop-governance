@@ -1,9 +1,57 @@
 # Loop Governance — LESSONS
 
 > Hard-won gotchas. Add a new entry the session it's discovered. Never delete.
-> Last updated: 2026-08-10
+> Last updated: 2026-08-11
 
 ---
+
+## -1. `vercel --prod` deploys the working directory, not a git ref — and `packages/db/migrations/` had no apply mechanism at all
+
+Two related incidents, same session (2026-08-11):
+
+**`vercel --prod` uploads whatever's on disk in cwd, uncommitted files included.**
+Running it from a branch/directory with unrelated uncommitted changes present
+ships those changes too, silently. Caused a real incident: a deploy run from
+`master` (which had unrelated in-progress, uncommitted identity-verification
+code sitting in the working tree) shipped that unreviewed code to production
+console.loopcmbntr.live, alongside two DB migration files it depended on that
+had never been applied — the live `/claim` page was at risk of hard-erroring
+on every request until rolled back. **Before any `vercel --prod`, check
+`git status --short` is clean except for what you actually mean to ship** —
+`git stash push -u` anything else first, deploy, then `git stash pop`.
+
+**Running `vercel` from inside `apps/console` (instead of the repo root) throws
+`.../apps/console/apps/console does not exist`.** The project's dashboard
+Root Directory setting (`apps/console`) gets applied a second time on top of
+an already-there cwd. Always run from the monorepo root:
+```
+cd loop-governance && VERCEL_ORG_ID=team_db1BwBWxFy6d2vaHAKVGjRAT VERCEL_PROJECT_ID=prj_VFktsZb0dPskebZXnMHVnOlIaGeW vercel --prod
+```
+
+**`packages/db/migrations/*.sql` had no working apply mechanism at all** —
+`supabase db push` had nothing to push (no `supabase/migrations/` dir
+existed), `drizzle-kit push` diffs the Drizzle schema files instead, which
+SOUL.md already documents as drifted from the real live structure (so it
+would apply the *wrong* diff, not just fail), and no `DATABASE_URL` exists
+anywhere in this repo's env files or Vercel's stored env vars. Fixed this
+session: `supabase/` was fully gitignored (blanket `supabase/` line) — now
+only `supabase/.temp/` (the local link cache) is ignored, and
+`supabase/migrations/` mirrors `packages/db/migrations/` with CLI-format
+`<timestamp>_<name>.sql` filenames, remote history repaired via `supabase
+migration repair --status applied --linked <versions>` for everything already
+live (repair only edits the bookkeeping table, never runs SQL). `supabase db
+push --linked` now works normally — verify with `--dry-run` first, it should
+list only genuinely new, unapplied migrations. Two harmless pre-history
+remote-only entries (`20260419000000`, `20260602000001`, predating the
+file-based convention) were marked `reverted` via the same repair command
+per the CLI's own suggested fix — bookkeeping only, nothing in the live
+database was touched.
+
+Also found, useful for one-off checks without any of the above:
+`supabase db query --linked "sql here"` (or `--file path.sql`) executes SQL
+directly against the linked project via the Management API — no
+`DATABASE_URL`, no `psql`, no `supabase/migrations/` needed. Verified working
+this session with a harmless read-only query.
 
 ## 0a. `vercel project inspect`'s "Build Command" does not reflect `vercel.json`
 
