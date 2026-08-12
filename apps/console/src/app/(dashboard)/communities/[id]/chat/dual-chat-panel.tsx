@@ -3,12 +3,17 @@
 import { useActionState, useRef, useEffect, useState } from "react";
 import { sendMessage, type Message } from "./actions";
 import { toggleReaction, type Reaction } from "./reaction-actions";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const QUICK_EMOJI = ["👍", "❤️", "🎉", "😂", "👀", "🙏", "🔥", "✅"];
+const QUICK_EMOJI = [
+  "👍", "👎", "❤️", "🎉", "😂", "😮", "😢", "🙏",
+  "🔥", "✅", "👀", "💯", "🤔", "👏", "🚀", "😅",
+  "😍", "🙌", "🤝", "💡", "⚡", "🎯", "🏆", "☕",
+];
 
 function ReactionBar({
   messageId,
@@ -47,13 +52,13 @@ function ReactionBar({
         <button
           type="button"
           onClick={() => setPickerOpen((v) => !v)}
-          className="flex h-5 w-5 items-center justify-center rounded-md border border-border text-[11px] text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-primary/50 hover:text-primary"
-          aria-label="Add reaction"
+          className="flex h-5 w-5 items-center justify-center rounded-md border border-border text-[11px] text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+          aria-label="Add or change reaction"
         >
           +
         </button>
         {pickerOpen && (
-          <div className="absolute bottom-full left-0 z-10 mb-1 flex gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
+          <div className="absolute bottom-full left-0 z-10 mb-1 grid w-[176px] grid-cols-6 gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
             {QUICK_EMOJI.map((emoji) => (
               <form
                 key={emoji}
@@ -91,13 +96,12 @@ function MessageBubble({
 }) {
   return (
     <div className="group flex gap-2 px-3 py-1.5 hover:bg-accent/30">
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-medium">
-        {message.author?.avatar_url ? (
-          <img src={message.author.avatar_url} alt="" className="h-full w-full object-cover" />
-        ) : (
-          (message.author?.display_name ?? "?")[0].toUpperCase()
-        )}
-      </div>
+      <Avatar size="sm" className="shrink-0">
+        <AvatarImage src={message.author?.avatar_url ?? undefined} alt="" />
+        <AvatarFallback className="text-[10px] font-medium">
+          {(message.author?.display_name ?? "?")[0].toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-medium">
@@ -254,7 +258,7 @@ export function ThreadPanel({
       {canPost && (
         <div className="relative border-t px-3 py-2">
           {showEmoji && (
-            <div className="absolute bottom-full left-3 z-10 mb-1 flex gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
+            <div className="absolute bottom-full left-3 z-10 mb-1 grid w-[176px] grid-cols-6 gap-0.5 rounded-lg border border-surface-border bg-popover p-1.5 shadow-lg">
               {QUICK_EMOJI.map((emoji) => (
                 <button
                   key={emoji}

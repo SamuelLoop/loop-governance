@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@loop/ui";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   FileText,
@@ -154,17 +155,12 @@ export function AppSidebar({
               <DropdownMenuTrigger
                 render={
                   <SidebarMenuButton>
-                    {userAvatar ? (
-                      <img
-                        src={userAvatar}
-                        alt={userName}
-                        className="h-5 w-5 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px] font-medium text-primary">
+                    <Avatar size="sm">
+                      <AvatarImage src={userAvatar ?? undefined} alt={userName} />
+                      <AvatarFallback className="bg-primary/20 text-[10px] font-medium text-primary">
                         {userName[0]?.toUpperCase()}
-                      </div>
-                    )}
+                      </AvatarFallback>
+                    </Avatar>
                     <span className="truncate text-xs">{userName}</span>
                     <ChevronUp className="ml-auto h-4 w-4" />
                   </SidebarMenuButton>

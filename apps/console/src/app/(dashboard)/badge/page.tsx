@@ -2,6 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Share2 } from "lucide-react";
 import { generateTreeSVG, type TreeNode, type TreeData } from "@/lib/power-tree";
@@ -221,16 +222,18 @@ export default async function BadgePage() {
           style={{ background: `radial-gradient(circle at 50% 0%, ${tier.color}08, transparent 70%)` }}
         >
           <div className="flex items-center gap-4">
-            <div
-              className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full text-lg font-bold"
-              style={{ backgroundColor: `${tier.color}15`, color: tier.color, border: `2px solid ${tier.color}40` }}
+            <Avatar
+              className="size-14"
+              style={{ border: `2px solid ${tier.color}40` }}
             >
-              {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt={profile.display_name ?? ""} className="h-full w-full object-cover" />
-              ) : (
-                profile.display_name?.[0]?.toUpperCase() ?? "?"
-              )}
-            </div>
+              <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.display_name ?? ""} />
+              <AvatarFallback
+                className="text-lg font-bold"
+                style={{ backgroundColor: `${tier.color}15`, color: tier.color }}
+              >
+                {profile.display_name?.[0]?.toUpperCase() ?? "?"}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h2 className="text-lg font-bold">{profile.display_name}</h2>
               <p className="text-xs text-muted-foreground">{label} Governor</p>

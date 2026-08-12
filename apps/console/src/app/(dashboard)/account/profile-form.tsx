@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateProfile } from "./actions";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,17 +38,12 @@ export function ProfileForm({
       )}
 
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-xl font-bold text-primary">
-          {profile.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile.display_name}
-              className="h-full w-full rounded-full object-cover"
-            />
-          ) : (
-            profile.display_name[0]?.toUpperCase()
-          )}
-        </div>
+        <Avatar className="size-16">
+          <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.display_name} />
+          <AvatarFallback className="bg-primary/20 text-xl font-bold text-primary">
+            {profile.display_name[0]?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         <div className="flex-1">
           <Label htmlFor="avatar_url" className="mb-1 text-xs">
             Avatar URL
@@ -55,9 +51,13 @@ export function ProfileForm({
           <Input
             id="avatar_url"
             name="avatar_url"
+            type="url"
             defaultValue={profile.avatar_url ?? ""}
             placeholder="https://example.com/avatar.jpg"
           />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Direct link to an image. If it fails to load, your initial shows instead.
+          </p>
         </div>
       </div>
 

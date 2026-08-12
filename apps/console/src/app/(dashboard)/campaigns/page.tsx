@@ -2,6 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -124,17 +125,12 @@ export default async function CampaignsPage({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                        {c.users?.avatar_url ? (
-                          <img
-                            src={c.users.avatar_url}
-                            alt=""
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        ) : (
-                          c.users?.display_name?.[0]?.toUpperCase() ?? "?"
-                        )}
-                      </div>
+                      <Avatar size="lg">
+                        <AvatarImage src={c.users?.avatar_url ?? undefined} alt="" />
+                        <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
+                          {c.users?.display_name?.[0]?.toUpperCase() ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <p className="text-sm font-medium">
                           {c.users?.display_name}
