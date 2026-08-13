@@ -241,6 +241,23 @@ Next up: `sessions/web-implementation-backlog.md` — per-page migration
 of all 44 pages (24 console + 9 admin + 11 portal) onto the shell this
 session landed, following the 9 canonical patterns from session 3.
 
+**Sessions 08-11 added 2026-08-11** (real user request, triggered by
+today's ad hoc chat redesign — see that day's own session for the chat
+work itself, not tracked in this numbered chain since it happened outside
+this process): `web-08-space-tint-addendum.md` (formalizes a new
+leadership/community/admin panel-tint pattern discovered live during the
+chat build, retrofits chat onto real `Glass`/`LiveDot` components instead
+of the one-off CSS it shipped with) → `web-09-admin-rollout.md` →
+`web-10-console-rollout.md` → `web-11-portal-rollout.md`. These are the
+concrete, dependency-ordered promotion of `web-implementation-backlog.md`'s
+checklist items (that file said to do exactly this "when picked up") —
+run 08-11 instead of working the backlog ad hoc, they carry the correct
+order and the space-tint colour is a new, not-yet-confirmed design
+decision (admin tint proposed as teal, needs real sign-off in session 08
+itself before 09 depends on it). **All four carry forward the "Post-deploy
+correction" standing rule below: explicit visual sign-off before
+deploying, every session, not just portal's.**
+
 **Post-deploy correction (2026-08-10, same day):** the real user checked
 the live deploy and found gov.loopcmbntr.live "totally broken" and never
 authorized the logo change. Root cause: portal's `<body>` was switched to
