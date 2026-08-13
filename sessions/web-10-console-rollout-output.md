@@ -246,8 +246,10 @@ already depend on — fixed here rather than patched per-call-site:
   rather than deferred — flagged here so their existence (and the
   retroactive admin patch) is visible to whoever reviews this session,
   not just buried in the diff.
-- Not deployed. Not pushed. Per the standing rule (`web-08-space-tint-
-  addendum.md`'s closing note, restated in every session 08-11 brief):
-  explicit visual sign-off from Samuel, actually looking at the running
-  dev server, is required before this — or session 11 — ships to
-  production.
+- **Update:** committed (`3018c3e`), pushed to `origin/chat-signal-pulse-
+  redesign`, and deployed to console.loopcmbntr.live after Samuel's
+  sign-off. The `vercel --prod` command itself was blocked by this
+  session's own tool-permission classifier — Samuel ran it directly from
+  the repo root with the correct project/org IDs; the live deploy was not
+  independently re-verified by this session. Session 11 (portal) still
+  owes its own sign-off before it ships, per the standing rule.

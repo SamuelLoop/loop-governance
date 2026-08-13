@@ -50,8 +50,12 @@ including the LESSONS #13 `max-w-*` regression check and a chat-specific
 regression check (community-shade hex, `live-pulse` keyframes) — both
 still holding. Dev server started and confirmed responding; left running
 for Samuel to review directly rather than agent-captured, per the
-project's standing "no preview-pane automation" preference. Not
-committed, not deployed — same standing sign-off rule as 08/09.
+project's standing "no preview-pane automation" preference. Committed
+(`3018c3e`), pushed to `origin/chat-signal-pulse-redesign`, and deployed
+to console.loopcmbntr.live — Samuel gave the go-ahead after reviewing, the
+`vercel --prod` command itself was blocked by this session's own
+tool-permission classifier so Samuel ran it directly; not independently
+re-verified live by this session.
 
 **Also found:** two peer sessions were live-editing this exact repo
 concurrently while this session was reviewing session 09's in-progress

@@ -343,7 +343,11 @@ recognizing custom `text-{name}` classes as size/colour conflict groups
 `twMerge()` calls). `pnpm --filter console run build` clean (exit 0), 0
 lint errors, compiled-CSS regression checks all pass (including a
 LESSONS.md numbering collision found and fixed while writing this up).
-**Not committed, not deployed** — dev server left running for Samuel to
+Committed (`3018c3e`) and pushed to `origin/chat-signal-pulse-redesign`.
+**Deployed to console.loopcmbntr.live** — the `vercel --prod` command was
+blocked by this session's own tool-permission classifier, so Samuel ran
+it directly from the command given; not independently re-verified by this
+session. Dev server was left running for Samuel to
 review directly (no agent-captured screenshot, per the project's standing
 preference), same sign-off rule as 08/09.
 
