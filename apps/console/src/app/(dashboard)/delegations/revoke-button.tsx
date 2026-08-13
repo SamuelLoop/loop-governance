@@ -10,11 +10,11 @@ export function RevokeButton({ delegationId }: { delegationId: string }) {
     <form action={formAction}>
       <input type="hidden" name="delegationId" value={delegationId} />
       {state.error && (
-        <p className="text-xs text-red-400">{state.error}</p>
+        <p className="text-xs text-error">{state.error}</p>
       )}
       <button
         type="submit"
-        className="rounded px-3 py-1 text-xs text-red-400 transition hover:bg-red-500/10"
+        className="rounded px-3 py-1 text-xs text-error transition-colors hover:bg-error/10"
       >
         Revoke
       </button>

@@ -1,8 +1,8 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateProposalForm } from "./form";
 import { getActiveSubject, getAdminContext } from "@/lib/subject";
+import { Glass } from "@loop/ui";
 
 export default async function NewProposalPage() {
   const supabase = await createClient();
@@ -63,18 +63,16 @@ export default async function NewProposalPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-6 text-h1 font-bold tracking-tight text-text-primary">
         New proposal
       </h1>
-      <Card>
-        <CardContent className="pt-6">
-          <CreateProposalForm
-            communities={communities ?? []}
-            childrenByParent={childrenByParent}
-            userId={profile.id}
-          />
-        </CardContent>
-      </Card>
+      <Glass className="p-6">
+        <CreateProposalForm
+          communities={communities ?? []}
+          childrenByParent={childrenByParent}
+          userId={profile.id}
+        />
+      </Glass>
     </div>
   );
 }

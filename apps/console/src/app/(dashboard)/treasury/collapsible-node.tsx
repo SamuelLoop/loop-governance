@@ -32,38 +32,38 @@ export function CollapsibleNode({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="mb-2 flex w-full items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-left transition hover:bg-accent/50"
+        className="mb-2 flex w-full items-center gap-2 rounded-panel border border-surface-border bg-surface px-4 py-3 text-left backdrop-blur-[var(--blur-glass)] transition-colors hover:bg-accent/50"
       >
         <ChevronRight
-          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
+          className={`h-4 w-4 shrink-0 text-text-secondary transition-transform ${open ? "rotate-90" : ""}`}
         />
         <div className="flex flex-1 items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{label}</span>
-            <span className="rounded-full border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="text-body font-medium text-text-primary">{label}</span>
+            <span className="rounded-pill border border-surface-border px-1.5 py-0.5 text-[10px] text-text-secondary">
               {level}
             </span>
           </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 text-caption text-text-secondary">
             {proposalCount > 0 && (
               <span>
-                <span className="font-mono font-medium text-foreground">{proposalCount}</span>{" "}
+                <span className="font-mono font-medium text-text-primary">{proposalCount}</span>{" "}
                 proposal{proposalCount !== 1 ? "s" : ""}
               </span>
             )}
             {requestedFunds > 0 && (
               <span>
-                <span className="font-mono font-medium text-amber-500">
+                <span className="font-mono font-medium text-warning">
                   {requestedFunds.toLocaleString()}
                 </span>{" "}
                 LOOP requested
               </span>
             )}
-            <span className="font-mono font-medium text-foreground">
+            <span className="font-mono font-medium text-text-primary">
               {balance.toLocaleString()} LOOP
             </span>
             {hasChildren && (
-              <span className="text-muted-foreground/60">
+              <span className="text-text-muted">
                 {childCount} sub-{childCount === 1 ? "community" : "communities"}
               </span>
             )}

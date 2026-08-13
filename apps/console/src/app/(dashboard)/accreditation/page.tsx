@@ -1,9 +1,8 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { PowerTree } from "./power-tree";
+import { Glass, StatTile, StatusChip, AccreditationProgress } from "@loop/ui";
 
 type DelegationRow = {
   delegator_id: string;
@@ -166,143 +165,90 @@ export default async function AccreditationPage() {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-1 text-h1 font-bold tracking-tight text-text-primary">
         My Power
       </h1>
-      <p className="mb-8 text-sm text-muted-foreground">
+      <p className="mb-8 text-body text-text-secondary">
         Your accumulated voting power across the governance network. Power flows
         to you through delegation chains.
       </p>
 
       <div className="mb-8 grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Total vote power
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-primary">
-              {totalVotePower}
-            </span>
-            <p className="mt-1 text-xs text-muted-foreground">
-              across {communityPower.length} communities
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Leadership seats
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">
-              {quorumCommunities.length}
-            </span>
-            <p className="mt-1 text-xs text-muted-foreground">
-              leadership positions held
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Direct delegators
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">
-              {delegations.filter((d) => d.delegate_id === profile.id).length}
-            </span>
-            <p className="mt-1 text-xs text-muted-foreground">
-              people directly trusting you
-            </p>
-          </CardContent>
-        </Card>
+        <StatTile
+          label="Total vote power"
+          value={totalVotePower}
+          valueClassName="text-primary"
+        />
+        <StatTile label="Leadership seats" value={quorumCommunities.length} />
+        <StatTile
+          label="Direct delegators"
+          value={delegations.filter((d) => d.delegate_id === profile.id).length}
+        />
+      </div>
+      <div className="-mt-6 mb-8 grid grid-cols-3 gap-4 text-caption text-text-secondary">
+        <p>across {communityPower.length} communities</p>
+        <p>leadership positions held</p>
+        <p>people directly trusting you</p>
       </div>
 
       {quorumCommunities.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
             Leadership group positions
           </h2>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {quorumCommunities.map((c) => (
-              <Card key={c.communityId}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div>
-                    <span className="text-sm font-medium">{c.communityName}</span>
-                    <div className="mt-0.5 flex items-center gap-1.5">
-                      <Badge variant="outline" className="text-[10px]">
-                        {c.level}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {c.subject}
-                      </Badge>
-                    </div>
+              <Glass key={c.communityId} className="flex items-center justify-between p-3">
+                <div>
+                  <span className="text-body font-medium text-text-primary">{c.communityName}</span>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <StatusChip variant="neutral">{c.level}</StatusChip>
+                    <StatusChip variant="neutral">{c.subject}</StatusChip>
                   </div>
-                  <Badge variant="default">{c.role}</Badge>
-                </CardContent>
-              </Card>
+                </div>
+                <StatusChip variant="success">{c.role}</StatusChip>
+              </Glass>
             ))}
           </div>
         </div>
       )}
 
       <div className="mb-8">
-        <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
           Power by community
         </h2>
         <div className="space-y-4">
-          {communityPower.map((c) => (
-            <Card key={c.communityId}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+          {communityPower.map((c) => {
+            const hasSeat = c.role === "quorum" || c.role === "admin";
+            return (
+              <Glass key={c.communityId} className="p-4">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-sm">{c.communityName}</CardTitle>
-                    <Badge variant="outline" className="text-[10px]">
-                      {c.level}
-                    </Badge>
-                    <Badge variant="secondary" className="text-[10px]">
-                      {c.subject}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>
-                      {c.myVotes} / {c.totalMembers} votes
-                    </span>
-                    <span>
-                      ({((c.myVotes / Math.max(c.totalMembers, 1)) * 100).toFixed(1)}%)
-                    </span>
-                    {c.role === "quorum" || c.role === "admin" ? (
-                      <Badge variant="default" className="text-[10px]">
-                        {c.role}
-                      </Badge>
-                    ) : (
-                      <span className="text-[10px]">
-                        need {c.thresholdPct}% for leadership
-                      </span>
-                    )}
+                    <h3 className="text-body font-medium text-text-primary">{c.communityName}</h3>
+                    <StatusChip variant="neutral">{c.level}</StatusChip>
+                    <StatusChip variant="neutral">{c.subject}</StatusChip>
+                    {hasSeat && <StatusChip variant="success">{c.role}</StatusChip>}
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
+                <AccreditationProgress
+                  votes={c.myVotes}
+                  totalMembers={c.totalMembers}
+                  thresholdPct={c.thresholdPct}
+                  hasSeat={hasSeat}
+                  className="mb-3"
+                />
                 {c.tree.length > 0 ? (
                   <PowerTree tree={c.tree} />
                 ) : (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption text-text-secondary">
                     No delegations flowing to you in this community yet.
                   </p>
                 )}
-              </CardContent>
-            </Card>
-          ))}
+              </Glass>
+            );
+          })}
         </div>
       </div>
-
     </div>
   );
 }

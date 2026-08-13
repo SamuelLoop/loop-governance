@@ -33,7 +33,7 @@ export function ConvertForm({
         </div>
       )}
       {state.success && (
-        <div className="rounded border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-500">
+        <div className="rounded border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
           {state.success}
         </div>
       )}

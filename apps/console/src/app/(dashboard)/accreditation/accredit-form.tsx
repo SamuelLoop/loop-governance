@@ -19,12 +19,12 @@ export function AccreditForm({
   return (
     <form action={formAction} className="space-y-4">
       {state.error && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+        <div className="rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
       {state.success && (
-        <div className="rounded-md border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm text-green-400">
+        <div className="rounded-md border border-success/30 bg-success/10 px-4 py-2.5 text-sm text-success">
           Accreditation given.
         </div>
       )}
@@ -33,13 +33,13 @@ export function AccreditForm({
       <input type="hidden" name="subjectTag" value={activeSubject} />
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary">
           Peer
         </label>
         <select
           name="receiverId"
           required
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
+          className="w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/50"
         >
           <option value="">Select a member</option>
           {members.map((m) => (
@@ -57,7 +57,8 @@ export function AccreditForm({
 
       <button
         type="submit"
-        className="rounded-md bg-amber-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-amber-500"
+        className="rounded-button px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+        style={{ background: "var(--accent-gradient)" }}
       >
         Give accreditation
       </button>

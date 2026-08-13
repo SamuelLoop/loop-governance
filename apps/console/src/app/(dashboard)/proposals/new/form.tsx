@@ -2,11 +2,17 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { createProposal } from "./actions";
+import { Glass } from "@loop/ui";
 
 type Community = { id: string; name: string; slug: string; level: string };
 type ChildRef = { id: string; name: string; level: string; parent_id: string | null };
 
 type ProposalType = "standard" | "regional_cascade" | "treasury_distribution";
+
+const inputCls =
+  "w-full rounded-md border border-surface-border bg-surface px-4 py-2.5 text-text-primary placeholder-text-muted outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/30";
+const labelCls =
+  "mb-1.5 block text-caption font-medium uppercase tracking-wider text-text-secondary";
 
 export function CreateProposalForm({
   communities,
@@ -50,7 +56,7 @@ export function CreateProposalForm({
   return (
     <form action={formAction} className="space-y-5">
       {state.error && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+        <div className="rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
@@ -60,9 +66,7 @@ export function CreateProposalForm({
       <input type="hidden" name="cascadeAllocations" value={cascadeAllocationsJson} />
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Proposal type
-        </label>
+        <label className={labelCls}>Proposal type</label>
         <div className="grid gap-2 sm:grid-cols-3">
           {(
             [
@@ -75,29 +79,27 @@ export function CreateProposalForm({
               key={opt.value}
               type="button"
               onClick={() => setProposalType(opt.value)}
-              className={`rounded-md border px-3 py-2 text-left text-sm transition ${
+              className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
                 proposalType === opt.value
-                  ? "border-amber-500/50 bg-amber-500/10 text-amber-100"
-                  : "border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:border-neutral-500"
+                  ? "border-primary/50 bg-primary/10 text-text-primary"
+                  : "border-surface-border bg-surface text-text-secondary hover:border-text-secondary/50"
               }`}
             >
               <div className="font-medium">{opt.label}</div>
-              <div className="mt-0.5 text-xs text-neutral-500">{opt.hint}</div>
+              <div className="mt-0.5 text-xs text-text-muted">{opt.hint}</div>
             </button>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Community
-        </label>
+        <label className={labelCls}>Community</label>
         <select
           name="communityId"
           value={communityId}
           onChange={(e) => setCommunityId(e.target.value)}
           required
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-amber-500/50"
+          className={inputCls}
         >
           {communities.map((c) => (
             <option key={c.id} value={c.id}>
@@ -108,46 +110,42 @@ export function CreateProposalForm({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Title
-        </label>
+        <label className={labelCls}>Title</label>
         <input
           name="title"
           type="text"
           required
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+          className={inputCls}
           placeholder="What are you proposing?"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Description
-        </label>
+        <label className={labelCls}>Description</label>
         <textarea
           name="description"
           required
           rows={6}
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+          className={inputCls}
           placeholder="Describe your proposal in detail. What problem does it solve? What are the expected outcomes?"
         />
       </div>
 
       {proposalType === "standard" && (
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+          <label className={labelCls}>
             Budget request (USD)
-            <span className="ml-1 normal-case text-neutral-600">(optional)</span>
+            <span className="ml-1 normal-case text-text-muted">(optional)</span>
           </label>
           <input
             name="budget"
             type="number"
             step="0.01"
             min="0"
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+            className={inputCls}
             placeholder="0.00"
           />
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-text-muted">
             If set and the proposal is approved, funds will be transferred to
             you automatically from the community treasury.
           </p>
@@ -155,11 +153,9 @@ export function CreateProposalForm({
       )}
 
       {proposalType === "regional_cascade" && (
-        <div className="space-y-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-4">
+        <Glass className="space-y-3 p-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-              Cascade amount (LOOP_TKN)
-            </label>
+            <label className={labelCls}>Cascade amount (LOOP_TKN)</label>
             <input
               id="cascadeAmount"
               name="cascadeAmount"
@@ -167,16 +163,14 @@ export function CreateProposalForm({
               step="0.01"
               min="0"
               required
-              className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-amber-500/50"
+              className={inputCls}
               placeholder="e.g. 200000"
             />
           </div>
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-400">
-              Split across children
-            </p>
+            <p className={labelCls}>Split across children</p>
             {children.length === 0 ? (
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-text-secondary">
                 This community has no children to cascade to. Pick a parent
                 community from the selector above.
               </p>
@@ -184,9 +178,9 @@ export function CreateProposalForm({
               <div className="space-y-2">
                 {children.map((c) => (
                   <div key={c.id} className="flex items-center gap-2">
-                    <span className="flex-1 text-sm text-neutral-200">
+                    <span className="flex-1 text-sm text-text-primary">
                       {c.name}{" "}
-                      <span className="text-xs text-neutral-500">({c.level})</span>
+                      <span className="text-xs text-text-secondary">({c.level})</span>
                     </span>
                     <input
                       type="number"
@@ -197,19 +191,19 @@ export function CreateProposalForm({
                       step="0.1"
                       min="0"
                       max="100"
-                      className="w-20 rounded-md border border-neutral-700 bg-neutral-800/50 px-2 py-1 text-right text-sm text-neutral-100"
+                      className="w-20 rounded-md border border-surface-border bg-surface px-2 py-1 text-right text-sm text-text-primary"
                       placeholder="0"
                     />
-                    <span className="text-xs text-neutral-500">%</span>
+                    <span className="text-xs text-text-secondary">%</span>
                   </div>
                 ))}
                 <p
                   className={`text-xs font-medium ${
                     totalSplitPct > 100
-                      ? "text-red-400"
+                      ? "text-error"
                       : totalSplitPct === 100
-                        ? "text-green-400"
-                        : "text-amber-400"
+                        ? "text-success"
+                        : "text-warning"
                   }`}
                 >
                   Total: {totalSplitPct.toFixed(1)}%
@@ -219,31 +213,29 @@ export function CreateProposalForm({
               </div>
             )}
           </div>
-        </div>
+        </Glass>
       )}
 
       {proposalType === "treasury_distribution" && (
-        <div className="space-y-3 rounded-md border border-blue-500/30 bg-blue-500/5 p-4">
+        <Glass className="space-y-3 p-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
-              Distribution amount (LOOP_TKN)
-            </label>
+            <label className={labelCls}>Distribution amount (LOOP_TKN)</label>
             <input
               name="distributionAmount"
               type="number"
               step="0.01"
               min="0"
               required
-              className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-amber-500/50"
+              className={inputCls}
               placeholder="e.g. 5000"
             />
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-text-muted">
               If approved, the community&apos;s distribution rules
               (leader/participant/delegator split) fire and pay members from
               this amount.
             </p>
           </div>
-        </div>
+        </Glass>
       )}
 
       <div className="flex items-start gap-3">
@@ -252,25 +244,25 @@ export function CreateProposalForm({
           name="directDemocracy"
           id="directDemocracy"
           value="true"
-          className="mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-800 accent-amber-500"
+          className="mt-1 h-4 w-4 rounded border-surface-border bg-surface accent-primary"
         />
-        <label htmlFor="directDemocracy" className="text-sm text-neutral-300">
-          <span className="font-medium">Direct democracy</span>
-          <span className="mt-0.5 block text-xs text-neutral-500">
+        <label htmlFor="directDemocracy" className="text-sm text-text-secondary">
+          <span className="font-medium text-text-primary">Direct democracy</span>
+          <span className="mt-0.5 block text-xs text-text-muted">
             All members in this community and below can vote, not just the leadership group.
           </span>
         </label>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+        <label className={labelCls}>
           Consequence
-          <span className="ml-1 normal-case text-neutral-600">(what happens if approved)</span>
+          <span className="ml-1 normal-case text-text-muted">(what happens if approved)</span>
         </label>
         <textarea
           name="consequence"
           rows={3}
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+          className={inputCls}
           placeholder="What will change as a result of this proposal?"
         />
       </div>
@@ -280,7 +272,8 @@ export function CreateProposalForm({
           type="submit"
           name="action"
           value="open"
-          className="rounded-md bg-amber-600 px-6 py-2.5 font-medium text-white transition hover:bg-amber-500"
+          className="rounded-button px-6 py-2.5 font-medium text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+          style={{ background: "var(--accent-gradient)" }}
         >
           Submit and open for voting
         </button>
@@ -288,7 +281,7 @@ export function CreateProposalForm({
           type="submit"
           name="action"
           value="draft"
-          className="rounded-md border border-neutral-700 px-6 py-2.5 text-sm text-neutral-300 transition hover:border-neutral-500"
+          className="rounded-button border border-surface-border px-6 py-2.5 text-sm text-text-secondary transition-colors hover:border-text-secondary/50"
         >
           Save as draft
         </button>

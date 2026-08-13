@@ -188,8 +188,8 @@ export function CommunityMap({
     <div className="relative h-full w-full">
       <div ref={mapRef} className="h-full w-full" />
 
-      <div className="absolute left-3 top-3 z-[1000] rounded-lg border bg-background/90 px-3 py-2 backdrop-blur-sm">
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <div className="absolute left-3 top-3 z-[1000] rounded-panel border border-surface-border bg-surface px-3 py-2 backdrop-blur-[var(--blur-glass)]">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-text-secondary">
           Hierarchy
         </p>
         <div className="space-y-1">
@@ -202,8 +202,8 @@ export function CommunityMap({
                   className="inline-block h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: color }}
                 />
-                <span className="capitalize">{level}</span>
-                <span className="text-muted-foreground">({count})</span>
+                <span className="capitalize text-text-primary">{level}</span>
+                <span className="text-text-secondary">({count})</span>
               </div>
             );
           })}
@@ -211,22 +211,22 @@ export function CommunityMap({
       </div>
 
       {selected && (
-        <div className="absolute bottom-3 right-3 z-[1000] w-56 rounded-lg border bg-background/90 px-3 py-2 backdrop-blur-sm">
+        <div className="absolute bottom-3 right-3 z-[1000] w-56 rounded-panel border border-surface-border bg-surface px-3 py-2 backdrop-blur-[var(--blur-glass)]">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm font-medium">{selected.name}</p>
-              <p className="text-xs capitalize text-muted-foreground">
+              <p className="text-sm font-medium text-text-primary">{selected.name}</p>
+              <p className="text-xs capitalize text-text-secondary">
                 {selected.level}
               </p>
             </div>
             <button
               onClick={() => setSelected(null)}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-text-secondary hover:text-text-primary"
             >
               x
             </button>
           </div>
-          <div className="mt-2 text-xs text-muted-foreground">
+          <div className="mt-2 text-xs text-text-secondary">
             <p>{selected.memberCount} members</p>
           </div>
         </div>

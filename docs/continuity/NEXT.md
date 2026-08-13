@@ -324,7 +324,30 @@ edits) were still uncommitted when this session started — folded into
 this session's commit since they're a hard prerequisite, flagged as a
 likely process gap in session 8's own closeout.
 
-Next up: `sessions/web-10-console-rollout.md`.
+**Session 10 done (2026-08-13):** `sessions/web-10-console-rollout-output.md`.
+Patterns 1-5 executed (dashboard, data-viz/money, geo, governance action,
+delegation/identity — `/login` folded out, `communities`/`communities/[id]`
+confirmed out of scope per the brief's own file lists). Five new real
+`packages/ui` components (`StatTile`, `VoteTally`/`VoteBar`/
+`VoteActionPanel`, `DelegationTable`, `AccreditationProgress`,
+`GivePowerDrawer`). Two real data-viz colour violations fixed on
+treasury's existing charts (second saturated hue, invented amber) per the
+brief's own instruction to read the `dataviz` skill first. Exactly one
+genuine space-tint applied (token-activity's admin-only table, a real
+role gate) — everything else checked and left untinted. **Two real bugs
+found and fixed at the source**, both affecting already-shipped session 09
+code: `DataTable`'s hardcoded `space="admin"` (fixed + retroactively
+patched all 7 admin call sites) and `cn()`'s tailwind-merge not
+recognizing custom `text-{name}` classes as size/colour conflict groups
+(fixed with a real `extendTailwindMerge` config, verified with direct
+`twMerge()` calls). `pnpm --filter console run build` clean (exit 0), 0
+lint errors, compiled-CSS regression checks all pass (including a
+LESSONS.md numbering collision found and fixed while writing this up).
+**Not committed, not deployed** — dev server left running for Samuel to
+review directly (no agent-captured screenshot, per the project's standing
+preference), same sign-off rule as 08/09.
+
+Next up: `sessions/web-11-portal-rollout.md`.
 
 **Post-deploy correction (2026-08-10, same day):** the real user checked
 the live deploy and found gov.loopcmbntr.live "totally broken" and never

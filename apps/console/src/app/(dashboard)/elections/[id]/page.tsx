@@ -1,13 +1,18 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { NominateForm } from "./nominate-form";
 import { VoteButton } from "./vote-button";
 import { ChevronLeft } from "lucide-react";
+import { Glass, StatusChip, type StatusChipVariant } from "@loop/ui";
+
+const STATUS_VARIANT: Record<string, StatusChipVariant> = {
+  nominations: "warning",
+  voting: "warning",
+  completed: "success",
+  cancelled: "error",
+};
 
 export default async function ElectionDetailPage({
   params,
@@ -92,31 +97,23 @@ export default async function ElectionDetailPage({
       <div className="mb-6 flex items-start justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <Badge
-              variant={
-                election.status === "nominations"
-                  ? "default"
-                  : election.status === "voting"
-                    ? "secondary"
-                    : "outline"
-              }
-            >
+            <StatusChip variant={STATUS_VARIANT[election.status] ?? "neutral"}>
               {election.status}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
+            </StatusChip>
+            <span className="text-caption text-text-secondary">
               {(election as any).communities?.name}
             </span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-h1 font-bold tracking-tight text-text-primary">
             {election.title}
           </h1>
           {election.description && (
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-body text-text-secondary">
               {election.description}
             </p>
           )}
         </div>
-        <div className="text-right text-xs text-muted-foreground">
+        <div className="text-right text-caption text-text-secondary">
           <p>{election.seats} seats</p>
           <p>{election.term_days} day term</p>
         </div>
@@ -137,103 +134,88 @@ export default async function ElectionDetailPage({
         ].map((phase) => {
           const d = new Date(phase.date);
           const past = d <= now;
+          // A compact date label, not a hero numeral — plain Glass rather
+          // than StatTile, whose fixed Data-lg type spec is for stat
+          // numerals specifically (see DESIGN.web.md's type scale table).
           return (
-            <Card key={phase.label}>
-              <CardContent className="py-3">
-                <p className="text-xs text-muted-foreground">{phase.label}</p>
-                <p
-                  className={`text-sm font-medium ${past ? "text-muted-foreground" : ""}`}
-                >
-                  {d.toLocaleDateString()}
-                </p>
-              </CardContent>
-            </Card>
+            <Glass key={phase.label} className="p-3">
+              <p className="text-caption text-text-secondary">{phase.label}</p>
+              <p
+                className={`text-body font-medium ${past ? "text-text-secondary" : "text-text-primary"}`}
+              >
+                {d.toLocaleDateString()}
+              </p>
+            </Glass>
           );
         })}
       </div>
 
       {election.status === "nominations" && isMember && !isNominated && (
-        <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Stand for election
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NominateForm electionId={id} />
-          </CardContent>
-        </Card>
+        <Glass className="mb-8 p-5">
+          <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
+            Stand for election
+          </h2>
+          <NominateForm electionId={id} />
+        </Glass>
       )}
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Candidates ({(candidates ?? []).length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {candidates && candidates.length > 0 ? (
-            <div className="space-y-3">
-              {candidates.map((c: any) => (
-                <div
-                  key={c.id}
-                  className={`rounded-lg border p-3 ${c.elected ? "border-primary/40 bg-primary/5" : ""}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
-                          {c.users?.display_name ?? c.users?.email ?? "Unknown"}
-                        </span>
-                        {c.elected && (
-                          <Badge variant="default" className="text-[10px]">
-                            Elected
-                          </Badge>
-                        )}
-                      </div>
-                      {c.statement && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {c.statement}
-                        </p>
-                      )}
-                      {(election.status === "voting" ||
-                        election.status === "completed") && (
-                        <div className="mt-2 flex items-center gap-2">
-                          <Progress
-                            value={
-                              maxVotes > 0
-                                ? (c.votes_received / maxVotes) * 100
-                                : 0
-                            }
-                            className="h-1.5 flex-1"
-                          />
-                          <span className="text-xs font-mono text-muted-foreground">
-                            {c.votes_received}
-                          </span>
-                        </div>
-                      )}
+      <Glass className="p-5">
+        <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
+          Candidates ({(candidates ?? []).length})
+        </h2>
+        {candidates && candidates.length > 0 ? (
+          <div className="space-y-3">
+            {candidates.map((c: any) => (
+              <div
+                key={c.id}
+                className={`rounded-panel border p-3 ${c.elected ? "border-success/40 bg-success/5" : "border-surface-border"}`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-body font-medium text-text-primary">
+                        {c.users?.display_name ?? c.users?.email ?? "Unknown"}
+                      </span>
+                      {c.elected && <StatusChip variant="success">Elected</StatusChip>}
                     </div>
-                    {election.status === "voting" &&
-                      isMember &&
-                      !myVotes.has(c.id) && (
-                        <VoteButton electionId={id} candidateId={c.id} />
-                      )}
-                    {myVotes.has(c.id) && (
-                      <Badge variant="outline" className="text-[10px]">
-                        Voted
-                      </Badge>
+                    {c.statement && (
+                      <p className="mt-1 text-caption text-text-secondary">
+                        {c.statement}
+                      </p>
+                    )}
+                    {(election.status === "voting" ||
+                      election.status === "completed") && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
+                          <div
+                            className="h-full rounded-full bg-primary transition-[width] duration-[var(--duration-vote-bar)] ease-[var(--ease-vote-bar)]"
+                            style={{
+                              width: `${maxVotes > 0 ? (c.votes_received / maxVotes) * 100 : 0}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="font-mono text-caption text-text-secondary">
+                          {c.votes_received}
+                        </span>
+                      </div>
                     )}
                   </div>
+                  {election.status === "voting" &&
+                    isMember &&
+                    !myVotes.has(c.id) && (
+                      <VoteButton electionId={id} candidateId={c.id} />
+                    )}
+                  {myVotes.has(c.id) && <StatusChip variant="neutral">Voted</StatusChip>}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              No candidates yet. Be the first to stand.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-body text-text-secondary">
+            No candidates yet. Be the first to stand.
+          </p>
+        )}
+      </Glass>
     </div>
   );
 }

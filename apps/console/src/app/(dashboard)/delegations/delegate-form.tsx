@@ -81,25 +81,25 @@ export function DelegateForm({
   return (
     <div className="space-y-4">
       {state.error && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+        <div className="rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
       {state.success && (
-        <div className="rounded-md border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm text-green-400">
+        <div className="rounded-md border border-success/30 bg-success/10 px-4 py-2.5 text-sm text-success">
           Delegation created. Your vote on this subject now goes through your
           delegate.
         </div>
       )}
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary">
           Who do you trust with your power?
         </label>
         <select
           value={selectedDelegate}
           onChange={(e) => handleDelegateChange(e.target.value)}
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500/50"
+          className="w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/50"
         >
           <option value="">Select a person</option>
           {members.map((m) => (
@@ -125,39 +125,39 @@ export function DelegateForm({
 
       {selectedDelegate && !loading && overlapping.length > 0 && (
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary">
             Which communities?
           </label>
           <p className="mb-2 text-xs text-muted-foreground">
             Select the communities where this person will vote on your behalf.
             You can only delegate in communities you both belong to.
           </p>
-          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-neutral-700 bg-neutral-800/30 p-2">
-            <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition hover:bg-neutral-700/50">
+          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-surface-border bg-surface p-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition-colors hover:bg-secondary/50">
               <input
                 type="checkbox"
                 checked={allSelected}
                 onChange={toggleAll}
-                className="h-3.5 w-3.5 rounded border-neutral-600 accent-amber-500"
+                className="h-3.5 w-3.5 rounded border-surface-border accent-primary"
               />
-              <span className="text-sm font-medium text-neutral-100">
+              <span className="text-sm font-medium text-text-primary">
                 All communities ({overlapping.length})
               </span>
             </label>
-            <div className="my-1 border-t border-neutral-700/50" />
+            <div className="my-1 border-t border-surface-border" />
             {overlapping.map((c) => (
               <label
                 key={c.id}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition hover:bg-neutral-700/50"
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition-colors hover:bg-secondary/50"
               >
                 <input
                   type="checkbox"
                   checked={selectedIds.has(c.id)}
                   onChange={() => toggleCommunity(c.id)}
-                  className="h-3.5 w-3.5 rounded border-neutral-600 accent-amber-500"
+                  className="h-3.5 w-3.5 rounded border-surface-border accent-primary"
                 />
-                <span className="text-sm text-neutral-200">{c.name}</span>
-                <span className="rounded-full border border-neutral-600 px-1.5 py-0.5 text-[10px] text-neutral-400">
+                <span className="text-sm text-text-primary">{c.name}</span>
+                <span className="rounded-full border border-surface-border px-1.5 py-0.5 text-[10px] text-text-secondary">
                   {LEVEL_LABELS[c.level] ?? c.level}
                 </span>
               </label>
@@ -174,7 +174,8 @@ export function DelegateForm({
           <input type="hidden" name="subjectTag" value={activeSubject} />
           <button
             type="submit"
-            className="rounded-md bg-amber-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-amber-500"
+            className="rounded-button px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--accent-gradient)" }}
           >
             Delegate vote in {selectedIds.size} communit{selectedIds.size === 1 ? "y" : "ies"}
           </button>

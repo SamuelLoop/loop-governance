@@ -136,7 +136,7 @@ export default async function TreasuryPage() {
 
       <h2 className="mb-3 text-h2 font-bold">Balances by Community</h2>
       <div className="mb-8">
-        <DataTable>
+        <DataTable space="admin">
           <DataTableHeader>
             <tr>
               <DataTableHead>Community</DataTableHead>
@@ -177,7 +177,7 @@ export default async function TreasuryPage() {
       </div>
 
       <h2 className="mb-3 text-h2 font-bold">Recent Transactions</h2>
-      <DataTable>
+      <DataTable space="admin">
         <DataTableHeader>
           <tr>
             <DataTableHead>Time</DataTableHead>

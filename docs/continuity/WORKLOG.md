@@ -5,6 +5,63 @@
 
 ---
 
+## 2026-08-13 — Web session 10: console rollout (Signal Pulse)
+
+Full detail: `sessions/web-10-console-rollout-output.md`. Summary:
+
+Patterns 1-5 of the console rollout executed: dashboard home, treasury/
+earnings/token-activity/claim (data-viz), map (geo chrome only, canvas
+untouched), proposals/elections/campaigns (governance action), give-power/
+accreditation/members/badge/account (delegation/identity). Five new real
+`packages/ui` components: `StatTile`, `VoteTally`/`VoteBar`/
+`VoteActionPanel`, `DelegationTable`, `AccreditationProgress`,
+`GivePowerDrawer` (first real use of the previously-unused `Sheet`
+primitive). Two real design-system violations fixed while restyling
+treasury's existing charts (a second saturated hue on the Projects-vs-
+Governance bar, an invented amber on the "Retained" segment) — collapsed
+onto the brand-accent/text-secondary two-tone rule DESIGN.web.md actually
+specifies. Exactly one genuine space-tint candidate found and applied
+(`token-activity`'s admin-only purchases table, a real render-time role
+gate) — every other page checked and left untinted per the brief's
+conservative default.
+
+**Two real bugs found and fixed at the source, both in shared
+`packages/ui` infra other sessions depend on:** (1) `DataTable` hardcoded
+`space="admin"` unconditionally (correct only because session 09's call
+sites all lived in `apps/admin`) — fixed to accept an explicit `space`
+prop, then retroactively patched all 7 admin call sites so session 09's
+already-shipped tables don't silently lose their tint. (2) `cn()`'s plain
+`tailwind-merge` (no `extendTailwindMerge`) lumped every custom
+`text-{name}` class into one group regardless of whether it controlled
+font-size or colour — a `StatTile` colour override was silently dropping
+the tile's size class too. Fixed with a real `extendTailwindMerge` config
+registering the custom `font-size`/`text-color` groups; verified with
+direct `twMerge()` calls before and after, not by reasoning about it.
+While documenting this, also found and fixed a `LESSONS.md` numbering
+collision (session 09's own new entry had been inserted at the top of the
+file instead of appended in order) — reordered, renumbered #14/#15.
+
+`pnpm --filter console run build` clean (exit 0, 11.2s, all 27 routes),
+0 lint errors (127 pre-existing warnings, confirmed via diff none are
+new except one real regression — an unused `Glass` import — caught and
+fixed before this count). `@loop/ui`/console/admin all type-check clean.
+Compiled-CSS grep confirmed every new token/class present and correct,
+including the LESSONS #13 `max-w-*` regression check and a chat-specific
+regression check (community-shade hex, `live-pulse` keyframes) — both
+still holding. Dev server started and confirmed responding; left running
+for Samuel to review directly rather than agent-captured, per the
+project's standing "no preview-pane automation" preference. Not
+committed, not deployed — same standing sign-off rule as 08/09.
+
+**Also found:** two peer sessions were live-editing this exact repo
+concurrently while this session was reviewing session 09's in-progress
+work (before session 09 was committed) — flagged to Samuel mid-session
+rather than silently risking duplicate/conflicting edits; stood down on
+admin work until confirmed done, kept only the one real `Glass` bug fix
+found in the process (benefits both sessions).
+
+---
+
 ## 2026-08-13 — Web session 09: admin rollout (Signal Pulse)
 
 Full detail: `sessions/web-09-admin-rollout-output.md`. Summary:

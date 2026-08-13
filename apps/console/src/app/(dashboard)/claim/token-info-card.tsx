@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Coins, Copy, ExternalLink, Check } from "lucide-react";
+import { Glass } from "@loop/ui";
 
 export function TokenInfoCard({
   contractAddress,
@@ -25,16 +26,16 @@ export function TokenInfoCard({
   }
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <Glass className="p-4">
       <div className="flex items-start gap-3">
         <div className="rounded-md bg-primary/10 p-2">
           <Coins className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">About LOOP</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-body font-medium text-text-primary">About LOOP</p>
+          <p className="mt-1 text-caption text-text-secondary">
             LOOP is an ERC-20 utility token on{" "}
-            <span className="font-medium text-foreground">Base L2</span> (chain{" "}
+            <span className="font-medium text-text-primary">Base L2</span> (chain{" "}
             {chainId}). Use any EVM wallet that supports Base — MetaMask,
             Coinbase Wallet, Rainbow, Trust, Ledger. When we mint, tokens
             appear at the address you provide below on chain{" "}
@@ -42,9 +43,9 @@ export function TokenInfoCard({
             derived from the same seed phrase on Base, or you will not see
             them.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Contract:</span>
-            <code className="rounded bg-muted/40 px-2 py-0.5 font-mono">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-caption">
+            <span className="text-text-secondary">Contract:</span>
+            <code className="rounded bg-surface px-2 py-0.5 font-mono text-data-sm">
               {shortAddr}
             </code>
             <button
@@ -70,14 +71,14 @@ export function TokenInfoCard({
               View on Basescan <ExternalLink className="h-3 w-3" />
             </a>
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
+          <p className="mt-2 text-[11px] text-text-secondary">
             To see your tokens in-wallet after minting, most wallets need
             you to &quot;Import token&quot; and paste this contract address. Symbol is{" "}
-            <span className="font-medium text-foreground">LOOP</span>, decimals{" "}
-            <span className="font-medium text-foreground">18</span>.
+            <span className="font-medium text-text-primary">LOOP</span>, decimals{" "}
+            <span className="font-medium text-text-primary">18</span>.
           </p>
         </div>
       </div>
-    </div>
+    </Glass>
   );
 }

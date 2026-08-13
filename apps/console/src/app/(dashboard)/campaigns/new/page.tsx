@@ -1,11 +1,11 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { CampaignForm } from "./campaign-form";
+import { Glass } from "@loop/ui";
 
 export default async function NewCampaignPage() {
   const supabase = await createClient();
@@ -75,24 +75,22 @@ export default async function NewCampaignPage() {
         Back to campaigns
       </Button>
 
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-1 text-h1 font-bold tracking-tight text-text-primary">
         Create a campaign
       </h1>
-      <p className="mb-6 max-w-2xl text-sm text-muted-foreground">
+      <p className="mb-6 max-w-2xl text-body text-text-secondary">
         Build a digital poster to rally support. Choose a template, customise
         it with your message, embed a video pitch, and publish. Your poster
         gets a shareable link that works on any device.
       </p>
 
       {availableCommunities.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              You already have active campaigns in all your communities, or you
-              are not a member of any {activeSubject} communities yet.
-            </p>
-          </CardContent>
-        </Card>
+        <Glass className="py-8 text-center">
+          <p className="text-body text-text-secondary">
+            You already have active campaigns in all your communities, or you
+            are not a member of any {activeSubject} communities yet.
+          </p>
+        </Glass>
       ) : (
         <CampaignForm
           userId={profile.id}

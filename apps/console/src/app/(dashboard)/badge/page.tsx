@@ -1,11 +1,10 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Share2 } from "lucide-react";
 import { generateTreeSVG, type TreeNode, type TreeData } from "@/lib/power-tree";
+import { Glass, StatTile } from "@loop/ui";
 
 const SUBJECT_LABELS: Record<string, string> = {
   governance: "Governance",
@@ -208,17 +207,21 @@ export default async function BadgePage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-1 text-h1 font-bold tracking-tight text-text-primary">
         My Power Badge
       </h1>
-      <p className="mb-6 text-sm text-muted-foreground">
+      <p className="mb-6 text-body text-text-secondary">
         Your governance power in {label}. Share this badge on social media to
         show your commitment and influence.
       </p>
 
-      <Card className="overflow-hidden">
+      {/* Tier colour drives every accent on this card by design (status,
+          per DESIGN.web.md's tier-vs-brand-accent rule) — untouched here,
+          same as the badge/power-tree component itself. Only the chrome
+          (Card → Glass, muted-foreground → text tokens) moves. */}
+      <Glass className="overflow-hidden p-0">
         <div
-          className="relative border-b px-6 py-8"
+          className="relative border-b border-surface-border px-6 py-8"
           style={{ background: `radial-gradient(circle at 50% 0%, ${tier.color}08, transparent 70%)` }}
         >
           <div className="flex items-center gap-4">
@@ -235,22 +238,25 @@ export default async function BadgePage() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-lg font-bold">{profile.display_name}</h2>
-              <p className="text-xs text-muted-foreground">{label} Governor</p>
+              <h2 className="text-h2 font-bold text-text-primary">{profile.display_name}</h2>
+              <p className="text-caption text-text-secondary">{label} Governor</p>
             </div>
             <div className="ml-auto text-right">
-              <Badge variant="outline" className="mb-1 text-xs font-bold" style={{ color: tier.color, borderColor: `${tier.color}40` }}>
+              <span
+                className="mb-1 inline-block rounded-pill border px-2 py-0.5 text-xs font-bold"
+                style={{ color: tier.color, borderColor: `${tier.color}40` }}
+              >
                 {tier.name}
-              </Badge>
-              <p className="text-3xl font-black tabular-nums" style={{ color: tier.color }}>{powerScore.toFixed(2)}</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Power score</p>
+              </span>
+              <p className="font-mono text-display font-bold tabular-nums" style={{ color: tier.color }}>{powerScore.toFixed(2)}</p>
+              <p className="text-[10px] uppercase tracking-wider text-text-secondary">Power score</p>
             </div>
           </div>
 
-          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-surface">
             <div className="h-full rounded-full" style={{ width: `${Math.min(100, (powerScore / 500) * 100)}%`, backgroundColor: tier.color, boxShadow: `0 0 6px ${tier.color}` }} />
           </div>
-          <div className="mt-1 flex justify-between text-[9px] text-muted-foreground">
+          <div className="mt-1 flex justify-between text-[9px] text-text-secondary">
             <span>Bronze</span>
             <span>Silver (30)</span>
             <span>Gold (80)</span>
@@ -259,13 +265,10 @@ export default async function BadgePage() {
           </div>
         </div>
 
-        <CardContent className="pt-4">
+        <div className="p-4 pt-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {statItems.map((s) => (
-              <div key={s.label} className="rounded-lg border bg-muted/30 p-3 text-center">
-                <p className="text-lg font-bold tabular-nums">{s.value}</p>
-                <p className="text-[10px] text-muted-foreground">{s.label}</p>
-              </div>
+              <StatTile key={s.label} label={s.label} value={s.value} className="text-center" />
             ))}
           </div>
 
@@ -274,7 +277,7 @@ export default async function BadgePage() {
               href={badgeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-button bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Share2 className="h-4 w-4" />
               Share my badge
@@ -282,15 +285,16 @@ export default async function BadgePage() {
             </a>
           </div>
 
-          <p className="mt-3 text-center text-[11px] text-muted-foreground">
+          <p className="mt-3 text-center text-[11px] text-text-secondary">
             Your badge generates an image preview when shared on X, LinkedIn,
             Facebook, Instagram, and WhatsApp.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </Glass>
 
-      {/* Power Tree */}
-      <h2 className="mt-8 mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      {/* Power Tree — untouched, badge/power-tree component is not being
+          redesigned (hard constraint, DESIGN.web.md). */}
+      <h2 className="mt-8 mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
         My Power Tree
       </h2>
       <div
@@ -300,11 +304,11 @@ export default async function BadgePage() {
       />
 
       {/* How scoring works */}
-      <div className="mt-6 rounded-lg border p-4">
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <Glass className="mt-6 p-4">
+        <h3 className="mb-2 text-caption font-medium uppercase tracking-wider text-text-secondary">
           How power is calculated
         </h3>
-        <div className="space-y-1 text-xs text-muted-foreground">
+        <div className="space-y-1 text-caption text-text-secondary">
           <p>Each delegation received = 10 points</p>
           <p>Each accreditation point = 5 points</p>
           <p>Each proposal authored = 8 points</p>
@@ -312,7 +316,7 @@ export default async function BadgePage() {
           <p>Each vote cast = 2 points</p>
           <p>LOOP earned = 0.1 points per token</p>
         </div>
-      </div>
+      </Glass>
     </div>
   );
 }

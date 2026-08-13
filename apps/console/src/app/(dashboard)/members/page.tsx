@@ -1,15 +1,24 @@
 import { createServiceClient } from "@/lib/supabase-server";
 import { getSubjectCommunityIds } from "@/lib/subject";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Glass,
+  StatusChip,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  type StatusChipVariant,
+} from "@loop/ui";
+
+// Community-level role (admin/quorum/member) is distinct from admin's
+// platform-level role field — admin (community admin) is the one
+// genuinely high-stakes local role, so it's the only one that gets
+// `warning`; quorum ("leader") is a real status but not a severity.
+const ROLE_VARIANT: Record<string, StatusChipVariant> = {
+  admin: "warning",
+};
 
 export default async function MembersPage() {
   const admin = createServiceClient();
@@ -27,63 +36,51 @@ export default async function MembersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Members</h1>
+      <h1 className="mb-6 text-h1 font-bold tracking-tight text-text-primary">Members</h1>
 
       {memberships && memberships.length > 0 ? (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Community</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Joined</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {memberships.map((m: any) => (
-                <TableRow key={m.id}>
-                  <TableCell className="font-medium">
-                    {m.users?.display_name}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {m.users?.email}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {m.communities?.name}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        m.role === "admin"
-                          ? "default"
-                          : m.role === "quorum"
-                            ? "secondary"
-                            : "outline"
-                      }
-                    >
-                      {m.role === "quorum" ? "leader" : m.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {m.users?.location_name ?? "-"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(m.joined_at).toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <DataTable>
+          <DataTableHeader>
+            <tr>
+              <DataTableHead>Name</DataTableHead>
+              <DataTableHead>Email</DataTableHead>
+              <DataTableHead>Community</DataTableHead>
+              <DataTableHead>Role</DataTableHead>
+              <DataTableHead>Location</DataTableHead>
+              <DataTableHead>Joined</DataTableHead>
+            </tr>
+          </DataTableHeader>
+          <DataTableBody>
+            {memberships.map((m: any) => (
+              <DataTableRow key={m.id}>
+                <DataTableCell className="font-medium">
+                  {m.users?.display_name}
+                </DataTableCell>
+                <DataTableCell className="text-text-secondary">
+                  {m.users?.email}
+                </DataTableCell>
+                <DataTableCell className="text-text-secondary">
+                  {m.communities?.name}
+                </DataTableCell>
+                <DataTableCell>
+                  <StatusChip variant={ROLE_VARIANT[m.role] ?? "neutral"}>
+                    {m.role === "quorum" ? "leader" : m.role}
+                  </StatusChip>
+                </DataTableCell>
+                <DataTableCell className="text-text-secondary">
+                  {m.users?.location_name ?? "-"}
+                </DataTableCell>
+                <DataTableCell className="text-text-secondary">
+                  {new Date(m.joined_at).toLocaleDateString()}
+                </DataTableCell>
+              </DataTableRow>
+            ))}
+          </DataTableBody>
+        </DataTable>
       ) : (
-        <Card>
-          <div className="py-10 text-center text-muted-foreground">
-            No members yet.
-          </div>
-        </Card>
+        <Glass className="py-10 text-center text-body text-text-secondary">
+          No members yet.
+        </Glass>
       )}
     </div>
   );

@@ -86,7 +86,7 @@ export function AuditTable({ events, showOrg }: { events: AuditEvent[]; showOrg:
         </div>
       </div>
 
-      <DataTable>
+      <DataTable space="admin">
         <DataTableHeader>
           <tr>
             <DataTableHead>Time</DataTableHead>

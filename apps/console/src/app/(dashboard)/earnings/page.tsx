@@ -1,8 +1,18 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ConvertForm } from "./convert-form";
+import {
+  Glass,
+  StatTile,
+  StatusChip,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  DataTableEmpty,
+} from "@loop/ui";
 
 type EarningRow = {
   id: string;
@@ -34,18 +44,11 @@ function typeLabel(type: string) {
   }
 }
 
-function typeBadgeVariant(type: string) {
-  switch (type) {
-    case "leader_reward":
-      return "default" as const;
-    case "participant_reward":
-      return "secondary" as const;
-    case "delegator_reward":
-      return "outline" as const;
-    default:
-      return "outline" as const;
-  }
-}
+// Reward type is a category, not a severity/status signal — per
+// DESIGN.web.md's StatusChip constraint (semantic colour only), this
+// stays `neutral` across every type, same discipline as admin's
+// moderation "target type" column (session 09): identity carried by the
+// label text, not an invented categorical hue.
 
 export default async function EarningsPage() {
   const supabase = await createClient();
@@ -75,14 +78,6 @@ export default async function EarningsPage() {
 
   const rows = (earnings ?? []) as unknown as EarningRow[];
 
-  const totalByType = rows.reduce(
-    (acc, e) => {
-      acc[e.type] = (acc[e.type] ?? 0) + Number(e.amount);
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
   const loopBalance = rows
     .filter((e) => e.token_type === "LOOP_TKN")
     .reduce((s, e) => s + Number(e.amount), 0);
@@ -110,120 +105,79 @@ export default async function EarningsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Earnings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight text-text-primary">Earnings</h1>
+        <p className="mt-1 text-body text-text-secondary">
           Your token rewards from governance participation.
         </p>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              LOOP balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {loopBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </p>
-            <p className="text-xs text-muted-foreground">LOOP_TKN</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Loyalty balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {loyaltyBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </p>
-            <p className="text-xs text-muted-foreground">LOOP_LOYALTY</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Records
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">{rows.length}</p>
-            <p className="text-xs text-muted-foreground">last 100 entries</p>
-          </CardContent>
-        </Card>
+        <StatTile
+          label="LOOP balance"
+          value={loopBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        />
+        <StatTile
+          label="Loyalty balance"
+          value={loyaltyBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        />
+        <StatTile label="Records" value={rows.length} />
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Convert loyalty to LOOP</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ConvertForm balance={loyaltyBalance} rate={conversionRate} />
-        </CardContent>
-      </Card>
+      <Glass className="mb-6 p-5">
+        <h2 className="mb-3 text-h2 font-bold text-text-primary">Convert loyalty to LOOP</h2>
+        <ConvertForm balance={loyaltyBalance} rate={conversionRate} />
+      </Glass>
 
       {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            No earnings yet. Participate in governance to start earning.
-          </CardContent>
-        </Card>
+        <Glass className="py-8 text-center text-body text-text-secondary">
+          No earnings yet. Participate in governance to start earning.
+        </Glass>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs text-muted-foreground">
-                    <th className="pb-2 pr-4">Date</th>
-                    <th className="pb-2 pr-4">Community</th>
-                    <th className="pb-2 pr-4">Type</th>
-                    <th className="pb-2 pr-4">Token</th>
-                    <th className="pb-2 pr-4">Period</th>
-                    <th className="pb-2 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((e) => (
-                    <tr key={e.id} className="border-b last:border-0">
-                      <td className="py-2.5 pr-4 text-xs text-muted-foreground">
-                        {new Date(e.distributed_at).toLocaleDateString()}
-                      </td>
-                      <td className="py-2.5 pr-4">
-                        {e.community?.name ?? "Unknown"}
-                      </td>
-                      <td className="py-2.5 pr-4">
-                        <Badge variant={typeBadgeVariant(e.type)}>
-                          {typeLabel(e.type)}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 pr-4 text-xs text-muted-foreground">
-                        {e.token_type === "LOOP_LOYALTY" ? "LOYALTY" : "LOOP"}
-                      </td>
-                      <td className="py-2.5 pr-4 text-xs text-muted-foreground">
-                        {new Date(e.period_start).toLocaleDateString()} -{" "}
-                        {new Date(e.period_end).toLocaleDateString()}
-                      </td>
-                      <td className={`py-2.5 text-right font-mono font-medium ${
-                        Number(e.amount) < 0 ? "text-destructive" : ""
-                      }`}>
-                        {Number(e.amount).toLocaleString(undefined, {
-                          maximumFractionDigits: 4,
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <div>
+          <h2 className="mb-3 text-h2 font-bold text-text-primary">History</h2>
+          <DataTable>
+            <DataTableHeader>
+              <tr>
+                <DataTableHead>Date</DataTableHead>
+                <DataTableHead>Community</DataTableHead>
+                <DataTableHead>Type</DataTableHead>
+                <DataTableHead>Token</DataTableHead>
+                <DataTableHead>Period</DataTableHead>
+                <DataTableHead align="right">Amount</DataTableHead>
+              </tr>
+            </DataTableHeader>
+            <DataTableBody>
+              {rows.map((e) => (
+                <DataTableRow key={e.id}>
+                  <DataTableCell className="whitespace-nowrap text-caption text-text-secondary">
+                    {new Date(e.distributed_at).toLocaleDateString()}
+                  </DataTableCell>
+                  <DataTableCell>{e.community?.name ?? "Unknown"}</DataTableCell>
+                  <DataTableCell>
+                    <StatusChip variant="neutral">{typeLabel(e.type)}</StatusChip>
+                  </DataTableCell>
+                  <DataTableCell className="text-caption text-text-secondary">
+                    {e.token_type === "LOOP_LOYALTY" ? "LOYALTY" : "LOOP"}
+                  </DataTableCell>
+                  <DataTableCell className="text-caption text-text-secondary">
+                    {new Date(e.period_start).toLocaleDateString()} -{" "}
+                    {new Date(e.period_end).toLocaleDateString()}
+                  </DataTableCell>
+                  <DataTableCell
+                    numeric
+                    align="right"
+                    className={Number(e.amount) < 0 ? "text-error" : "text-text-primary"}
+                  >
+                    {Number(e.amount).toLocaleString(undefined, {
+                      maximumFractionDigits: 4,
+                    })}
+                  </DataTableCell>
+                </DataTableRow>
+              ))}
+              {rows.length === 0 && <DataTableEmpty colSpan={6}>No earnings yet</DataTableEmpty>}
+            </DataTableBody>
+          </DataTable>
+        </div>
       )}
     </div>
   );

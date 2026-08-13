@@ -2,16 +2,18 @@ import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getSubjectCommunityIds } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { CreateElectionForm } from "./create-form";
+import { Glass, StatusChip, type StatusChipVariant } from "@loop/ui";
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-  nominations: "default",
-  voting: "secondary",
-  completed: "outline",
-  cancelled: "destructive",
+// nominations/voting are both "active, ongoing" phases (mirrors
+// proposals' open=warning convention); completed/cancelled are the two
+// terminal states. nominations vs voting stays distinguished by the
+// label text, not colour, same discipline used throughout this session.
+const STATUS_VARIANT: Record<string, StatusChipVariant> = {
+  nominations: "warning",
+  voting: "warning",
+  completed: "success",
+  cancelled: "error",
 };
 
 export default async function ElectionsPage() {
@@ -57,30 +59,25 @@ export default async function ElectionsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Elections</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-h1 font-bold tracking-tight text-text-primary">Elections</h1>
+          <p className="mt-1 text-body text-text-secondary">
             Power shifts through timed leadership rotation
           </p>
         </div>
       </div>
 
       {communities.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Call an election
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CreateElectionForm communities={communities} />
-          </CardContent>
-        </Card>
+        <Glass className="mb-8 p-5">
+          <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
+            Call an election
+          </h2>
+          <CreateElectionForm communities={communities} />
+        </Glass>
       )}
 
       {elections && elections.length > 0 ? (
         <div className="space-y-3">
           {elections.map((e: any) => {
-            const now = new Date();
             const phase =
               e.status === "nominations"
                 ? `Nominations close ${new Date(e.nominations_close).toLocaleDateString()}`
@@ -92,46 +89,40 @@ export default async function ElectionsPage() {
 
             return (
               <Link key={e.id} href={`/elections/${e.id}`}>
-                <Card className="transition hover:border-primary/30">
-                  <CardContent className="py-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="mb-1 flex items-center gap-2">
-                          <Badge variant={STATUS_VARIANT[e.status] ?? "outline"}>
-                            {e.status}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {e.communities?.name}
-                          </span>
-                          {isPlatformAdmin && e.communities?.subject && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {e.communities.subject}
-                            </Badge>
-                          )}
-                        </div>
-                        <h3 className="text-base font-medium">{e.title}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {phase}
-                        </p>
+                <Glass className="p-4 transition-colors hover:border-primary/30">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <StatusChip variant={STATUS_VARIANT[e.status] ?? "neutral"}>
+                          {e.status}
+                        </StatusChip>
+                        <span className="text-caption text-text-secondary">
+                          {e.communities?.name}
+                        </span>
+                        {isPlatformAdmin && e.communities?.subject && (
+                          <StatusChip variant="neutral">{e.communities.subject}</StatusChip>
+                        )}
                       </div>
-                      <div className="text-right text-xs text-muted-foreground">
-                        <p>{e.seats} seats</p>
-                        <p>{e.term_days} day term</p>
-                      </div>
+                      <h3 className="text-body font-medium text-text-primary">{e.title}</h3>
+                      <p className="mt-1 text-caption text-text-secondary">
+                        {phase}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="text-right text-caption text-text-secondary">
+                      <p>{e.seats} seats</p>
+                      <p>{e.term_days} day term</p>
+                    </div>
+                  </div>
+                </Glass>
               </Link>
             );
           })}
         </div>
       ) : (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            No elections yet. Elections are triggered automatically when leadership group
-            terms expire, or can be called manually.
-          </CardContent>
-        </Card>
+        <Glass className="py-10 text-center text-body text-text-secondary">
+          No elections yet. Elections are triggered automatically when leadership group
+          terms expire, or can be called manually.
+        </Glass>
       )}
     </div>
   );

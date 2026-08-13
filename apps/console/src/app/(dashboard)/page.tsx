@@ -2,10 +2,15 @@ import { createServiceClient, createClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { DashboardChat } from "./dashboard-chat";
 import { sendMessage } from "./communities/[id]/chat/actions";
+import { Glass, StatTile, StatusChip, type StatusChipVariant } from "@loop/ui";
+
+const PROPOSAL_STATUS_VARIANT: Record<string, StatusChipVariant> = {
+  open: "warning",
+  approved: "success",
+  rejected: "error",
+};
 
 const SUBJECT_LABELS: Record<string, string> = {
   governance: "Governance",
@@ -126,26 +131,19 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-1 text-h1 font-bold tracking-tight text-text-primary">
         {SUBJECT_LABELS[activeSubject] ?? activeSubject}
       </h1>
-      <p className="mb-6 text-sm text-muted-foreground">
+      <p className="mb-6 text-body text-text-secondary">
         Join the conversation and shape {activeSubject} governance
       </p>
 
-      {/* Stats row */}
+      {/* Stats row — none of these are Realtime-backed (one-shot count
+          queries per request), so no StatTile `live` prop per the
+          "verify before adding, don't fake liveness" rule. */}
       <div className="mb-6 grid grid-cols-4 gap-4">
         {stats.map((s) => (
-          <Card key={s.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {s.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold">{s.value}</p>
-            </CardContent>
-          </Card>
+          <StatTile key={s.label} label={s.label} value={s.value} />
         ))}
       </div>
 
@@ -160,68 +158,54 @@ export default async function DashboardPage() {
           />
         </div>
       ) : (
-        <Card className="mb-6">
-          <CardContent className="py-8 text-center">
-            <p className="mb-2 text-sm text-muted-foreground">
-              Join a community to see conversations here
-            </p>
-            <Link
-              href="/communities"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Browse communities
-            </Link>
-          </CardContent>
-        </Card>
+        <Glass space="community" className="mb-6 py-8 text-center">
+          <p className="mb-2 text-body text-text-secondary">
+            Join a community to see conversations here
+          </p>
+          <Link
+            href="/communities"
+            className="text-body font-medium text-primary hover:underline"
+          >
+            Browse communities
+          </Link>
+        </Glass>
       )}
 
       {/* Recent proposals */}
       <div>
-        <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <h2 className="mb-3 text-caption font-medium uppercase tracking-wider text-text-secondary">
           Recent proposals
         </h2>
         {recentProposals && recentProposals.length > 0 ? (
           <div className="space-y-2">
             {recentProposals.map((p) => (
               <Link key={p.id} href={`/proposals/${p.id}`}>
-                <Card className="transition hover:border-primary/30">
-                  <CardContent className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="text-sm font-medium">{p.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {new Date(p.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs text-green-500">
-                        +{p.votes_for}
-                      </span>
-                      <span className="font-mono text-xs text-red-400">
-                        -{p.votes_against}
-                      </span>
-                      <Badge
-                        variant={
-                          p.status === "open"
-                            ? "default"
-                            : p.status === "approved"
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {p.status}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Glass className="flex items-center justify-between px-4 py-3 transition-colors hover:border-primary/30">
+                  <div>
+                    <p className="text-body font-medium text-text-primary">{p.title}</p>
+                    <p className="mt-0.5 text-caption text-text-secondary">
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-data-sm text-success">
+                      +{p.votes_for}
+                    </span>
+                    <span className="font-mono text-data-sm text-error">
+                      -{p.votes_against}
+                    </span>
+                    <StatusChip variant={PROPOSAL_STATUS_VARIANT[p.status] ?? "neutral"}>
+                      {p.status}
+                    </StatusChip>
+                  </div>
+                </Glass>
               </Link>
             ))}
           </div>
         ) : (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No proposals yet. Create one to get started.
-            </CardContent>
-          </Card>
+          <Glass className="py-8 text-center text-body text-text-secondary">
+            No proposals yet. Create one to get started.
+          </Glass>
         )}
       </div>
     </div>

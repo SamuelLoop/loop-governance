@@ -225,7 +225,7 @@ export function ImpactTreasuryCard({
       {recent.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-2 text-sm font-medium">Recent Impact Treasury transfers</h3>
-          <DataTable>
+          <DataTable space="admin">
             <DataTableHeader>
               <tr>
                 <DataTableHead>When</DataTableHead>

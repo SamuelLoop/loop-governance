@@ -58,7 +58,7 @@ export default async function CommunitiesPage() {
         return (
           <div key={subject} className="mb-8">
             <h2 className="mb-3 text-h2 font-bold capitalize">{subject}</h2>
-            <DataTable>
+            <DataTable space="admin">
               <DataTableHeader>
                 <tr>
                   <DataTableHead>Name</DataTableHead>

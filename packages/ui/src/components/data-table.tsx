@@ -1,21 +1,35 @@
 import * as React from "react"
 
 import { cn } from "../lib/utils"
-import { Glass } from "./glass"
+import { Glass, type GlassSpace } from "./glass"
 
 /**
- * DataTable — denser table variant for admin's table-heavy pages (audit,
- * moderation, communities, members, treasury), per session 3's inventory
- * ("DataTable | shadcn Table (denser variant) | Admin") and built for real
- * in session `web-09-admin-rollout.md`.
+ * DataTable — denser table variant for table-heavy pages (audit,
+ * moderation, communities, members, treasury in admin; treasury,
+ * earnings, token-activity in console), per session 3's inventory
+ * ("DataTable | shadcn Table (denser variant) | Admin") — built for real
+ * in session `web-09-admin-rollout.md`, extended to console in session
+ * `web-10-console-rollout.md`.
  *
- * Not a data-fetching/sorting abstraction — admin's existing pages each
- * have real, page-specific filter/search/expand-row logic already wired to
+ * Not a data-fetching/sorting abstraction — every page that uses this has
+ * real, page-specific filter/search/expand-row logic already wired to
  * server actions, so this stays a thin presentational compound component
  * (same shape as shadcn's own Table split, just denser padding/type and
- * wrapped in `<Glass space="admin">` instead of a plain bordered div).
- * Pages keep their own `<table>`/`<tr>`/`<td>` markup, just swap the tag
- * for the matching `DataTable*` piece.
+ * wrapped in `Glass` instead of a plain bordered div). Pages keep their
+ * own `<table>`/`<tr>`/`<td>` markup, just swap the tag for the matching
+ * `DataTable*` piece.
+ *
+ * `space` defaults to **undefined** (plain, untinted Glass) — session 09
+ * hardcoded `space="admin"` here, which was correct only because that
+ * session's every call site lived inside `apps/admin` ("the whole app IS
+ * the admin space"). That assumption breaks the instant this component is
+ * reused in console (session 10), where most tables are general-audience
+ * and only a genuinely role-gated one (e.g. token-activity's admin-only
+ * purchases table) should pass `space="admin"` explicitly — tinting every
+ * table by default would silently violate the space-tint rule ("tinting
+ * a general-audience panel defeats the point"). Admin's own call sites
+ * must now pass `space="admin"` explicitly too — see LESSONS.md for the
+ * regression this would otherwise have reintroduced.
  *
  * Density: px-3 py-2 (vs shadcn Table's default px-2 py-2 in a taller
  * row) and `text-caption` headers — matches DESIGN.web.md's "console/admin
@@ -25,11 +39,15 @@ import { Glass } from "./glass"
 function DataTable({
   className,
   wrapperClassName,
+  space,
   ...props
-}: React.ComponentProps<"table"> & { wrapperClassName?: string }) {
+}: React.ComponentProps<"table"> & {
+  wrapperClassName?: string
+  space?: GlassSpace
+}) {
   return (
     <Glass
-      space="admin"
+      space={space}
       className={cn("overflow-hidden p-0", wrapperClassName)}
     >
       <div className="overflow-x-auto">

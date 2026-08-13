@@ -25,8 +25,8 @@ export default async function ClaimPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-2 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Your Tokens</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight text-text-primary">Your Tokens</h1>
+        <p className="mt-1 text-body text-text-secondary">
           Every LOOP token you have purchased is tracked here. Card purchases
           are held securely until you connect a wallet. Crypto purchases are
           confirmed on-chain instantly.

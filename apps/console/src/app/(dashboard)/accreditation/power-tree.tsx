@@ -10,8 +10,8 @@ type TreeNode = {
 function TreeBranch({ node, isLast }: { node: TreeNode; isLast: boolean }) {
   return (
     <div className="relative pl-4">
-      <div className="absolute left-0 top-0 h-full w-px bg-border" />
-      <div className="absolute left-0 top-3 h-px w-3 bg-border" />
+      <div className="absolute left-0 top-0 h-full w-px bg-surface-border" />
+      <div className="absolute left-0 top-3 h-px w-3 bg-surface-border" />
       {isLast && (
         <div className="absolute left-0 top-3 bottom-0 w-px bg-background" />
       )}
@@ -53,7 +53,7 @@ export function PowerTree({ tree }: { tree: TreeNode[] }) {
   if (tree.length === 0) return null;
 
   return (
-    <div className="max-h-64 overflow-y-auto rounded border bg-muted/20 p-3">
+    <div className="max-h-64 overflow-y-auto rounded border border-surface-border bg-surface p-3">
       <div className="mb-1 flex items-center gap-2">
         <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
           Me

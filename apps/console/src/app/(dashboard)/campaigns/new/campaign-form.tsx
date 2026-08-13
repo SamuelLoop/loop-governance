@@ -114,10 +114,10 @@ export function CampaignForm({
             <button
               type="button"
               onClick={() => handleTypeChange("campaign")}
-              className={`rounded-lg border p-3 text-left transition-colors ${
+              className={`rounded-panel border p-3 text-left transition-colors ${
                 campaignType === "campaign"
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
+                  : "border-surface-border hover:border-primary/50"
               }`}
             >
               <p className="text-sm font-medium">Campaign poster</p>
@@ -128,10 +128,10 @@ export function CampaignForm({
             <button
               type="button"
               onClick={() => handleTypeChange("flyer")}
-              className={`rounded-lg border p-3 text-left transition-colors ${
+              className={`rounded-panel border p-3 text-left transition-colors ${
                 campaignType === "flyer"
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
+                  : "border-surface-border hover:border-primary/50"
               }`}
             >
               <p className="text-sm font-medium">Community flyer</p>
@@ -225,7 +225,7 @@ export function CampaignForm({
             <TiptapEditor content={content} onChange={setContent} />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-4">
+          <div className="flex items-center justify-between rounded-panel border border-surface-border bg-surface p-4">
             <div>
               <p className="text-sm font-medium">Ready to publish?</p>
               <p className="text-xs text-muted-foreground">

@@ -16,7 +16,7 @@ export function ApproveButton({ requestId }: { requestId: string }) {
         <p className="mb-1 text-xs text-destructive">{state.error}</p>
       )}
       {state.result ? (
-        <span className="text-xs text-green-500">
+        <span className="text-xs text-success">
           Disbursed {Number(state.result.amount).toLocaleString()} LOOP
         </span>
       ) : (

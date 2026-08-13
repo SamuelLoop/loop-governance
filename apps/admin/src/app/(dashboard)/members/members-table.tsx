@@ -114,7 +114,7 @@ export function MembersTable({
       </div>
 
       {/* Table */}
-      <DataTable>
+      <DataTable space="admin">
         <DataTableHeader>
           <tr>
             <DataTableHead>User</DataTableHead>

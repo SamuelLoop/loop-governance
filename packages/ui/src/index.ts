@@ -20,6 +20,11 @@ export * from "./components/glass";
 export * from "./components/live-dot";
 export * from "./components/data-table";
 export * from "./components/status-chip";
+export * from "./components/stat-tile";
+export * from "./components/vote";
+export * from "./components/delegation-table";
+export * from "./components/accreditation-progress";
+export * from "./components/give-power-drawer";
 
 export * from "./components/ui/avatar";
 export * from "./components/ui/badge";

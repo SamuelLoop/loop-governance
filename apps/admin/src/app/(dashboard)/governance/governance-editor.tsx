@@ -338,7 +338,7 @@ export function GovernanceEditor({
       {scope && (
         <form key={formKey} action={formAction} className="space-y-5">
           <input type="hidden" name="scope" value={JSON.stringify(scope)} />
-          <DataTable>
+          <DataTable space="admin">
             <DataTableHeader>
               <tr>
                 <DataTableHead>Setting</DataTableHead>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Send, MessageSquare, Users, ExternalLink } from "lucide-react";
+import { Glass } from "@loop/ui";
 
 type Message = {
   id: string;
@@ -58,9 +59,9 @@ export function DashboardChat({
   const activeCommunity = communities.find((c) => c.id === activeCommunityId);
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col rounded-lg border bg-card">
+    <Glass space="community" className="flex h-[calc(100vh-12rem)] flex-col">
       {/* Community selector */}
-      <div className="flex items-center gap-2 overflow-x-auto border-b px-4 py-3">
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-surface-border px-4 py-3">
         <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="shrink-0 text-xs font-medium text-muted-foreground">
           Conversations:
@@ -144,7 +145,7 @@ export function DashboardChat({
 
       {/* Message input */}
       {activeCommunityId && (
-        <div className="border-t px-4 py-3">
+        <div className="border-t border-surface-border px-4 py-3">
           {state.error && (
             <div className="mb-2 text-xs text-destructive">{state.error}</div>
           )}
@@ -173,6 +174,6 @@ export function DashboardChat({
           </form>
         </div>
       )}
-    </div>
+    </Glass>
   );
 }

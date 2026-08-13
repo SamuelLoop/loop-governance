@@ -1,7 +1,5 @@
 import { createServiceClient } from "@/lib/supabase-server";
 import { getSubjectCommunityIds } from "@/lib/subject";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   getDistributionRules,
   getTreasuryBalance,
@@ -15,6 +13,26 @@ import { CascadeForm } from "./cascade-form";
 import { FundingRequestForm } from "./funding-request-form";
 import { ApproveButton, RejectButton } from "./approve-button";
 import { CollapsibleNode } from "./collapsible-node";
+import {
+  Glass,
+  StatTile,
+  StatusChip,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  type StatusChipVariant,
+} from "@loop/ui";
+
+// Funding-request status: disbursed/rejected is a clean 2-value semantic
+// fit (DESIGN.web.md StatusChip — semantic colour only), same mapping
+// admin's moderation flag status used (session 09).
+const REQUEST_STATUS_VARIANT: Record<string, StatusChipVariant> = {
+  disbursed: "success",
+  rejected: "error",
+};
 
 const LEVEL_LABELS: Record<string, string> = {
   global: "Global",
@@ -98,126 +116,130 @@ function CommunityNode({
   const totalRequested = getTotalRequested(community);
 
   const nodeContent = (
-    <Card className="mb-4">
-      <CardContent className="pt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[11px] text-muted-foreground">
-            {community.balance.inflow_count} inflows / {community.balance.outflow_count} outflows
+    <Glass className="mb-4 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-caption text-text-secondary">
+          {community.balance.inflow_count} inflows / {community.balance.outflow_count} outflows
+        </p>
+      </div>
+
+      {/* Regional allocation bar — a composition of same-identity children
+          (each is "a sub-community's share"), so per DESIGN.web.md's
+          data-viz rule this stays single-hue (brand accent) rather than
+          one colour per child; "Retained" is the one distinct bucket and
+          gets neutral grey, not a second saturated hue. Read dataviz
+          skill before this edit (session web-10-console-rollout.md). */}
+      {hasChildren && community.allocations.length > 0 && (
+        <div className="mb-4">
+          <p className="mb-2 text-body font-medium text-text-secondary">
+            Regional allocation to sub-communities
+          </p>
+          <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-surface gap-0.5">
+            {community.allocations.map((a) => (
+              <div
+                key={a.child.id}
+                className="bg-primary/70 first:rounded-l-full last:rounded-r-full"
+                style={{ width: `${a.allocation_pct}%` }}
+                title={`${a.child.name}: ${a.allocation_pct}%`}
+              />
+            ))}
+            {allocationTotal < 100 && (
+              <div
+                className="bg-text-secondary/25"
+                style={{ width: `${100 - allocationTotal}%` }}
+                title={`Retained: ${(100 - allocationTotal).toFixed(1)}%`}
+              />
+            )}
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-caption text-text-secondary">
+            {community.allocations.map((a) => (
+              <span key={a.child.id}>
+                {a.child.name}: {a.allocation_pct}%
+              </span>
+            ))}
+            {allocationTotal < 100 && (
+              <span className="text-text-secondary">
+                Retained: {(100 - allocationTotal).toFixed(1)}%
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Project vs Governance split — two-series comparison, so per
+          DESIGN.web.md: brand accent for the primary series (Governance,
+          the cascading/controlled share), text-secondary grey for the
+          comparison series (Projects) — not a second saturated hue. */}
+      <Glass className="mb-4 p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-body font-medium text-text-primary">Funding split</p>
+          <p className="text-caption text-text-secondary">
+            Max governance cap: {community.maxGovernanceCap}%
           </p>
         </div>
-
-        {/* Regional allocation bar */}
-        {hasChildren && community.allocations.length > 0 && (
-          <div className="mb-4">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">
-              Regional allocation to sub-communities
-            </p>
-            <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-muted">
-              {community.allocations.map((a) => (
-                <div
-                  key={a.child.id}
-                  className="bg-primary/70 first:rounded-l-full last:rounded-r-full"
-                  style={{ width: `${a.allocation_pct}%` }}
-                  title={`${a.child.name}: ${a.allocation_pct}%`}
-                />
-              ))}
-              {allocationTotal < 100 && (
-                <div
-                  className="bg-amber-500/30"
-                  style={{ width: `${100 - allocationTotal}%` }}
-                  title={`Retained: ${(100 - allocationTotal).toFixed(1)}%`}
-                />
-              )}
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-              {community.allocations.map((a) => (
-                <span key={a.child.id}>
-                  {a.child.name}: {a.allocation_pct}%
-                </span>
-              ))}
-              {allocationTotal < 100 && (
-                <span className="text-amber-500">
-                  Retained: {(100 - allocationTotal).toFixed(1)}%
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Project vs Governance split */}
-        <div className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-medium text-amber-400">Funding split</p>
-            <p className="text-[10px] text-muted-foreground">
-              Max governance cap: {community.maxGovernanceCap}%
-            </p>
-          </div>
-          <div className="mb-1 flex h-3 overflow-hidden rounded-full bg-muted">
-            <div
-              className="bg-emerald-500/70 rounded-l-full"
-              style={{ width: `${100 - community.governanceSplit}%` }}
-              title={`Projects: ${100 - community.governanceSplit}%`}
-            />
-            <div
-              className="bg-primary/70 rounded-r-full"
-              style={{ width: `${community.governanceSplit}%` }}
-              title={`Governance: ${community.governanceSplit}%`}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] text-muted-foreground">
-            <span className="text-emerald-400">
-              Projects: {100 - community.governanceSplit}%
-            </span>
-            <span className="text-primary">
-              Governance: {community.governanceSplit}%
-            </span>
-          </div>
+        <div className="mb-1 flex h-3 overflow-hidden rounded-full bg-surface">
+          <div
+            className="bg-text-secondary/40 rounded-l-full"
+            style={{ width: `${100 - community.governanceSplit}%` }}
+            title={`Projects: ${100 - community.governanceSplit}%`}
+          />
+          <div
+            className="bg-primary/70 rounded-r-full"
+            style={{ width: `${community.governanceSplit}%` }}
+            title={`Governance: ${community.governanceSplit}%`}
+          />
         </div>
+        <div className="flex justify-between text-caption text-text-secondary">
+          <span>Projects: {100 - community.governanceSplit}%</span>
+          <span className="text-primary">
+            Governance: {community.governanceSplit}%
+          </span>
+        </div>
+      </Glass>
 
-        <div className={`grid gap-6 ${hasChildren ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+      <div className={`grid gap-6 ${hasChildren ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+        <div>
+          <h3 className="mb-1 text-body font-medium text-text-primary">Governance split</h3>
+          <p className="mb-2 text-caption text-text-secondary">
+            How the governance portion ({community.governanceSplit}%) is
+            divided between leaders, participants, and delegators.
+          </p>
+          <RulesForm communityId={community.id} rules={community.rules} />
+        </div>
+        <div>
+          <h3 className="mb-1 text-body font-medium text-text-primary">Add funds</h3>
+          <p className="mb-2 text-caption text-text-secondary">
+            {community.level === "city" || community.level === "local"
+              ? "Top up from local sources: advertising revenue, business token purchases, or direct contributions."
+              : "Direct contributions from impact allocations, grants, or ad revenue."}
+          </p>
+          <InflowForm communityId={community.id} />
+        </div>
+        <div>
+          <h3 className="mb-1 text-body font-medium text-text-primary">Distribute to members</h3>
+          <p className="mb-2 text-caption text-text-secondary">
+            Pay out funds to leaders, participants, and delegators based on the split above.
+          </p>
+          <DistributeForm
+            communityId={community.id}
+            balance={bal}
+          />
+        </div>
+        {hasChildren && (
           <div>
-            <h3 className="mb-1 text-xs font-medium">Governance split</h3>
-            <p className="mb-2 text-[11px] text-muted-foreground">
-              How the governance portion ({community.governanceSplit}%) is
-              divided between leaders, participants, and delegators.
+            <h3 className="mb-1 text-body font-medium text-text-primary">Cascade down</h3>
+            <p className="mb-2 text-caption text-text-secondary">
+              Push funds to sub-regions based on the allocation percentages above.
             </p>
-            <RulesForm communityId={community.id} rules={community.rules} />
-          </div>
-          <div>
-            <h3 className="mb-1 text-xs font-medium">Add funds</h3>
-            <p className="mb-2 text-[11px] text-muted-foreground">
-              {community.level === "city" || community.level === "local"
-                ? "Top up from local sources: advertising revenue, business token purchases, or direct contributions."
-                : "Direct contributions from impact allocations, grants, or ad revenue."}
-            </p>
-            <InflowForm communityId={community.id} />
-          </div>
-          <div>
-            <h3 className="mb-1 text-xs font-medium">Distribute to members</h3>
-            <p className="mb-2 text-[11px] text-muted-foreground">
-              Pay out funds to leaders, participants, and delegators based on the split above.
-            </p>
-            <DistributeForm
+            <CascadeForm
               communityId={community.id}
               balance={bal}
+              childCount={community.children.length}
             />
           </div>
-          {hasChildren && (
-            <div>
-              <h3 className="mb-1 text-xs font-medium">Cascade down</h3>
-              <p className="mb-2 text-[11px] text-muted-foreground">
-                Push funds to sub-regions based on the allocation percentages above.
-              </p>
-              <CascadeForm
-                communityId={community.id}
-                balance={bal}
-                childCount={community.children.length}
-              />
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        )}
+      </div>
+    </Glass>
   );
 
   const sortedChildren = community.children
@@ -228,7 +250,7 @@ function CommunityNode({
     );
 
   return (
-    <div className={depth > 0 ? "ml-4 border-l border-border pl-4" : ""}>
+    <div className={depth > 0 ? "ml-4 border-l border-surface-border pl-4" : ""}>
       <CollapsibleNode
         label={community.name}
         level={LEVEL_LABELS[community.level] ?? community.level}
@@ -348,29 +370,29 @@ export default async function TreasuryPage() {
     <div>
       {/* ── Header ── */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Treasury</h1>
-        <div className="mt-3 max-w-3xl space-y-3 text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight text-text-primary">Treasury</h1>
+        <div className="mt-3 max-w-3xl space-y-3 text-body text-text-secondary">
           <p>
-            The treasury funds both the <strong>projects</strong> that
-            communities create and the <strong>governance teams</strong> who
+            The treasury funds both the <strong className="text-text-primary">projects</strong> that
+            communities create and the <strong className="text-text-primary">governance teams</strong> who
             manage them. Treasury funds are split between these two purposes
             at each level, with the ratio controlled by the admin. The
-            default starting split is <strong>50% to projects, 50% to
+            default starting split is <strong className="text-text-primary">50% to projects, 50% to
             governance</strong>, meaning the people who build and deliver are
             highly incentivised. As the platform grows, governance overhead
-            should not exceed <strong>5% of total project funding</strong>.
+            should not exceed <strong className="text-text-primary">5% of total project funding</strong>.
           </p>
           <p>
             The governance portion is then divided three ways:{" "}
-            <strong>leaders</strong> (leadership group members who hold governance
-            seats), <strong>participants</strong> (members who vote on
-            proposals and submit ideas), and <strong>delegators</strong>{" "}
+            <strong className="text-text-primary">leaders</strong> (leadership group members who hold governance
+            seats), <strong className="text-text-primary">participants</strong> (members who vote on
+            proposals and submit ideas), and <strong className="text-text-primary">delegators</strong>{" "}
             (members who delegate their voting power to others they trust).
             You control the split at each level.
           </p>
           <p>
             Money enters the system from two directions. From the top, the{" "}
-            <strong>Platform Steering Committee</strong> holds an unallocated
+            <strong className="text-text-primary">Platform Steering Committee</strong> holds an unallocated
             pool that any community can apply to draw from. From the bottom,
             local communities can be topped up directly by businesses joining
             the network (who allocate tokens for marketing and governance
@@ -381,70 +403,34 @@ export default async function TreasuryPage() {
 
       {/* ── Stats ── */}
       <div className="mb-8 grid gap-4 sm:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {subjectLabel} balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {totalBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              LOOP across {enriched.length} communities
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Total received
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono text-green-500">
-              {totalInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-            <p className="text-xs text-muted-foreground">LOOP all-time inflows</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Paid to members
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {totalDistributed.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-            <p className="text-xs text-muted-foreground">LOOP distributed</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Steering Committee pool
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono text-amber-500">
-              {Number(pool.balance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            </p>
-            <p className="text-xs text-muted-foreground">LOOP unallocated</p>
-          </CardContent>
-        </Card>
+        <StatTile
+          label={`${subjectLabel} balance`}
+          value={totalBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        />
+        <StatTile
+          label="Total received"
+          value={totalInflow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          valueClassName="text-success"
+        />
+        <StatTile
+          label="Paid to members"
+          value={totalDistributed.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        />
+        <StatTile
+          label="Steering Committee pool"
+          value={Number(pool.balance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          valueClassName="text-warning"
+        />
       </div>
 
       {/* ── Unallocated Funding ── */}
       <section className="mb-10">
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">
+        <h2 className="mb-1 text-h2 font-bold tracking-tight text-text-primary">
           Unallocated funding
         </h2>
-        <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
+        <p className="mb-4 max-w-3xl text-body text-text-secondary">
           The Platform Steering Committee holds{" "}
-          <strong>{Number(pool.balance).toLocaleString()} LOOP</strong> in
+          <strong className="text-text-primary">{Number(pool.balance).toLocaleString()} LOOP</strong> in
           reserve. Community leadership groups can submit proposals to draw
           from this pool for their region or subject area. Approved requests
           are disbursed directly into the requesting community&apos;s treasury,
@@ -453,113 +439,97 @@ export default async function TreasuryPage() {
         </p>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Pending requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!pendingRequests || pendingRequests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No pending funding requests for {subjectLabel} communities.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {(pendingRequests as any[]).map((r) => (
-                    <div key={r.id} className="rounded-lg border p-4">
-                      <div className="mb-2 flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{r.title}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {r.community?.name} ({LEVEL_LABELS[r.community?.level] ?? r.community?.level})
-                            {" "}by {r.requester?.display_name}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="font-mono">
-                          {Number(r.amount).toLocaleString()} LOOP
-                        </Badge>
-                      </div>
-                      <p className="mb-3 text-xs text-muted-foreground">
-                        {r.description}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <ApproveButton requestId={r.id} />
-                        <RejectButton requestId={r.id} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Request funding</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Submit a proposal to the Steering Committee. Explain
-                what the funds will be used for and the expected impact on
-                your region.
+          <Glass className="p-5">
+            <h3 className="mb-3 text-h2 font-bold text-text-primary">Pending requests</h3>
+            {!pendingRequests || pendingRequests.length === 0 ? (
+              <p className="text-body text-text-secondary">
+                No pending funding requests for {subjectLabel} communities.
               </p>
-            </CardHeader>
-            <CardContent>
-              <FundingRequestForm communities={communityList} />
-            </CardContent>
-          </Card>
+            ) : (
+              <div className="space-y-4">
+                {(pendingRequests as any[]).map((r) => (
+                  <Glass key={r.id} className="p-4">
+                    <div className="mb-2 flex items-start justify-between">
+                      <div>
+                        <p className="text-body font-medium text-text-primary">{r.title}</p>
+                        <p className="mt-0.5 text-caption text-text-secondary">
+                          {r.community?.name} ({LEVEL_LABELS[r.community?.level] ?? r.community?.level})
+                          {" "}by {r.requester?.display_name}
+                        </p>
+                      </div>
+                      <span className="whitespace-nowrap rounded-pill border border-surface-border px-2 py-0.5 font-mono text-data-sm text-text-secondary">
+                        {Number(r.amount).toLocaleString()} LOOP
+                      </span>
+                    </div>
+                    <p className="mb-3 text-caption text-text-secondary">
+                      {r.description}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <ApproveButton requestId={r.id} />
+                      <RejectButton requestId={r.id} />
+                    </div>
+                  </Glass>
+                ))}
+              </div>
+            )}
+          </Glass>
+
+          <Glass className="p-5">
+            <h3 className="mb-1 text-h2 font-bold text-text-primary">Request funding</h3>
+            <p className="mb-3 text-caption text-text-secondary">
+              Submit a proposal to the Steering Committee. Explain
+              what the funds will be used for and the expected impact on
+              your region.
+            </p>
+            <FundingRequestForm communities={communityList} />
+          </Glass>
         </div>
 
         {recentRequests && recentRequests.length > 0 && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle className="text-base">Recent decisions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-muted-foreground">
-                      <th className="pb-2 pr-4">Request</th>
-                      <th className="pb-2 pr-4">Community</th>
-                      <th className="pb-2 pr-4">Amount</th>
-                      <th className="pb-2 pr-4">Status</th>
-                      <th className="pb-2">Reviewed by</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(recentRequests as any[]).map((r) => (
-                      <tr key={r.id} className="border-b last:border-0">
-                        <td className="py-2.5 pr-4">{r.title}</td>
-                        <td className="py-2.5 pr-4 text-xs text-muted-foreground">
-                          {r.community?.name}
-                        </td>
-                        <td className="py-2.5 pr-4 font-mono text-xs">
-                          {Number(r.amount).toLocaleString()}
-                        </td>
-                        <td className="py-2.5 pr-4">
-                          <Badge
-                            variant={r.status === "disbursed" ? "default" : "destructive"}
-                          >
-                            {r.status}
-                          </Badge>
-                        </td>
-                        <td className="py-2.5 text-xs text-muted-foreground">
-                          {r.reviewer?.display_name ?? "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mt-4">
+            <h3 className="mb-3 text-h2 font-bold text-text-primary">Recent decisions</h3>
+            <DataTable>
+              <DataTableHeader>
+                <tr>
+                  <DataTableHead>Request</DataTableHead>
+                  <DataTableHead>Community</DataTableHead>
+                  <DataTableHead align="right">Amount</DataTableHead>
+                  <DataTableHead>Status</DataTableHead>
+                  <DataTableHead>Reviewed by</DataTableHead>
+                </tr>
+              </DataTableHeader>
+              <DataTableBody>
+                {(recentRequests as any[]).map((r) => (
+                  <DataTableRow key={r.id}>
+                    <DataTableCell>{r.title}</DataTableCell>
+                    <DataTableCell className="text-text-secondary">
+                      {r.community?.name}
+                    </DataTableCell>
+                    <DataTableCell numeric align="right">
+                      {Number(r.amount).toLocaleString()}
+                    </DataTableCell>
+                    <DataTableCell>
+                      <StatusChip variant={REQUEST_STATUS_VARIANT[r.status] ?? "neutral"}>
+                        {r.status}
+                      </StatusChip>
+                    </DataTableCell>
+                    <DataTableCell className="text-text-secondary">
+                      {r.reviewer?.display_name ?? "-"}
+                    </DataTableCell>
+                  </DataTableRow>
+                ))}
+              </DataTableBody>
+            </DataTable>
+          </div>
         )}
       </section>
 
       {/* ── Cascading Hierarchy ── */}
       <section>
-        <h2 className="mb-1 text-lg font-semibold tracking-tight">
+        <h2 className="mb-1 text-h2 font-bold tracking-tight text-text-primary">
           {subjectLabel} treasury hierarchy
         </h2>
-        <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
+        <p className="mb-4 max-w-3xl text-body text-text-secondary">
           Funds flow from top to bottom. Each community&apos;s leadership group
           controls the regional allocation percentages that determine how much
           cascades to sub-regions and how much is retained for local
@@ -569,11 +539,9 @@ export default async function TreasuryPage() {
         </p>
 
         {tree.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No communities in this subject yet.
-            </CardContent>
-          </Card>
+          <Glass className="py-8 text-center text-body text-text-secondary">
+            No communities in this subject yet.
+          </Glass>
         ) : (
           tree
             .sort(

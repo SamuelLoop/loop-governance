@@ -58,9 +58,9 @@ export function FirstPasswordPrompt() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg">
-        <h2 className="mb-1 text-lg font-semibold">Welcome — set a password</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
+      <div className="w-full max-w-md rounded-panel border border-surface-border bg-surface p-6 shadow-lg backdrop-blur-[var(--blur-glass)]">
+        <h2 className="mb-1 text-h2 font-bold text-text-primary">Welcome — set a password</h2>
+        <p className="mb-4 text-body text-text-secondary">
           You signed in via magic link. Set a password now so you can sign in
           directly next time without waiting on email.
         </p>

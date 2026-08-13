@@ -3,56 +3,6 @@
 > Hard-won gotchas. Add a new entry the session it's discovered. Never delete.
 > Last updated: 2026-08-13
 
-## 14. `theme.css`'s font-family and font-weight tokens collide on the `display`/`body` keys
-
-**What happened:** `packages/ui/theme.css` §1 defines font-*family* tokens
-under Tailwind v4's `--font-*` namespace: `--font-display`, `--font-body`,
-`--font-mono` (→ utilities `font-display`/`font-body`/`font-mono` for
-`font-family`). §2 separately defines font-*weight* tokens under the
-`--font-weight-*` namespace: `--font-weight-display`, `--font-weight-h1`,
-`--font-weight-h2`, `--font-weight-body`, `--font-weight-caption`,
-`--font-weight-data-lg`, `--font-weight-data-sm` (→ utilities
-`font-display`/`font-h1`/`font-h2`/`font-body`/`font-caption`/`font-
-data-lg`/`font-data-sm` for `font-weight`). Two keys — `display` and
-`body` — exist under *both* namespaces, so `font-display` and `font-body`
-are two different CSS declarations racing for the same generated Tailwind
-utility class name. Same category of bug as lesson #13 (a named `@theme`
-key silently colliding with a different reserved utility family), but
-self-inflicted between `theme.css`'s own two sections rather than against
-a Tailwind built-in.
-
-**Effect:** confirmed via the compiled production CSS (session
-`web-09-admin-rollout.md`, first session to actually consume any of these
-tokens — zero prior usages anywhere in the repo before this session):
-`.font-body{font-family:var(--font-geist),...}` is the *only* declaration
-emitted for `.font-body` — the family declaration from `--font-body` (§1)
-wins; the weight declaration from `--font-weight-body` (§2) never makes it
-into the compiled CSS at all. `font-display`/`font-h1`/`font-caption`/
-`font-data-lg`/`font-data-sm` are untested (no session has used them yet)
-but the same collision risk applies to `font-display` specifically (also
-double-defined); the other four (`h1`, `h2`, `caption`, `data-lg`,
-`data-sm`) don't collide with any `--font-*` family key today, so they may
-work as weight utilities — not verified either way.
-
-**Correct pattern:** do not use the custom `--font-weight-*`-derived
-`font-{name}` utilities for `display` or `body` — use Tailwind's built-in
-`font-bold`/`font-semibold`/`font-medium`/`font-normal` instead, which
-don't touch the contested namespace (verified working, session 9). For
-font *size*, the paired `text-{name}` utilities (`text-h1`, `text-body`,
-etc.) are unaffected by this collision and confirmed correct via compiled
-CSS. The real fix belongs in `theme.css` itself: rename the
-`--font-weight-*` keys to something that can't collide with `--font-*`
-family keys (they already don't share a prefix conceptually, but Tailwind
-resolves both down to a `font-*` utility class name — the fix has to
-either drop the weight tokens for `display`/`body` specifically, since
-`theme.css`'s own comment already says the two are visually distinguished
-by size alone, or emit them via inline `style`/arbitrary values instead of
-a named `@theme` token). Not fixed as of session 9 — flagged for whoever
-next needs a heading in General Sans rather than the inherited Geist body
-face.
-
----
-
 ## -1. `vercel --prod` deploys the working directory, not a git ref — and `packages/db/migrations/` had no apply mechanism at all
 
 Two related incidents, same session (2026-08-11):
@@ -232,3 +182,61 @@ Promoting `stage → main` with a merge commit creates a commit that exists only
 **Effect:** Every card/dialog/page-content wrapper using `max-w-sm`, `max-w-md`, `max-w-xl`, or `max-w-2xl` anywhere in console or admin (extremely common — the login page's card, the badge page's whole content wrapper, dialogs, etc.) silently rendered at the wrong width the moment `theme.css` was wired in. No build error, no lint warning, no console error — a real user had to notice the visual breakage and report it.
 
 **Correct pattern:** Tailwind v4's reserved theme namespaces (`--spacing-*`, `--color-*`, `--font-*`, `--text-*`, `--radius-*`, `--container-*`, `--breakpoint-*`, etc.) are **shared keyspaces**, not scoped to the specific utility family you're thinking about — defining any key under a reserved prefix affects *every* utility family that reads from that prefix, including ones you didn't intend to touch. Before adding a named (non-numeric) key under any of Tailwind's reserved `--theme-namespace-*` prefixes, check whether that exact key already has reserved meaning elsewhere in Tailwind's default theme (T-shirt sizes — `xs/sm/md/lg/xl/2xl/3xl/4xl/5xl/6xl/7xl` — are the highest-risk names, since multiple utility families use them: `max-w-*`/`min-w-*` via `--container-*`, `text-*` via `--text-*`, `rounded-*` via `--radius-*`, `screen-*` via `--breakpoint-*`). When in doubt, use a **non-reserved prefix** for custom aliases (e.g. `--space-*` instead of `--spacing-*`) rather than trusting that a same-named key under a reserved prefix will only affect the one utility family you're picturing. Verify any new named `@theme` token by grepping the actual compiled production CSS for the utility classes you'd expect to still work — `pnpm build` then `grep '\.max-w-2xl' .next/static/css/*.css` — not just by reading the source and reasoning about it, and not just by checking `pnpm dev` (dev-mode CSS chunking made this specific bug much harder to spot via `curl` than the production build's single compiled file).
+
+---
+
+## 14. `theme.css`'s font-family and font-weight tokens collide on the `display`/`body` keys
+
+**What happened:** `packages/ui/theme.css` §1 defines font-*family* tokens
+under Tailwind v4's `--font-*` namespace: `--font-display`, `--font-body`,
+`--font-mono` (→ utilities `font-display`/`font-body`/`font-mono` for
+`font-family`). §2 separately defines font-*weight* tokens under the
+`--font-weight-*` namespace: `--font-weight-display`, `--font-weight-h1`,
+`--font-weight-h2`, `--font-weight-body`, `--font-weight-caption`,
+`--font-weight-data-lg`, `--font-weight-data-sm` (→ utilities
+`font-display`/`font-h1`/`font-h2`/`font-body`/`font-caption`/`font-
+data-lg`/`font-data-sm` for `font-weight`). Two keys — `display` and
+`body` — exist under *both* namespaces, so `font-display` and `font-body`
+are two different CSS declarations racing for the same generated Tailwind
+utility class name. Same category of bug as lesson #13 (a named `@theme`
+key silently colliding with a different reserved utility family), but
+self-inflicted between `theme.css`'s own two sections rather than against
+a Tailwind built-in.
+
+**Effect:** confirmed via the compiled production CSS (session
+`web-09-admin-rollout.md`, first session to actually consume any of these
+tokens — zero prior usages anywhere in the repo before this session):
+`.font-body{font-family:var(--font-geist),...}` is the *only* declaration
+emitted for `.font-body` — the family declaration from `--font-body` (§1)
+wins; the weight declaration from `--font-weight-body` (§2) never makes it
+into the compiled CSS at all. `font-display`/`font-h1`/`font-caption`/
+`font-data-lg`/`font-data-sm` are untested (no session has used them yet)
+but the same collision risk applies to `font-display` specifically (also
+double-defined); the other four (`h1`, `h2`, `caption`, `data-lg`,
+`data-sm`) don't collide with any `--font-*` family key today, so they may
+work as weight utilities — not verified either way.
+
+**Correct pattern:** do not use the custom `--font-weight-*`-derived
+`font-{name}` utilities for `display` or `body` — use Tailwind's built-in
+`font-bold`/`font-semibold`/`font-medium`/`font-normal` instead, which
+don't touch the contested namespace (verified working, session 9). For
+font *size*, the paired `text-{name}` utilities (`text-h1`, `text-body`,
+etc.) are unaffected by this collision and confirmed correct via compiled
+CSS. The real fix belongs in `theme.css` itself: rename the
+`--font-weight-*` keys to something that can't collide with `--font-*`
+family keys (they already don't share a prefix conceptually, but Tailwind
+resolves both down to a `font-*` utility class name — the fix has to
+either drop the weight tokens for `display`/`body` specifically, since
+`theme.css`'s own comment already says the two are visually distinguished
+by size alone, or emit them via inline `style`/arbitrary values instead of
+a named `@theme` token). Not fixed as of session 9 — flagged for whoever
+next needs a heading in General Sans rather than the inherited Geist body
+face.
+
+---
+
+## 15. Plain `tailwind-merge` (no `extend`) lumps ALL custom `text-{name}` classes — size AND colour — into one conflict group, silently dropping unrelated classes
+
+**What happened (session `web-10-console-rollout.md`):** `packages/ui/src/lib/utils.ts`'s `cn()` was plain `twMerge(clsx(inputs))`, no `extendTailwindMerge` config. Verified directly (not assumed) via `twMerge('mt-1 font-mono text-data-lg font-bold tabular-nums text-text-primary', 'text-success')` → `'mt-1 font-mono font-bold tabular-nums text-success'`: `text-data-lg` (a **font-size** token, `theme.css` §2) got silently dropped, not just `text-text-primary` (the **colour** token it was actually meant to override). `tailwind-merge` v3 has no built-in knowledge of this repo's custom `@theme` keys (`text-display`/`text-h1`/`text-h2`/`text-body`/`text-caption`/`text-data-lg`/`text-data-sm` for size; `text-success`/`text-warning`/`text-error`/`text-admin-tint`/`text-text-primary`/`text-text-secondary`/`text-text-muted`/tier colours for colour) — its fallback heuristic treats every unrecognized `text-*` class name as one single group regardless of whether it actually controls `font-size` or `color`. Any call like `StatTile`'s `valueClassName="text-success"` (intended as a colour-only override) was silently stripping the component's own size class too, collapsing the numeral to inherited/default size — a real, live visual bug, not a hypothetical one.
+
+**Correct pattern, now fixed at the source:** `packages/ui/src/lib/utils.ts` now uses `extendTailwindMerge({ extend: { classGroups: { 'font-size': [...], 'text-color': [...] } } })`, explicitly registering every custom type-scale key under `font-size` and every custom semantic/space-tint/tier text colour under `text-color`. Verified after the fix: a colour-only override now keeps the size class and only replaces colour; a genuine size-vs-size override (`text-data-lg` → `text-body`) still resolves correctly; standard Tailwind classes and the unrelated `Glass` `p-px`/`p-0` padding conflict (space-tint work, same session) are both unaffected. **Whenever a new custom `@theme` token is added to `theme.css`, add its generated utility class to the matching `classGroups` list in `utils.ts` in the same change** — otherwise it silently falls into this same trap. Verify with a direct `twMerge()`/`cn()` call printed to console, not by reading the source and reasoning about it (the earlier, wrong version of this lesson entry did exactly that and reached the opposite, incorrect conclusion — caught only by actually running the merge).

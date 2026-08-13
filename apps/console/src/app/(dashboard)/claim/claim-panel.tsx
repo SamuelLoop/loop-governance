@@ -11,7 +11,6 @@ import {
 import { AllocationSection } from "./allocation-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Package,
   CheckCircle,
@@ -22,43 +21,55 @@ import {
   ExternalLink,
   PartyPopper,
 } from "lucide-react";
+import { Glass, StatusChip, type StatusChipVariant } from "@loop/ui";
 
 function getEthereum(): any | null {
   if (typeof window === "undefined") return null;
   return (window as any).ethereum ?? null;
 }
 
+// Claim lifecycle is a real 3-state progression (connect wallet → awaiting
+// mint → on-chain), so it fits StatusChip's semantic palette cleanly:
+// on-chain/minted is the good end state, awaiting mint is "pending,
+// nothing wrong", connect-wallet is a neutral first step, not a warning.
+const STATUS_VARIANT: Record<"onchain" | "minted" | "awaiting" | "connect", StatusChipVariant> = {
+  onchain: "success",
+  minted: "success",
+  awaiting: "warning",
+  connect: "neutral",
+};
+
 function StatusBadge({ purchase }: { purchase: Purchase }) {
   const isCrypto = purchase.stripe_payment_intent_id?.startsWith("crypto:");
   if (isCrypto) {
     return (
-      <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+      <StatusChip variant={STATUS_VARIANT.onchain} className="normal-case">
         <CheckCircle className="mr-1 h-3 w-3" />
         On-chain
-      </Badge>
+      </StatusChip>
     );
   }
   if (purchase.minted_at) {
     return (
-      <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+      <StatusChip variant={STATUS_VARIANT.minted} className="normal-case">
         <CheckCircle className="mr-1 h-3 w-3" />
         Minted
-      </Badge>
+      </StatusChip>
     );
   }
   if (purchase.wallet_address) {
     return (
-      <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-400">
+      <StatusChip variant={STATUS_VARIANT.awaiting} className="normal-case">
         <Clock className="mr-1 h-3 w-3" />
         Awaiting mint
-      </Badge>
+      </StatusChip>
     );
   }
   return (
-    <Badge className="border-blue-500/20 bg-blue-500/10 text-blue-400">
+    <StatusChip variant={STATUS_VARIANT.connect} className="normal-case">
       <Package className="mr-1 h-3 w-3" />
       Connect wallet
-    </Badge>
+    </StatusChip>
   );
 }
 
@@ -66,14 +77,14 @@ function PaymentMethod({ purchase }: { purchase: Purchase }) {
   const isCrypto = purchase.stripe_payment_intent_id?.startsWith("crypto:");
   if (isCrypto) {
     return (
-      <span className="flex items-center gap-1 text-[10px] text-violet-400">
+      <span className="flex items-center gap-1 text-[10px] text-text-secondary">
         <Coins className="h-3 w-3" />
         Crypto (ETH)
       </span>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-[10px] text-sky-400">
+    <span className="flex items-center gap-1 text-[10px] text-text-secondary">
       <CreditCard className="h-3 w-3" />
       Card
     </span>
@@ -90,18 +101,18 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
     : null;
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <Glass className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-lg font-semibold tabular-nums">
+            <p className="font-mono text-data-lg font-semibold tabular-nums text-text-primary">
               {purchase.amount.toLocaleString()} LOOP
             </p>
             <StatusBadge purchase={purchase} />
           </div>
           <div className="mt-1.5 flex items-center gap-3">
             <PaymentMethod purchase={purchase} />
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[10px] text-text-secondary">
               {new Date(purchase.created_at).toLocaleDateString(undefined, {
                 day: "numeric",
                 month: "short",
@@ -110,7 +121,7 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
             </span>
           </div>
           {purchase.wallet_address && (
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="mt-1 font-mono text-caption text-text-secondary">
               {purchase.wallet_address.slice(0, 6)}...
               {purchase.wallet_address.slice(-4)}
             </p>
@@ -120,14 +131,14 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
               href={`https://basescan.org/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+              className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
               View on Basescan
               <ExternalLink className="h-3 w-3" />
             </a>
           )}
           {purchase.minted_at && !isCrypto && (
-            <p className="mt-1 text-xs text-emerald-500">
+            <p className="mt-1 text-xs text-success">
               Minted{" "}
               {new Date(purchase.minted_at).toLocaleDateString(undefined, {
                 day: "numeric",
@@ -137,10 +148,10 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
             </p>
           )}
         </div>
-        <div className="text-right text-xs text-muted-foreground">
+        <div className="text-right text-xs text-text-secondary">
           <p>{purchase.impact_amount} impact</p>
           <p>{purchase.allocation_amount} allocation</p>
-          <p className="mt-1 font-medium text-foreground">
+          <p className="mt-1 font-medium text-text-primary">
             ${purchase.price_usd.toFixed(2)}
           </p>
         </div>
@@ -162,10 +173,10 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
         </form>
       )}
       {state.error && (
-        <p className="mt-2 text-xs text-destructive">{state.error}</p>
+        <p className="mt-2 text-xs text-error">{state.error}</p>
       )}
       {state.success && (
-        <p className="mt-2 text-xs text-emerald-400">
+        <p className="mt-2 text-xs text-success">
           {state.success}
           {state.txHash && (
             <>
@@ -182,7 +193,7 @@ function PurchaseRow({ purchase }: { purchase: Purchase }) {
           )}
         </p>
       )}
-    </div>
+    </Glass>
   );
 }
 
@@ -237,17 +248,17 @@ export function ClaimPanel({
 
   if (purchases.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border bg-card px-6 py-16 text-center">
-        <Package className="mb-4 h-12 w-12 text-muted-foreground/30" />
-        <h3 className="mb-2 text-lg font-medium">No tokens yet</h3>
-        <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+      <Glass className="flex flex-col items-center justify-center px-6 py-16 text-center">
+        <Package className="mb-4 h-12 w-12 text-text-muted" />
+        <h3 className="mb-2 text-h2 font-bold text-text-primary">No tokens yet</h3>
+        <p className="mb-6 max-w-sm text-body text-text-secondary">
           Purchase LOOP tokens with card or crypto. Every purchase is recorded
           here so you always know exactly what you own.
         </p>
         <a href="https://gov.loopcmbntr.live/buy">
           <Button>Buy LOOP</Button>
         </a>
-      </div>
+      </Glass>
     );
   }
 
@@ -255,13 +266,13 @@ export function ClaimPanel({
     <div className="space-y-6">
       {/* Purchase success banner */}
       {justPurchased && (
-        <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-          <PartyPopper className="h-5 w-5 shrink-0 text-emerald-400" />
+        <div className="flex items-center gap-3 rounded-panel border border-success/20 bg-success/5 p-4">
+          <PartyPopper className="h-5 w-5 shrink-0 text-success" />
           <div>
-            <p className="text-sm font-medium text-emerald-300">
+            <p className="text-sm font-medium text-success">
               Purchase complete, your tokens are secured
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-text-secondary">
               Your LOOP tokens are recorded and safe. Add a wallet address
               whenever you are ready, or leave them held for now.
             </p>
@@ -270,50 +281,50 @@ export function ClaimPanel({
       )}
 
       {/* Total balance */}
-      <div className="rounded-lg border bg-card p-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <Glass className="p-5">
+        <p className="text-caption font-medium uppercase tracking-wide text-text-secondary">
           Total LOOP balance
         </p>
-        <p className="mt-1 text-3xl font-bold tabular-nums">
+        <p className="mt-1 font-mono text-display font-bold tabular-nums text-text-primary">
           {(totalUnclaimed + totalAwaiting + totalOnChain).toLocaleString()} LOOP
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="rounded-md bg-blue-500/10 px-3 py-2 text-center">
-            <p className="text-lg font-semibold tabular-nums text-blue-400">
+          <div className="rounded-md bg-surface px-3 py-2 text-center">
+            <p className="font-mono text-body font-semibold tabular-nums text-text-primary">
               {totalUnclaimed.toLocaleString()}
             </p>
-            <p className="text-[10px] text-blue-400/70">Held securely</p>
+            <p className="text-[10px] text-text-secondary">Held securely</p>
           </div>
-          <div className="rounded-md bg-amber-500/10 px-3 py-2 text-center">
-            <p className="text-lg font-semibold tabular-nums text-amber-400">
+          <div className="rounded-md bg-warning/10 px-3 py-2 text-center">
+            <p className="font-mono text-body font-semibold tabular-nums text-warning">
               {totalAwaiting.toLocaleString()}
             </p>
-            <p className="text-[10px] text-amber-400/70">Being minted</p>
+            <p className="text-[10px] text-warning/80">Being minted</p>
           </div>
-          <div className="rounded-md bg-emerald-500/10 px-3 py-2 text-center">
-            <p className="text-lg font-semibold tabular-nums text-emerald-400">
+          <div className="rounded-md bg-success/10 px-3 py-2 text-center">
+            <p className="font-mono text-body font-semibold tabular-nums text-success">
               {totalOnChain.toLocaleString()}
             </p>
-            <p className="text-[10px] text-emerald-400/70">On-chain</p>
+            <p className="text-[10px] text-success/80">On-chain</p>
           </div>
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">
+        <p className="mt-3 text-[11px] text-text-secondary">
           All purchased tokens are yours regardless of status. &quot;Held securely&quot; means
           we are holding them until you provide a wallet address. &quot;Being minted&quot; means
           your wallet is set and tokens will be sent to it shortly.
         </p>
-      </div>
+      </Glass>
 
       {/* Bulk claim */}
       {unclaimed.length > 0 && (
-        <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+        <Glass className="p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-blue-400" />
-            <p className="text-sm font-medium">
+            <Wallet className="h-4 w-4 text-primary" />
+            <p className="text-body font-medium text-text-primary">
               Ready to transfer {totalUnclaimed.toLocaleString()} LOOP to your wallet
             </p>
           </div>
-          <p className="mb-3 text-xs text-muted-foreground">
+          <p className="mb-3 text-caption text-text-secondary">
             Your tokens are safe with us. When you are ready, connect a Base L2
             wallet and we will mint them directly to your address. No rush.
           </p>
@@ -341,7 +352,7 @@ export function ClaimPanel({
                 <Wallet className="h-3 w-3" />
                 Connect wallet
               </Button>
-              <span className="text-center text-xs text-muted-foreground">
+              <span className="text-center text-xs text-text-secondary">
                 or paste your address
               </span>
               <form action={walletAction} className="flex gap-2">
@@ -357,19 +368,19 @@ export function ClaimPanel({
             </div>
           )}
           {walletState.error && (
-            <p className="mt-2 text-xs text-destructive">
+            <p className="mt-2 text-xs text-error">
               {walletState.error}
             </p>
           )}
           {walletState.success && (
-            <p className="mt-2 text-xs text-emerald-400">{walletState.success}</p>
+            <p className="mt-2 text-xs text-success">{walletState.success}</p>
           )}
-        </div>
+        </Glass>
       )}
 
       {/* Claim cash purchased Tokens */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+        <h3 className="mb-3 text-caption font-medium text-text-secondary">
           Claim cash purchased Tokens ({purchases.length})
         </h3>
         <div className="space-y-3">

@@ -1,13 +1,12 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CampaignFilters } from "./campaign-filters";
 import { ExternalLink, Megaphone, Users } from "lucide-react";
+import { Glass, StatusChip } from "@loop/ui";
 
 export default async function CampaignsPage({
   searchParams,
@@ -67,8 +66,8 @@ export default async function CampaignsPage({
     <div className="max-w-5xl">
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+          <h1 className="text-h1 font-bold tracking-tight text-text-primary">Campaigns</h1>
+          <p className="mt-1 max-w-xl text-body text-text-secondary">
             Digital posters for leadership campaigns and community recruitment.
             Create a poster, share it anywhere, and bring people into governance.
           </p>
@@ -80,7 +79,7 @@ export default async function CampaignsPage({
 
       {myCampaigns && myCampaigns.length > 0 && (
         <div className="mb-6">
-          <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-2 text-caption font-medium uppercase tracking-wider text-text-secondary">
             Your active campaigns
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -92,7 +91,7 @@ export default async function CampaignsPage({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5"
               >
-                <Badge variant="secondary" className="gap-1">
+                <StatusChip variant="neutral" className="gap-1">
                   {c.type === "flyer" ? (
                     <Users className="h-3 w-3" />
                   ) : (
@@ -100,7 +99,7 @@ export default async function CampaignsPage({
                   )}
                   {c.communities?.name}
                   <ExternalLink className="h-2.5 w-2.5 opacity-50" />
-                </Badge>
+                </StatusChip>
               </a>
             ))}
           </div>
@@ -111,74 +110,70 @@ export default async function CampaignsPage({
 
       <div className="mt-6 space-y-3">
         {filtered.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                No campaigns found for this filter. Be the first to campaign!
-              </p>
-            </CardContent>
-          </Card>
+          <Glass className="py-8 text-center">
+            <p className="text-body text-text-secondary">
+              No campaigns found for this filter. Be the first to campaign!
+            </p>
+          </Glass>
         ) : (
           filtered.map((c: any) => (
-            <Card key={c.id}>
-              <CardContent className="py-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <Avatar size="lg">
-                        <AvatarImage src={c.users?.avatar_url ?? undefined} alt="" />
-                        <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
-                          {c.users?.display_name?.[0]?.toUpperCase() ?? "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {c.users?.display_name}
-                        </p>
-                        {c.users?.location_name && (
-                          <p className="text-xs text-muted-foreground">
-                            {c.users.location_name}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <h3 className="mt-3 text-base font-semibold">
-                      {c.headline || c.pitch}
-                    </h3>
-
-                    {c.youtube_url && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Includes video pitch
+            <Glass key={c.id} className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3">
+                    <Avatar size="lg">
+                      <AvatarImage src={c.users?.avatar_url ?? undefined} alt="" />
+                      <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
+                        {c.users?.display_name?.[0]?.toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-body font-medium text-text-primary">
+                        {c.users?.display_name}
                       </p>
-                    )}
+                      {c.users?.location_name && (
+                        <p className="text-caption text-text-secondary">
+                          {c.users.location_name}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex gap-1.5">
-                      <Badge variant="outline">
-                        {c.type === "flyer" ? "Flyer" : "Campaign"}
-                      </Badge>
-                      <Badge variant="secondary">{c.communities?.level}</Badge>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {c.communities?.name}
-                    </span>
-                    {c.slug && (
-                      <a
-                        href={`${portalBase}/c/${c.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                      >
-                        View poster
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
+                  <h3 className="mt-3 text-h2 font-bold text-text-primary">
+                    {c.headline || c.pitch}
+                  </h3>
+
+                  {c.youtube_url && (
+                    <p className="mt-1 text-caption text-text-secondary">
+                      Includes video pitch
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex gap-1.5">
+                    <StatusChip variant="neutral">
+                      {c.type === "flyer" ? "Flyer" : "Campaign"}
+                    </StatusChip>
+                    <StatusChip variant="neutral">{c.communities?.level}</StatusChip>
+                  </div>
+                  <span className="text-caption text-text-secondary">
+                    {c.communities?.name}
+                  </span>
+                  {c.slug && (
+                    <a
+                      href={`${portalBase}/c/${c.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      View poster
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </Glass>
           ))
         )}
       </div>

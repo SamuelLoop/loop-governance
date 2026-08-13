@@ -5,6 +5,7 @@ import type { AllocationSlice, CommunityOption } from "./actions";
 import { directAllocationSlice } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink } from "lucide-react";
+import { Glass } from "@loop/ui";
 
 function daysLeft(expiresAtIso: string): number {
   const now = Date.now();
@@ -33,21 +34,21 @@ function SliceRow({
   const daysRemaining = daysLeft(slice.expires_at);
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <Glass className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-lg font-semibold tabular-nums">
+          <p className="text-body font-semibold tabular-nums text-text-primary">
             {remaining.toLocaleString()} LOOP
-            <span className="ml-2 text-xs font-normal text-muted-foreground">
+            <span className="ml-2 text-caption font-normal text-text-secondary">
               of {original.toLocaleString()} allocation
             </span>
           </p>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
+          <p className="mt-1 font-mono text-data-sm text-text-secondary">
             wallet {slice.buyer_wallet.slice(0, 6)}...{slice.buyer_wallet.slice(-4)}
           </p>
           <p
-            className={`mt-1 text-xs ${
-              daysRemaining < 30 ? "text-amber-400" : "text-muted-foreground"
+            className={`mt-1 text-caption ${
+              daysRemaining < 30 ? "text-warning" : "text-text-secondary"
             }`}
           >
             {daysRemaining} day{daysRemaining === 1 ? "" : "s"} left to spend before it
@@ -57,10 +58,10 @@ function SliceRow({
       </div>
 
       {state.error && (
-        <p className="mt-2 text-xs text-destructive">{state.error}</p>
+        <p className="mt-2 text-xs text-error">{state.error}</p>
       )}
       {state.success && (
-        <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400">
+        <div className="mt-2 flex items-center gap-2 text-xs text-success">
           <span>{state.success}</span>
           {state.txHash && (
             <a
@@ -78,7 +79,7 @@ function SliceRow({
       <form action={action} className="mt-3 flex flex-wrap items-end gap-2">
         <input type="hidden" name="slice_id" value={slice.id} />
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <label className="text-[10px] uppercase tracking-wider text-text-secondary">
             Community
           </label>
           <select
@@ -95,7 +96,7 @@ function SliceRow({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <label className="text-[10px] uppercase tracking-wider text-text-secondary">
             As
           </label>
           <select
@@ -109,7 +110,7 @@ function SliceRow({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <label className="text-[10px] uppercase tracking-wider text-text-secondary">
             Amount
           </label>
           <input
@@ -127,7 +128,7 @@ function SliceRow({
           Direct
         </Button>
       </form>
-    </div>
+    </Glass>
   );
 }
 
@@ -140,15 +141,15 @@ export function AllocationSection({
 }) {
   if (slices.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed bg-card/40 p-6 text-center">
-        <Wallet className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">
+      <Glass className="border-dashed p-6 text-center">
+        <Wallet className="mx-auto mb-2 h-8 w-8 text-text-muted" />
+        <p className="text-body text-text-secondary">
           Your allocation balance appears here after you claim a cash-purchased
           token to a wallet. You can then direct each allocation slice to a
           community as philanthropy or as advertising, before it expires and
           transfers to the Impact Treasury.
         </p>
-      </div>
+      </Glass>
     );
   }
   const totalRemaining = slices.reduce((s, x) => s + x.remaining_amount, 0);
@@ -156,13 +157,13 @@ export function AllocationSection({
     <div>
       <div className="mb-3 flex items-baseline justify-between">
         <div>
-          <h3 className="text-sm font-medium">Your allocation</h3>
-          <p className="text-xs text-muted-foreground">
+          <h3 className="text-body font-medium text-text-primary">Your allocation</h3>
+          <p className="text-caption text-text-secondary">
             Direct each slice to a community as philanthropy or advertising
             before it expires.
           </p>
         </div>
-        <p className="text-sm font-semibold tabular-nums text-amber-400">
+        <p className="font-mono text-data-sm font-semibold tabular-nums text-warning">
           {totalRemaining.toLocaleString()} LOOP available
         </p>
       </div>

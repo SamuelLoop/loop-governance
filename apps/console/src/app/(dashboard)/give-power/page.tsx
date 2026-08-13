@@ -1,11 +1,11 @@
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DelegateForm } from "../delegations/delegate-form";
 import { RevokeButton } from "../delegations/revoke-button";
 import { AccreditForm } from "../accreditation/accredit-form";
+import { GivePowerDrawer, DelegationTable, type DelegationRow } from "@loop/ui";
 
 export default async function GivePowerPage() {
   const supabase = await createClient();
@@ -79,12 +79,28 @@ export default async function GivePowerPage() {
     .neq("id", profile.id)
     .order("display_name");
 
+  const givenRows: DelegationRow[] = (givenDelegations ?? []).map((d: any) => ({
+    id: d.id,
+    subjectTag: d.subject_tag,
+    communityName: d.communities?.name ?? "Unknown",
+    counterpartyName: d.delegate?.display_name ?? "Unknown",
+    createdAt: d.created_at,
+  }));
+
+  const receivedRows: DelegationRow[] = (receivedDelegations ?? []).map((d: any) => ({
+    id: d.id,
+    subjectTag: d.subject_tag,
+    communityName: d.communities?.name ?? "Unknown",
+    counterpartyName: d.delegator?.display_name ?? "Unknown",
+    createdAt: d.created_at,
+  }));
+
   return (
     <div className="max-w-4xl">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-1 text-h1 font-bold tracking-tight text-text-primary">
         Give Power
       </h1>
-      <div className="mb-8 space-y-3 text-sm text-muted-foreground">
+      <div className="mb-8 space-y-3 text-body text-text-secondary">
         <p>
           None of us have the time or interest to be experts on every subject,
           but our lives are affected by every subject. That is the problem
@@ -106,29 +122,22 @@ export default async function GivePowerPage() {
         </p>
       </div>
 
-      <Card className="mb-10">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Delegate your vote
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Choose someone you trust in this subject. They will vote on your
-            behalf until you revoke. Delegations are transitive: if you
-            delegate to Alice and Alice delegates to Bob, Bob votes with the
-            combined weight.
-          </p>
-        </CardHeader>
-        <CardContent>
+      <div className="mb-10 flex flex-wrap gap-3">
+        <GivePowerDrawer
+          trigger={<Button>Delegate your vote</Button>}
+          title="Delegate your vote"
+          description="Choose someone you trust in this subject. They will vote on your behalf until you revoke. Delegations are transitive: if you delegate to Alice and Alice delegates to Bob, Bob votes with the combined weight."
+        >
           {myCommunityIdsInSubject.size === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body text-text-secondary">
               You are not a member of any communities in{" "}
-              <span className="font-medium text-foreground">{activeSubject}</span>{" "}
+              <span className="font-medium text-text-primary">{activeSubject}</span>{" "}
               yet. Join a community first, then come back to delegate your vote.
             </p>
           ) : members.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body text-text-secondary">
               You are currently the only member of your{" "}
-              <span className="font-medium text-foreground">{activeSubject}</span>{" "}
+              <span className="font-medium text-text-primary">{activeSubject}</span>{" "}
               communities. Once others join, they will appear here.
             </p>
           ) : (
@@ -138,97 +147,43 @@ export default async function GivePowerPage() {
               activeSubject={activeSubject}
             />
           )}
-        </CardContent>
-      </Card>
+        </GivePowerDrawer>
 
-      <Card className="mb-10">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Accredit a peer
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Recognise someone&apos;s competence in this subject. Accreditation
-            builds their reputation and signals to others that they are
-            worth delegating to.
-          </p>
-        </CardHeader>
-        <CardContent>
+        <GivePowerDrawer
+          trigger={<Button variant="outline">Accredit a peer</Button>}
+          title="Accredit a peer"
+          description="Recognise someone's competence in this subject. Accreditation builds their reputation and signals to others that they are worth delegating to."
+        >
           <AccreditForm
             giverId={profile.id}
             members={accreditableMembers ?? []}
             activeSubject={activeSubject}
           />
-        </CardContent>
-      </Card>
+        </GivePowerDrawer>
+      </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div>
-          <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Power you have given ({givenDelegations?.length ?? 0})
+          <p className="mb-4 text-caption font-medium uppercase tracking-wider text-text-secondary">
+            Power you have given ({givenRows.length})
           </p>
-          {givenDelegations && givenDelegations.length > 0 ? (
-            <div className="space-y-2">
-              {givenDelegations.map((d: any) => (
-                <Card key={d.id}>
-                  <CardContent className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="text-sm">
-                        <Badge variant="default" className="mr-1.5">
-                          {d.subject_tag}
-                        </Badge>
-                        in {d.communities?.name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        delegated to{" "}
-                        <span className="text-foreground">
-                          {d.delegate?.display_name}
-                        </span>{" "}
-                        on {new Date(d.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <RevokeButton delegationId={d.id} />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              You haven&apos;t delegated any votes yet.
-            </p>
-          )}
+          <DelegationTable
+            rows={givenRows}
+            counterpartyLabel="to"
+            emptyMessage="You haven't delegated any votes yet."
+            renderAction={(row) => <RevokeButton delegationId={row.id} />}
+          />
         </div>
 
         <div>
-          <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Power given to you ({receivedDelegations?.length ?? 0})
+          <p className="mb-4 text-caption font-medium uppercase tracking-wider text-text-secondary">
+            Power given to you ({receivedRows.length})
           </p>
-          {receivedDelegations && receivedDelegations.length > 0 ? (
-            <div className="space-y-2">
-              {receivedDelegations.map((d: any) => (
-                <Card key={d.id}>
-                  <CardContent className="py-3">
-                    <p className="text-sm">
-                      <Badge variant="default" className="mr-1.5">
-                        {d.subject_tag}
-                      </Badge>
-                      in {d.communities?.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      from{" "}
-                      <span className="text-foreground">
-                        {d.delegator?.display_name}
-                      </span>{" "}
-                      since {new Date(d.created_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No one has given you their power yet.
-            </p>
-          )}
+          <DelegationTable
+            rows={receivedRows}
+            counterpartyLabel="from"
+            emptyMessage="No one has given you their power yet."
+          />
         </div>
       </div>
     </div>
