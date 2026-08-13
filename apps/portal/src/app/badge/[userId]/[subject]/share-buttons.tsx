@@ -20,7 +20,7 @@ export function ShareButtons({ url, userName, subject, tier, score }: Props) {
     {
       label: "X",
       href: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
-      bg: "bg-neutral-800 hover:bg-neutral-700",
+      bg: "bg-secondary hover:bg-secondary/70",
     },
     {
       label: "in",
@@ -73,7 +73,7 @@ export function ShareButtons({ url, userName, subject, tier, score }: Props) {
       </button>
       <button
         onClick={copyToClipboard}
-        className={`${btnBase} bg-neutral-800 hover:bg-neutral-700 text-neutral-300`}
+        className={`${btnBase} bg-secondary text-text-secondary hover:bg-secondary/70`}
       >
         Copy link
       </button>

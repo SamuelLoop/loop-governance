@@ -222,7 +222,7 @@ importers:
         version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: ^16.2.12
-        version: 16.2.12(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+        version: 16.2.12(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       eslint-plugin-react:
         specifier: ^7.37.5
         version: 7.37.5(eslint@9.39.5(jiti@2.7.0))
@@ -335,6 +335,9 @@ importers:
       '@loop/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@loop/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/ssr':
         specifier: ^0.12.3
         version: 0.12.3(@supabase/supabase-js@2.110.7)
@@ -392,7 +395,7 @@ importers:
         version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: ^16.2.12
-        version: 16.2.12(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+        version: 16.2.12(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       eslint-plugin-react:
         specifier: ^7.37.5
         version: 7.37.5(eslint@9.39.5(jiti@2.7.0))

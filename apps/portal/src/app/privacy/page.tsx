@@ -8,13 +8,13 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-20">
       <h1 className="mb-2 text-3xl font-bold tracking-tight">Privacy Policy</h1>
-      <p className="mb-10 text-sm text-neutral-400">
+      <p className="mb-10 text-sm text-text-secondary">
         Last updated: 23 July 2026
       </p>
 
-      <div className="space-y-8 text-sm leading-relaxed text-neutral-300">
+      <div className="space-y-8 text-sm leading-relaxed text-text-secondary">
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Who we are
           </h2>
           <p>
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Information we collect
           </h2>
           <p className="mb-2">
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             How we use your information
           </h2>
           <ul className="list-disc space-y-1 pl-5">
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Data storage and security
           </h2>
           <p>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Third-party services
           </h2>
           <p className="mb-2">We use the following third-party services:</p>
@@ -98,7 +98,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Your rights
           </h2>
           <p>You have the right to:</p>
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Cookies
           </h2>
           <p>
@@ -123,7 +123,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Changes to this policy
           </h2>
           <p>
@@ -134,7 +134,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             Contact
           </h2>
           <p>
@@ -142,7 +142,7 @@ export default function PrivacyPage() {
             us at{" "}
             <a
               href="mailto:samuel@loopinc.live"
-              className="text-amber-400 hover:underline"
+              className="text-primary hover:underline"
             >
               samuel@loopinc.live
             </a>

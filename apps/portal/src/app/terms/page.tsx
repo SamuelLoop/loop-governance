@@ -10,13 +10,13 @@ export default function TermsPage() {
       <h1 className="mb-2 text-3xl font-bold tracking-tight">
         Terms of Service
       </h1>
-      <p className="mb-10 text-sm text-neutral-400">
+      <p className="mb-10 text-sm text-text-secondary">
         Last updated: 23 July 2026
       </p>
 
-      <div className="space-y-8 text-sm leading-relaxed text-neutral-300">
+      <div className="space-y-8 text-sm leading-relaxed text-text-secondary">
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             1. Agreement
           </h2>
           <p>
@@ -29,7 +29,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             2. Eligibility
           </h2>
           <p>
@@ -40,7 +40,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             3. Accounts
           </h2>
           <ul className="list-disc space-y-1 pl-5">
@@ -64,7 +64,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             4. Platform use
           </h2>
           <p className="mb-2">
@@ -93,7 +93,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             5. Governance and voting
           </h2>
           <ul className="list-disc space-y-1 pl-5">
@@ -118,7 +118,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             6. Tokens and earnings
           </h2>
           <ul className="list-disc space-y-1 pl-5">
@@ -141,7 +141,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             7. Content and conduct
           </h2>
           <p>
@@ -154,7 +154,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             8. Intellectual property
           </h2>
           <p>
@@ -166,7 +166,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             9. Disclaimers
           </h2>
           <ul className="list-disc space-y-1 pl-5">
@@ -185,7 +185,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             10. Limitation of liability
           </h2>
           <p>
@@ -197,7 +197,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             11. Termination
           </h2>
           <p>
@@ -209,7 +209,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             12. Changes to these terms
           </h2>
           <p>
@@ -221,7 +221,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             13. Governing law
           </h2>
           <p>
@@ -232,14 +232,14 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-2 text-lg font-semibold text-text-primary">
             14. Contact
           </h2>
           <p>
             Questions about these terms can be directed to{" "}
             <a
               href="mailto:samuel@loopinc.live"
-              className="text-amber-400 hover:underline"
+              className="text-primary hover:underline"
             >
               samuel@loopinc.live
             </a>

@@ -138,9 +138,11 @@ Discovered live during the community chat build (`apps/console/.../communities/[
 Single-series charts (balance over time, token price): the brand gradient, applied as a stroke with a soft fill falloff — matches the validated treasury mockup from round 1.
 Multi-series or categorical charts (e.g. inflow vs outflow): brand accent for the primary series, `text-secondary` grey for comparison series. **Do not invent a second saturated hue for charts** — this was Civic Mint's strongest, evidence-backed critique (a second bright hue competes with tier colour for the viewer's attention) and it holds even though Signal Pulse won overall. Read `/dataviz` skill guidance in session 3 before building real charts.
 
-### Portal — light mode
+### Portal — dark mode (reversed 2026-08-13, was light)
 
-Signal Pulse's light inversion (validated in round 1's 5-screen review): background `#faf9f6`, surface `rgba(255,255,255,.7)` with `backdrop-filter: blur(8px)`, same gradient accent, same tier-colour rule. No new decisions needed here, carry forward as shown.
+**Superseded decision, kept for history:** this section originally specced Signal Pulse's light inversion for portal (background `#faf9f6`, surface `rgba(255,255,255,.7)`). That shipped once (session 7), broke gov.loopcmbntr.live in production — 90+ hardcoded dark-only content instances were never retouched to match the light shell — and was fully reverted the same day. The real problem: the light-mode *decision itself*, not just its execution, had never been shown to the real user before shipping.
+
+**Current decision (session `web-11-portal-rollout.md`):** before re-attempting the rollout, a real side-by-side comparison was built using actual home-page copy under both a light and a dark token treatment, and shown to the user for a real sign-off. **Dark won.** Portal keeps its existing dark identity — background `#0a0a0a`, surface `rgba(255,255,255,.045)` with `backdrop-filter: blur(8px)`, same gradient accent, same tier-colour rule — now formalised through real `packages/ui` components instead of raw hardcoded hex. Still fixed (no toggle) and still its own density/mood (`blur(8px)` vs console/admin's `14px`, marketing-spacious spacing) — only the light/dark axis reversed, not portal's separate-token-set status from console/admin.
 
 ### Admin
 
@@ -150,7 +152,7 @@ No dedicated exploration yet — inherits the console dark palette and typograph
 
 ## Console/admin light mode (added 2026-08-09, after session 3 mockup review)
 
-Originally console/admin were scoped dark-only, with light mode reserved for portal's separate marketing context (see "Portal — light mode" above). After reviewing session 3's mockups, decision: **console and admin also get a real, user-toggleable light mode** — not a copy of portal's light tokens (different density and mood; portal is comfortable-spacious/marketing, console/admin stay comfortable-dense/command-center in either theme), a dedicated light variant of the console/admin token set.
+Originally console/admin were scoped dark-only, with light mode reserved for portal's separate marketing context (see "Portal — dark mode" above — at the time this section was written, portal's light-mode decision hadn't yet been reversed; it has since flipped back to dark, but console/admin's own light toggle below was never affected either way). After reviewing session 3's mockups, decision: **console and admin also get a real, user-toggleable light mode** — not a copy of portal's tokens (different density and mood; portal is comfortable-spacious/marketing, console/admin stay comfortable-dense/command-center in either theme), a dedicated light variant of the console/admin token set.
 
 **Toggle location:** a sun/moon control in the topbar (both console and admin), persists per-user (localStorage + profile setting, exact mechanism decided in session 4/eng-plan). Default remains dark — that's still the primary "command-center" identity from the shotgun round.
 
@@ -273,3 +275,4 @@ Deliberate partial divergence, decided explicitly rather than by accident:
 | 2026-08-09 | No second saturated data-viz hue | Civic Mint's critique holds regardless of which direction won — a second bright colour competes with tier colour for attention |
 | 2026-08-09 | Badge/power-tree component structurally untouched | Explicit instruction — highly detailed, already invested, colours already fit, no redesign |
 | 2026-08-10 | Display weight corrected 800 → 700 | General Sans's actual released family tops out at Bold (700) — verified against the downloaded variable font's `fvar` axis (`wght` 200–700, no 800 instance). Requesting 800 would make browsers synthetically embolden inconsistently. Session `web-06-brand.md`, see `sessions/web-brand-output.md` §3-4 |
+| 2026-08-13 | Portal reversed from fixed-light back to fixed-dark | The light decision shipped once without ever being shown to the real user, broke gov.loopcmbntr.live in production, and was fully reverted. Before re-attempting, session `web-11-portal-rollout.md` built a real side-by-side light-vs-dark comparison on actual home-page copy and got an explicit sign-off — dark won. Portal keeps its own token set and density (marketing-spacious, `blur(8px)`) separate from console/admin, only the colour axis reversed |

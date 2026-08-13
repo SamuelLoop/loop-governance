@@ -5,6 +5,102 @@
 
 ---
 
+## 2026-08-13 — Console dashboard: full chat as the default view (ad hoc, real user request)
+
+Not part of the numbered session chain. Samuel asked directly: "make the
+full chat the default chat view [on the console dashboard], no need to
+have the other one."
+
+`(dashboard)/page.tsx` previously embedded a lightweight, ad hoc chat
+widget (`dashboard-chat.tsx` — single flat message list, no leadership
+split, no reactions, no questions panel). Replaced with the exact same
+composition `communities/[id]/chat/page.tsx` uses — `DualChatPanel`
+(community + leadership Glass panels) and `QuestionPanel` side-by-side on
+desktop, `ChatMobileLayout` tabbed on mobile — for the user's default
+(first-membership) community, inside the dashboard's existing stats-row +
+recent-proposals layout (confirmed with Samuel: keep the stats, upgrade
+the chat section only, don't replace the whole dashboard). `dashboard-chat.
+tsx` deleted — grepped first to confirm nothing else imported it.
+
+**Real bug found and fixed before shipping, not after:** `sendMessage`,
+`toggleReaction`, `submitQuestion`, `upvoteQuestion`, and
+`markQuestionDiscussing` (5 server actions across `actions.ts`/
+`reaction-actions.ts`/`question-actions.ts`) all hardcoded
+`revalidatePath(\`/communities/${communityId}/chat\`)` — correct when
+those components only ever rendered on that route, but reusing them on
+the dashboard (`/`) without revalidating that path too would have meant a
+message/reaction/upvote appeared to succeed but silently didn't show up
+on the dashboard until a manual refresh. Added `revalidatePath("/")`
+alongside the existing call in all 5 actions — safe unconditionally,
+since revalidating a path the mutation didn't actually affect is a no-op,
+not an error.
+
+Users with more than one community membership get a small "View other
+communities" link above the chat (the old widget's tab-switcher is gone,
+per "no need to have the other one," but losing the ability to reach
+other communities' chats at all would be a real regression — this is the
+minimal fix, not scope creep).
+
+`pnpm --filter console run type-check`/`lint` (0 new errors, 124 problems
+total, down from session 10's 128 — one warning-carrying file deleted)/
+`build` (exit 0, `/` now shares the same JS bundle as `/communities/[id]/
+chat`, 217 kB vs session 10's 213 kB, expected) all clean. Diff-grepped
+for non-styling/non-import lines to confirm the swap didn't touch any
+other page logic. Not committed yet — dev server running for Samuel to
+confirm before it lands alongside session 11's portal work.
+
+---
+
+## 2026-08-13 — Web session 11: portal rollout (Signal Pulse)
+
+Full detail: `sessions/web-11-portal-rollout-output.md`. Summary:
+
+Portal's fixed-light decision (shipped once, broke gov.loopcmbntr.live,
+fully reverted — see this file's "Post-deploy correction" entry) was
+reversed to fixed-**dark** before any page-level work started: 222
+hardcoded dark-only colour instances found across the codebase (not the
+brief's "90+" estimate), and the light decision itself, not just its
+execution, had never been shown to the real user. A real side-by-side
+artifact (actual home-page copy, light vs dark, both using theme.css's
+real tokens) was built and shown to Samuel — dark won. `DESIGN.web.md`
+and `theme.css` §9 rewritten to match; old light spec kept for history in
+`DESIGN.web.md`, not deleted.
+
+Foundation wired for the first time: `@loop/ui` added to
+`apps/portal/package.json` (zero usage before this session — no
+`components/ui/` directory existed at all), `globals.css` now imports
+`theme.css`, `layout.tsx` sets `data-app="portal"` (no toggle, no
+`ThemeInitScript` — portal has neither). Four new real `packages/ui`
+components: `PortalNavShell` (logo is a **required** prop, not defaulted,
+so it structurally can't reintroduce session 7's unauthorized logo-swap),
+`StatStrip`, `BadgeHero` (wraps the untouched power-tree SVG, hard
+constraint since session 2), `ConversionCard` (deliberately not `Glass` —
+opaque `bg-popover`, no blur, for checkout/enrollment clarity).
+
+All 10 in-scope pages rebuilt, plus `error.tsx` (found during the sweep,
+trivial). Every ad hoc `amber-500` primary accent (CTAs, eyebrows) moved
+to the real brand gradient per DESIGN.web.md's own rule; semantic colours
+and per-subject dynamic colours (`subject.accent`) left untouched, same
+discipline as console session 10. `admin/admin-panel.tsx` gets
+`space="admin"` — confirmed via its real client-side
+`platform_role === "platform_admin"` gate, not assumed from the route
+name, per the brief's explicit instruction to check. Checkout/enrollment
+logic in the three files with real state machines and server actions
+(`buy-form.tsx`/`create-form.tsx`/`enrollment-form.tsx`) verified
+untouched by diff-grepping for non-styling lines after every edit.
+
+`pnpm --filter portal run build` clean (exit 0, all 17 routes), 0 lint
+errors (50 pre-existing warnings, spot-checked one against `git show
+HEAD:...` to confirm pre-existing not introduced). Compiled-CSS check
+confirmed the old light background value is completely gone from the
+output (not just overridden) and both LESSONS.md #13 (`max-w-*`) and #14
+(`font-display`/`font-body`) regressions still hold exactly as previously
+documented — no new or worse failure mode. **Not committed, not
+deployed** — dev server left running for Samuel, same standing rule as
+08/09/10, with extra weight given this session's own prior incident.
+
+---
+
 ## 2026-08-13 — Web session 10: console rollout (Signal Pulse)
 
 Full detail: `sessions/web-10-console-rollout-output.md`. Summary:

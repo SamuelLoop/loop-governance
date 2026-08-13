@@ -25,6 +25,10 @@ export * from "./components/vote";
 export * from "./components/delegation-table";
 export * from "./components/accreditation-progress";
 export * from "./components/give-power-drawer";
+export * from "./components/portal-nav-shell";
+export * from "./components/stat-strip";
+export * from "./components/badge-hero";
+export * from "./components/conversion-card";
 
 export * from "./components/ui/avatar";
 export * from "./components/ui/badge";

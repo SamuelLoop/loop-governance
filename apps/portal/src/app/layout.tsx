@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { generalSans, geist, jetbrainsMono, cn } from "@loop/ui";
 import "./globals.css";
 import { PortalNav } from "./portal-nav";
 
@@ -25,10 +26,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={{ backgroundColor: "#0a0a0a" }}>
+    <html lang="en" data-app="portal">
       <body
-        className="min-h-screen bg-neutral-950 text-neutral-100 antialiased"
-        style={{ backgroundColor: "#0a0a0a", color: "#f5f5f5" }}
+        className={cn(
+          generalSans.variable,
+          geist.variable,
+          jetbrainsMono.variable,
+          "min-h-screen font-body antialiased"
+        )}
       >
         <PortalNav />
         {children}

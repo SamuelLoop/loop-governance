@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 export default function AdminPage(): ReactElement {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="mb-2 text-2xl font-bold text-neutral-100">
+      <h1 className="mb-2 text-2xl font-bold text-text-primary">
         Platform Admin
       </h1>
-      <p className="mb-10 text-sm text-neutral-500">
+      <p className="mb-10 text-sm text-text-secondary">
         Admin tools for managing AI expert accounts and platform activity.
       </p>
       <AdminPanel />

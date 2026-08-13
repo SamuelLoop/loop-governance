@@ -27,7 +27,7 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
             href={mark.attrs?.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-400 underline hover:text-amber-300"
+            className="text-primary underline hover:text-primary/80"
           >
             {el}
           </a>
@@ -47,7 +47,7 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
       return <>{children}</>;
     case "paragraph":
       return (
-        <p key={key} className={`mb-4 text-neutral-300 ${alignClass}`}>
+        <p key={key} className={`mb-4 text-text-secondary ${alignClass}`}>
           {children}
         </p>
       );
@@ -57,7 +57,7 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
         return (
           <h1
             key={key}
-            className={`mb-3 text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl ${alignClass}`}
+            className={`mb-3 text-3xl font-bold tracking-tight text-text-primary sm:text-4xl ${alignClass}`}
           >
             {children}
           </h1>
@@ -65,7 +65,7 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
       return (
         <h2
           key={key}
-          className={`mb-3 mt-8 text-xl font-semibold text-neutral-100 ${alignClass}`}
+          className={`mb-3 mt-8 text-xl font-semibold text-text-primary ${alignClass}`}
         >
           {children}
         </h2>
@@ -73,13 +73,13 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
     }
     case "bulletList":
       return (
-        <ul key={key} className="mb-4 list-disc space-y-2 pl-6 text-neutral-300">
+        <ul key={key} className="mb-4 list-disc space-y-2 pl-6 text-text-secondary">
           {children}
         </ul>
       );
     case "orderedList":
       return (
-        <ol key={key} className="mb-4 list-decimal space-y-2 pl-6 text-neutral-300">
+        <ol key={key} className="mb-4 list-decimal space-y-2 pl-6 text-text-secondary">
           {children}
         </ol>
       );
@@ -89,14 +89,14 @@ function renderTiptapNode(node: any, key: number): React.ReactNode {
       return (
         <blockquote
           key={key}
-          className="mb-4 border-l-4 border-amber-500/50 pl-4 text-neutral-400 italic"
+          className="mb-4 border-l-4 border-primary/50 pl-4 text-text-secondary italic"
         >
           {children}
         </blockquote>
       );
     case "horizontalRule":
       return (
-        <hr key={key} className="my-6 border-neutral-800" />
+        <hr key={key} className="my-6 border-surface-border" />
       );
     case "image":
       return (
@@ -212,11 +212,11 @@ export default async function CampaignPosterPage({
   return (
     <div className="min-h-screen">
       {/* Platform intro banner */}
-      <div className="border-b border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-neutral-950 to-amber-500/10 px-6 py-3 text-center">
-        <p className="text-xs text-amber-300/90">
+      <div className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-background to-primary/10 px-6 py-3 text-center">
+        <p className="text-xs text-primary/90">
           <strong>Loop_cmbntr</strong> is the new Global Governance Community.
           Make your voice matter.{" "}
-          <Link href="/" className="underline hover:text-amber-200">
+          <Link href="/" className="underline hover:text-primary">
             Learn more
           </Link>
         </p>
@@ -230,17 +230,17 @@ export default async function CampaignPosterPage({
             alt=""
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         </div>
       )}
 
       {/* Hero section */}
-      <div className={`relative overflow-hidden border-b border-neutral-800/50 bg-gradient-to-b from-neutral-900 to-neutral-950 px-6 ${c.banner_url ? "py-8 sm:py-10 -mt-20 relative z-10" : "py-12 sm:py-16"}`}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.08),transparent_60%)]" />
+      <div className={`relative overflow-hidden border-b border-surface-border bg-gradient-to-b from-surface to-background px-6 ${c.banner_url ? "py-8 sm:py-10 -mt-20 relative z-10" : "py-12 sm:py-16"}`}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.08),transparent_60%)]" />
         <div className="relative mx-auto max-w-2xl text-center">
           {/* What is this */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900/80 px-4 py-2">
-            <span className="text-xs text-neutral-400">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-surface-border bg-surface px-4 py-2 backdrop-blur-[var(--blur-glass)]">
+            <span className="text-xs text-text-secondary">
               {isCampaign
                 ? `I care about ${subjectLabel}. I am helping build better governance.`
                 : `We are building the future of ${subjectLabel} governance.`}
@@ -250,7 +250,7 @@ export default async function CampaignPosterPage({
           {/* Candidate / Community header */}
           {isCampaign && c.users && (
             <div className="mb-6 flex flex-col items-center gap-3">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/10 text-2xl font-bold text-amber-500 ring-2 ring-amber-500/30">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary ring-2 ring-primary/30">
                 {c.users.avatar_url ? (
                   <img
                     src={c.users.avatar_url}
@@ -262,11 +262,11 @@ export default async function CampaignPosterPage({
                 )}
               </div>
               <div>
-                <p className="text-lg font-semibold text-neutral-100">
+                <p className="text-lg font-semibold text-text-primary">
                   {c.users.display_name}
                 </p>
                 {c.users.location_name && (
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-text-secondary">
                     {c.users.location_name}
                   </p>
                 )}
@@ -274,26 +274,26 @@ export default async function CampaignPosterPage({
             </div>
           )}
 
-          <span className="mb-3 inline-block rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+          <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             {subjectLabel} / {c.communities?.level}
           </span>
 
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
+          <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-5xl">
             {c.headline}
           </h1>
 
-          <p className="mt-3 text-neutral-400">
+          <p className="mt-3 text-text-secondary">
             {c.communities?.name}
           </p>
 
           {/* Motivational tagline */}
-          <div className="mx-auto mt-6 max-w-md rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
-            <p className="text-sm font-medium text-neutral-200">
+          <div className="mx-auto mt-6 max-w-md rounded-lg border border-surface-border bg-surface p-4 backdrop-blur-[var(--blur-glass)]">
+            <p className="text-sm font-medium text-text-primary">
               {isCampaign
                 ? `"Are you tired of poor governance decisions affecting your life? Join me and bring your knowledge and wisdom to the table."`
                 : `"Are you tired of poor governance decisions affecting your life? Make a difference. Join the community and make your voice matter."`}
             </p>
-            <p className="mt-2 text-xs text-amber-400">
+            <p className="mt-2 text-xs text-primary">
               {isCampaign
                 ? `My ${subjectLabel} governance power is growing. Join me.`
                 : `Together, our ${subjectLabel} governance power grows.`}
@@ -305,7 +305,7 @@ export default async function CampaignPosterPage({
       {/* YouTube video */}
       {c.youtube_url && (
         <div className="mx-auto max-w-3xl px-6 py-8">
-          <div className="relative aspect-video overflow-hidden rounded-xl ring-1 ring-neutral-800">
+          <div className="relative aspect-video overflow-hidden rounded-xl ring-1 ring-surface-border">
             <iframe
               src={youtubeEmbedUrl(c.youtube_url)}
               className="absolute inset-0 h-full w-full"
@@ -322,27 +322,27 @@ export default async function CampaignPosterPage({
       </div>
 
       {/* What is Loop section */}
-      <div className="border-t border-neutral-800/50 bg-neutral-900/30 px-6 py-10">
+      <div className="border-t border-surface-border bg-surface px-6 py-10">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-3 text-lg font-semibold text-neutral-100">
+          <h2 className="mb-3 text-lg font-semibold text-text-primary">
             What is Loop_cmbntr?
           </h2>
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-text-secondary">
             Loop_cmbntr is a global governance platform where real people govern real subjects: {subjectLabel}, Economics, Health, Technology, and more.
             Community members vote on proposals, elect leaders, earn rewards, and shape policy from local to global level.
             Your voice matters. Your knowledge matters. Your participation is rewarded.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <span className="rounded-full bg-purple-500/10 px-3 py-1 text-xs text-purple-400">Vote on proposals</span>
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">Earn LOOP tokens</span>
-            <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">Build your power</span>
-            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-400">Shape governance</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Vote on proposals</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Earn LOOP tokens</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Build your power</span>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Shape governance</span>
           </div>
         </div>
       </div>
 
       {/* CTA */}
-      <div className="sticky bottom-0 border-t border-neutral-800/50 bg-neutral-950/90 backdrop-blur-md">
+      <div className="sticky bottom-0 border-t border-surface-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 px-6 py-5 sm:flex-row sm:justify-center">
           {isCampaign ? (
             <PosterCTA

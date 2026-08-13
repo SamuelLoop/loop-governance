@@ -9,14 +9,14 @@ export default function CreatePage() {
       <div className="mb-10 text-center">
         <a
           href="/"
-          className="mb-6 inline-block font-mono text-xs uppercase tracking-[0.3em] text-amber-500/60 transition hover:text-amber-500"
+          className="mb-6 inline-block font-mono text-xs uppercase tracking-[0.3em] text-primary/70 transition-colors hover:text-primary"
         >
           &larr; Back
         </a>
-        <h1 className="text-3xl font-light tracking-tight text-neutral-100">
+        <h1 className="text-3xl font-light tracking-tight text-text-primary">
           Start something new
         </h1>
-        <p className="mx-auto mt-3 max-w-md text-neutral-400">
+        <p className="mx-auto mt-3 max-w-md text-text-secondary">
           Create a community around any subject. If it grows, it attracts
           funding. Then governing it becomes your living.
         </p>

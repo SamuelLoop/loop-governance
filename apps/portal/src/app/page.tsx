@@ -1,6 +1,7 @@
 import { getAllSubjects } from "@/lib/subjects";
 import { createClient, createServiceClient } from "@/lib/supabase-server";
 import Link from "next/link";
+import { StatStrip } from "@loop/ui";
 
 async function getSubjectStats(supabase: any, subject: string) {
   const { data: communities } = await supabase
@@ -108,11 +109,6 @@ export default async function Home() {
 
   const topLeaders = await getTopLeaders(admin);
 
-  const SUBJECT_LABELS: Record<string, string> = {};
-  for (const s of subjects) {
-    SUBJECT_LABELS[s.slug] = s.name;
-  }
-
   const LEVEL_ORDER = ["local", "city", "national", "continental", "global"];
 
   return (
@@ -120,7 +116,7 @@ export default async function Home() {
       {/* ── Hero ── */}
       <section className="relative flex flex-col items-center justify-center px-6 pb-20 pt-28">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-amber-500/5 blur-[120px]" />
+          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/[0.06] blur-[120px]" />
         </div>
 
         <div className="relative z-10 max-w-3xl text-center">
@@ -130,19 +126,27 @@ export default async function Home() {
             className="mx-auto mb-8 h-16 w-16 rounded-xl"
           />
 
-          <h1 className="mb-6 text-5xl font-light leading-[1.1] tracking-tight text-neutral-50 sm:text-6xl">
+          <h1 className="mb-6 text-5xl font-light leading-[1.1] tracking-tight text-text-primary sm:text-6xl">
             Would you like to
             <br />
-            <span className="font-medium text-amber-400">
+            <span
+              className="font-medium"
+              style={{
+                background: "var(--accent-gradient)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
               rule the world?
             </span>
           </h1>
 
-          <p className="mx-auto mb-4 max-w-lg text-xl font-light leading-relaxed text-neutral-400">
+          <p className="mx-auto mb-4 max-w-lg text-xl font-light leading-relaxed text-text-secondary">
             And get paid for it.
           </p>
 
-          <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-neutral-500">
+          <p className="mx-auto mb-10 max-w-lg text-base leading-relaxed text-text-muted">
             Pick a subject you care about. Build your reputation. Earn
             fractional ownership in the institutions you help govern. The more
             trust you earn, the more you earn.
@@ -151,13 +155,14 @@ export default async function Home() {
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <a
               href="#subjects"
-              className="rounded-lg bg-amber-500 px-8 py-3.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+              className="rounded-lg px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent-gradient)" }}
             >
               Start governing
             </a>
             <a
               href="#how-it-works"
-              className="rounded-lg border border-neutral-700 px-8 py-3.5 text-sm font-medium text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100"
+              className="rounded-lg border border-surface-border px-8 py-3.5 text-sm font-medium text-text-secondary transition-colors hover:border-text-secondary/50 hover:text-text-primary"
             >
               How it works
             </a>
@@ -165,81 +170,64 @@ export default async function Home() {
         </div>
 
         {/* Live stats bar */}
-        <div className="relative z-10 mt-16 flex gap-12 text-center text-sm text-neutral-500">
-          <div>
-            <span className="block font-mono text-2xl font-light text-neutral-200">
-              {(totalMembers ?? 0).toLocaleString()}
-            </span>
-            participants
-          </div>
-          <div>
-            <span className="block font-mono text-2xl font-light text-neutral-200">
-              {(totalCommunities ?? 0).toLocaleString()}
-            </span>
-            communities
-          </div>
-          <div>
-            <span className="block font-mono text-2xl font-light text-neutral-200">
-              {(totalProposals ?? 0).toLocaleString()}
-            </span>
-            proposals
-          </div>
-          <div>
-            <span className="block font-mono text-2xl font-light text-neutral-200">
-              {subjects.length}
-            </span>
-            subjects
-          </div>
-        </div>
+        <StatStrip
+          className="relative z-10 mt-16"
+          items={[
+            { label: "participants", value: (totalMembers ?? 0).toLocaleString() },
+            { label: "communities", value: (totalCommunities ?? 0).toLocaleString() },
+            { label: "proposals", value: (totalProposals ?? 0).toLocaleString() },
+            { label: "subjects", value: subjects.length },
+          ]}
+        />
       </section>
 
       {/* ── LOOP is tradeable ── */}
-      <section className="border-y border-neutral-800/50 bg-gradient-to-b from-neutral-900/60 to-transparent px-6 py-20">
+      <section className="border-y border-surface-border bg-gradient-to-b from-surface to-transparent px-6 py-20">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/5 px-4 py-1.5">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-              <span className="text-xs font-medium text-green-400">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/20 bg-success/5 px-4 py-1.5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
+              <span className="text-xs font-medium text-success">
                 Now live on Base L2
               </span>
             </div>
-            <h2 className="mb-3 text-3xl font-light tracking-tight text-neutral-100">
+            <h2 className="mb-3 text-3xl font-light tracking-tight text-text-primary">
               LOOP is tradeable
             </h2>
-            <p className="mx-auto max-w-lg text-base text-neutral-400">
+            <p className="mx-auto max-w-lg text-base text-text-secondary">
               Buy, hold, and trade LOOP tokens with full liquidity on Base L2.
               Your governance power, backed by a real market.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
-              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+            <div className="rounded-xl border border-surface-border bg-surface p-6 text-center backdrop-blur-[var(--blur-glass)]">
+              <p className="mb-1 font-mono text-2xl font-light text-success">
                 $1.00
               </p>
-              <p className="text-xs text-neutral-500">Card purchase price</p>
+              <p className="text-xs text-text-secondary">Card purchase price</p>
             </div>
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
-              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+            <div className="rounded-xl border border-surface-border bg-surface p-6 text-center backdrop-blur-[var(--blur-glass)]">
+              <p className="mb-1 font-mono text-2xl font-light text-success">
                 0.0004
               </p>
-              <p className="text-xs text-neutral-500">ETH per token (on-chain)</p>
+              <p className="text-xs text-text-secondary">ETH per token (on-chain)</p>
             </div>
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6 text-center">
-              <p className="mb-1 font-mono text-2xl font-light text-green-400">
+            <div className="rounded-xl border border-surface-border bg-surface p-6 text-center backdrop-blur-[var(--blur-glass)]">
+              <p className="mb-1 font-mono text-2xl font-light text-success">
                 2x
               </p>
-              <p className="text-xs text-neutral-500">Tokens minted per purchase</p>
+              <p className="text-xs text-text-secondary">Tokens minted per purchase</p>
             </div>
           </div>
 
-          <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/40 p-6">
+          <div className="mt-8 rounded-xl border border-surface-border bg-surface p-6 backdrop-blur-[var(--blur-glass)]">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-neutral-200">
+                <h3 className="mb-2 text-sm font-semibold text-text-primary">
                   Buy with card or crypto
                 </h3>
-                <p className="text-sm leading-relaxed text-neutral-500">
+                <p className="text-sm leading-relaxed text-text-secondary">
                   Pay with USD, GBP, or EUR via card. Or connect your wallet
                   and purchase directly with ETH on Base L2. Every purchase
                   mints tokens for you, plus funds the impact treasury and
@@ -247,10 +235,10 @@ export default async function Home() {
                 </p>
               </div>
               <div>
-                <h3 className="mb-2 text-sm font-semibold text-neutral-200">
+                <h3 className="mb-2 text-sm font-semibold text-text-primary">
                   Trade on DEX
                 </h3>
-                <p className="text-sm leading-relaxed text-neutral-500">
+                <p className="text-sm leading-relaxed text-text-secondary">
                   LOOP has full trading liquidity on Base L2 decentralized
                   exchanges. Track the live price on DEXScreener. Your tokens
                   are standard ERC-20 and work with any Base-compatible wallet.
@@ -262,7 +250,8 @@ export default async function Home() {
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <a
               href="/buy"
-              className="rounded-lg bg-green-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-green-400"
+              className="rounded-lg px-8 py-3 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent-gradient)" }}
             >
               Buy LOOP tokens
             </a>
@@ -270,7 +259,7 @@ export default async function Home() {
               href="https://basescan.org/token/0xb8B309BBD007143cbef1844b75C1Fd038a267F21"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-neutral-700 px-8 py-3 text-sm font-medium text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100"
+              className="rounded-lg border border-surface-border px-8 py-3 text-sm font-medium text-text-secondary transition-colors hover:border-text-secondary/50 hover:text-text-primary"
             >
               View on Basescan
             </a>
@@ -281,50 +270,50 @@ export default async function Home() {
       {/* ── How it works ── */}
       <section id="how-it-works" className="px-6 py-24">
         <div className="mx-auto max-w-4xl">
-          <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-amber-500/60">
+          <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-primary/70">
             Three steps
           </p>
-          <h2 className="mb-16 text-center text-3xl font-light tracking-tight text-neutral-100">
+          <h2 className="mb-16 text-center text-3xl font-light tracking-tight text-text-primary">
             From participant to paid leader
           </h2>
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-            <div className="relative rounded-xl border border-neutral-800 bg-neutral-900/40 p-8">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 font-mono text-sm font-semibold text-amber-400">
+            <div className="relative rounded-xl border border-surface-border bg-surface p-8 backdrop-blur-[var(--blur-glass)]">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
                 1
               </div>
-              <h3 className="mb-2 text-lg font-medium text-neutral-100">
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
                 Pick your subjects
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-500">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Choose the areas you care about: governance, health, ecology,
                 economics. You are placed into communities from your city up to
                 the global level.
               </p>
             </div>
 
-            <div className="relative rounded-xl border border-neutral-800 bg-neutral-900/40 p-8">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 font-mono text-sm font-semibold text-amber-400">
+            <div className="relative rounded-xl border border-surface-border bg-surface p-8 backdrop-blur-[var(--blur-glass)]">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
                 2
               </div>
-              <h3 className="mb-2 text-lg font-medium text-neutral-100">
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
                 Build your power tree
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-500">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Vote on proposals, delegate to people you trust, and earn
                 delegations from others. Your power tree is public. The
                 stronger it is, the more influence you hold.
               </p>
             </div>
 
-            <div className="relative rounded-xl border border-neutral-800 bg-neutral-900/40 p-8">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 font-mono text-sm font-semibold text-amber-400">
+            <div className="relative rounded-xl border border-surface-border bg-surface p-8 backdrop-blur-[var(--blur-glass)]">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
                 3
               </div>
-              <h3 className="mb-2 text-lg font-medium text-neutral-100">
+              <h3 className="mb-2 text-lg font-medium text-text-primary">
                 Earn while you govern
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-500">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Win leadership group seats through elections. Leaders earn asset-backed
                 tokens representing fractional ownership in the ventures and
                 funds your community stewards.
@@ -335,39 +324,49 @@ export default async function Home() {
       </section>
 
       {/* ── The deal ── */}
-      <section className="border-y border-neutral-800/50 bg-neutral-900/30 px-6 py-20">
+      <section className="border-y border-surface-border bg-surface px-6 py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="mb-6 text-2xl font-light tracking-tight text-neutral-100">
-            Not volunteer work. <span className="text-amber-400">Ownership.</span>
+          <h2 className="mb-6 text-2xl font-light tracking-tight text-text-primary">
+            Not volunteer work.{" "}
+            <span
+              style={{
+                background: "var(--accent-gradient)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              Ownership.
+            </span>
           </h2>
-          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-neutral-400">
+          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-text-secondary">
             25% of all minted tokens go to impact projects. 25% go to
             participants as loyalty rewards. These are not speculative coins:
             they represent equity in real ventures managed by the communities
             you help govern. Participate in society, own a piece of it.
           </p>
           <div className="mx-auto grid max-w-xl grid-cols-3 gap-6">
-            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-5">
-              <p className="mb-1 font-mono text-2xl font-light text-amber-400">
+            <div className="rounded-lg border border-surface-border bg-background/50 p-5">
+              <p className="mb-1 font-mono text-2xl font-light text-primary">
                 25%
               </p>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-text-secondary">
                 to impact projects
               </p>
             </div>
-            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-5">
-              <p className="mb-1 font-mono text-2xl font-light text-amber-400">
+            <div className="rounded-lg border border-surface-border bg-background/50 p-5">
+              <p className="mb-1 font-mono text-2xl font-light text-primary">
                 25%
               </p>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-text-secondary">
                 to participants
               </p>
             </div>
-            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-5">
-              <p className="mb-1 font-mono text-2xl font-light text-amber-400">
+            <div className="rounded-lg border border-surface-border bg-background/50 p-5">
+              <p className="mb-1 font-mono text-2xl font-light text-primary">
                 50%
               </p>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-text-secondary">
                 to operations &amp; growth
               </p>
             </div>
@@ -378,22 +377,22 @@ export default async function Home() {
       {/* ── Subjects grid ── */}
       <section id="subjects" className="px-6 py-24">
         <div className="mx-auto max-w-5xl">
-          <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-amber-500/60">
+          <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-primary/70">
             Choose your arena
           </p>
-          <h2 className="mb-4 text-center text-3xl font-light tracking-tight text-neutral-100">
+          <h2 className="mb-4 text-center text-3xl font-light tracking-tight text-text-primary">
             What do you want to govern?
           </h2>
-          <p className="mx-auto mb-6 max-w-lg text-center text-sm text-neutral-500">
+          <p className="mx-auto mb-6 max-w-lg text-center text-sm text-text-secondary">
             Each subject has its own democratic hierarchy, elections, proposals,
             and treasury. Pick what matters to you.
           </p>
 
-          <div className="mx-auto mb-14 max-w-2xl rounded-xl border border-neutral-800 bg-neutral-900/40 px-6 py-5 text-center">
-            <p className="mb-2 text-sm font-medium text-neutral-200">
+          <div className="mx-auto mb-14 max-w-2xl rounded-xl border border-surface-border bg-surface px-6 py-5 text-center backdrop-blur-[var(--blur-glass)]">
+            <p className="mb-2 text-sm font-medium text-text-primary">
               Don&apos;t see your thing? Create your own.
             </p>
-            <p className="mb-3 text-sm leading-relaxed text-neutral-500">
+            <p className="mb-3 text-sm leading-relaxed text-text-secondary">
               Woodworking expertise. Save the whales. How to make more money.
               Any subject imaginable. Only communities with funding from private
               or impact sources will pay participants today, but that changes.
@@ -402,7 +401,7 @@ export default async function Home() {
             </p>
             <a
               href="/create"
-              className="inline-block rounded-lg border border-amber-500/30 px-5 py-2 text-xs font-semibold text-amber-400 transition hover:border-amber-500/60 hover:bg-amber-500/5"
+              className="inline-block rounded-lg border border-primary/30 px-5 py-2 text-xs font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-primary/5"
             >
               Start a community
             </a>
@@ -416,7 +415,7 @@ export default async function Home() {
                 <Link
                   key={s.slug}
                   href={`/join/${s.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/40 p-6 transition hover:border-neutral-700"
+                  className="group relative overflow-hidden rounded-xl border border-surface-border bg-surface p-6 backdrop-blur-[var(--blur-glass)] transition-colors hover:border-text-secondary/40"
                 >
                   <div
                     className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
@@ -452,33 +451,33 @@ export default async function Home() {
                       )}
                     </div>
 
-                    <p className="mb-5 text-sm leading-relaxed text-neutral-500">
+                    <p className="mb-5 text-sm leading-relaxed text-text-secondary">
                       {s.description}
                     </p>
 
                     {isActive ? (
-                      <div className="flex gap-5 border-t border-neutral-800/50 pt-4 text-xs text-neutral-500">
+                      <div className="flex gap-5 border-t border-surface-border pt-4 text-xs text-text-secondary">
                         <div>
-                          <span className="block font-mono text-base text-neutral-300">
+                          <span className="block font-mono text-base text-text-primary">
                             {stats.members}
                           </span>
                           members
                         </div>
                         <div>
-                          <span className="block font-mono text-base text-neutral-300">
+                          <span className="block font-mono text-base text-text-primary">
                             {stats.proposals}
                           </span>
                           proposals
                         </div>
                         <div>
-                          <span className="block font-mono text-base text-neutral-300">
+                          <span className="block font-mono text-base text-text-primary">
                             {stats.leaders}
                           </span>
                           leaders
                         </div>
                       </div>
                     ) : (
-                      <p className="border-t border-neutral-800/50 pt-4 text-xs text-neutral-600">
+                      <p className="border-t border-surface-border pt-4 text-xs text-text-muted">
                         Be the first to start this subject
                       </p>
                     )}
@@ -492,15 +491,15 @@ export default async function Home() {
 
       {/* ── Leaders ── */}
       {topLeaders.length > 0 && (
-        <section className="border-t border-neutral-800/50 px-6 py-24">
+        <section className="border-t border-surface-border px-6 py-24">
           <div className="mx-auto max-w-4xl">
-            <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-amber-500/60">
+            <p className="mb-3 text-center font-mono text-xs uppercase tracking-[0.3em] text-primary/70">
               Leaderboard
             </p>
-            <h2 className="mb-4 text-center text-3xl font-light tracking-tight text-neutral-100">
+            <h2 className="mb-4 text-center text-3xl font-light tracking-tight text-text-primary">
               People already governing
             </h2>
-            <p className="mx-auto mb-14 max-w-lg text-center text-sm text-neutral-500">
+            <p className="mx-auto mb-14 max-w-lg text-center text-sm text-text-secondary">
               These participants hold leadership group seats across communities. Their
               power trees are public. Build yours to join them.
             </p>
@@ -509,18 +508,18 @@ export default async function Home() {
               {topLeaders.map((leader) => (
                 <div
                   key={leader.id}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-5"
+                  className="rounded-xl border border-surface-border bg-surface p-5 backdrop-blur-[var(--blur-glass)]"
                 >
                   <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 font-mono text-sm font-semibold text-amber-400">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
                       {leader.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-neutral-200">
+                      <p className="text-sm font-medium text-text-primary">
                         {leader.name}
                       </p>
                       {leader.location && (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-text-secondary">
                           {leader.location}
                         </p>
                       )}
@@ -553,8 +552,8 @@ export default async function Home() {
                               style={{
                                 backgroundColor: subjectConfig
                                   ? `${subjectConfig.accent}15`
-                                  : "rgb(38 38 38)",
-                                color: subjectConfig?.accent ?? "#737373",
+                                  : "rgba(255,255,255,.06)",
+                                color: subjectConfig?.accent ?? "#9297ad",
                               }}
                             >
                               {label}
@@ -563,7 +562,7 @@ export default async function Home() {
                         });
                     })()}
                   </div>
-                  <p className="mt-3 text-xs text-neutral-500">
+                  <p className="mt-3 text-xs text-text-secondary">
                     {leader.seats.filter((s) => s.level !== "global").length} leadership seat
                     {leader.seats.filter((s) => s.level !== "global").length !== 1 ? "s" : ""}
                   </p>
@@ -575,47 +574,47 @@ export default async function Home() {
       )}
 
       {/* ── Liquid governance explainer ── */}
-      <section className="border-t border-neutral-800/50 bg-neutral-900/20 px-6 py-24">
+      <section className="border-t border-surface-border bg-surface px-6 py-24">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-10 text-center text-3xl font-light tracking-tight text-neutral-100">
+          <h2 className="mb-10 text-center text-3xl font-light tracking-tight text-text-primary">
             Power you earn. Power you can lose.
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6">
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-amber-400">
+            <div className="rounded-xl border border-surface-border bg-background/50 p-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary">
                 Liquid democracy
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-400">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Delegate your vote to someone you trust on any subject. Change
                 your mind at any time. Power flows to the most trusted, not the
                 loudest.
               </p>
             </div>
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6">
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-amber-400">
+            <div className="rounded-xl border border-surface-border bg-background/50 p-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary">
                 Self-correcting
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-400">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Corrupt or incompetent leaders lose delegations in real time.
                 No waiting for the next election cycle. Bad actors are
                 identified and demoted by the community.
               </p>
             </div>
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6">
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-amber-400">
+            <div className="rounded-xl border border-surface-border bg-background/50 p-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary">
                 Geographic hierarchy
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-400">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Communities are organized from your local neighbourhood up to
                 the global level. Prove yourself locally, rise to govern
                 nationally, then globally.
               </p>
             </div>
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-6">
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-amber-400">
+            <div className="rounded-xl border border-surface-border bg-background/50 p-6">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary">
                 Asset-backed tokens
               </h3>
-              <p className="text-sm leading-relaxed text-neutral-400">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 Not speculative crypto. Tokens represent equity in real ventures
                 and impact funds managed by your community. Govern well, and
                 your stake grows with the outcomes.
@@ -628,16 +627,17 @@ export default async function Home() {
       {/* ── Final CTA ── */}
       <section className="px-6 py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-4 text-4xl font-light tracking-tight text-neutral-100">
+          <h2 className="mb-4 text-4xl font-light tracking-tight text-text-primary">
             Ready to govern?
           </h2>
-          <p className="mb-8 text-lg text-neutral-500">
+          <p className="mb-8 text-lg text-text-secondary">
             Pick a subject. Join your communities. Start building your power
             tree today.
           </p>
           <a
             href="#subjects"
-            className="inline-block rounded-lg bg-amber-500 px-10 py-4 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+            className="inline-block rounded-lg px-10 py-4 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+            style={{ background: "var(--accent-gradient)" }}
           >
             Choose your first subject
           </a>
@@ -645,20 +645,20 @@ export default async function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-neutral-800/50 px-6 py-10 text-center text-xs text-neutral-600">
+      <footer className="border-t border-surface-border px-6 py-10 text-center text-xs text-text-muted">
         <div className="mb-3 flex items-center justify-center gap-2">
           <img src="/logo.png" alt="Loop_cmbntr" className="h-6 w-6 rounded" />
-          <span className="font-medium text-neutral-500">
-            Loop<span className="text-neutral-600">_</span>
+          <span className="font-medium text-text-secondary">
+            Loop<span className="text-text-muted">_</span>
             <span className="text-red-500/60">cmbntr</span>
           </span>
         </div>
         <p>Connecting, rewarding, and empowering communities.</p>
-        <p className="mt-2 text-neutral-700">
+        <p className="mt-2 text-text-muted">
           Part of the{" "}
           <a
             href="https://www.loopcmbntr.live"
-            className="text-neutral-500 underline decoration-neutral-700 transition hover:text-neutral-300"
+            className="text-text-secondary underline decoration-surface-border transition-colors hover:text-text-primary"
           >
             Loop_cmbntr
           </a>{" "}

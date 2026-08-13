@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@loop/db": "workspace:*",
+    "@loop/ui": "workspace:*",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "@upstash/ratelimit": "^2.0.8",

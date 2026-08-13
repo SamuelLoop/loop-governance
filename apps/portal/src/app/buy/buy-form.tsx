@@ -5,6 +5,7 @@ import { createWalletClient, createPublicClient, custom, http, parseEther, encod
 import { base } from "viem/chains";
 import { LOOP_TOKEN_ADDRESS, LOOP_TOKEN_ABI, BASE_CHAIN_ID } from "./web3-config";
 import { createBrowserClient } from "@supabase/ssr";
+import { ConversionCard } from "@loop/ui";
 
 type Currency = "usd" | "gbp" | "eur";
 
@@ -172,10 +173,10 @@ export function BuyForm() {
   }
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
+    <ConversionCard>
       {step === "select" && (
         <>
-          <h3 className="mb-4 text-sm font-medium text-neutral-300">
+          <h3 className="mb-4 text-sm font-medium text-text-secondary">
             How many LOOP tokens?
           </h3>
 
@@ -184,10 +185,10 @@ export function BuyForm() {
               <button
                 key={c}
                 onClick={() => setCurrency(c)}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                   currency === c
-                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
-                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-surface-border text-text-secondary hover:border-text-secondary/50"
                 }`}
               >
                 {SYMBOLS[c]} {LABELS[c]}
@@ -200,10 +201,10 @@ export function BuyForm() {
               <button
                 key={p}
                 onClick={() => setAmount(p)}
-                className={`rounded-lg border px-3 py-3 text-center text-sm font-medium transition ${
+                className={`rounded-lg border px-3 py-3 text-center text-sm font-medium transition-colors ${
                   amount === p
-                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
-                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-surface-border text-text-secondary hover:border-text-secondary/50"
                 }`}
               >
                 {p >= 1000 ? `${(p / 1000).toFixed(0)}k` : p}
@@ -212,7 +213,7 @@ export function BuyForm() {
           </div>
 
           <div className="mb-6">
-            <label className="mb-1 block text-xs text-neutral-500">
+            <label className="mb-1 block text-xs text-text-secondary">
               Custom amount (must be even)
             </label>
             <input
@@ -224,39 +225,40 @@ export function BuyForm() {
                 const v = parseInt(e.target.value);
                 if (v >= 2 && v % 2 === 0) setAmount(v);
               }}
-              className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-2.5 text-sm text-neutral-100 focus:border-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-surface-border bg-background px-4 py-2.5 text-sm text-text-primary focus:border-primary focus:outline-none"
             />
           </div>
 
-          <div className="mb-6 space-y-2 rounded-lg border border-neutral-800 bg-neutral-950/50 p-4 text-sm">
+          <div className="mb-6 space-y-2 rounded-lg border border-surface-border bg-background/50 p-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-neutral-400">You pay</span>
-              <span className="font-medium text-neutral-100">
+              <span className="text-text-secondary">You pay</span>
+              <span className="font-medium text-text-primary">
                 {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {LABELS[currency]}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-400">You receive</span>
-              <span className="text-amber-400">{amount.toLocaleString()} LOOP</span>
+              <span className="text-text-secondary">You receive</span>
+              <span className="text-primary">{amount.toLocaleString()} LOOP</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-400">Impact treasury gets</span>
-              <span className="text-green-400">{impactTokens.toLocaleString()} LOOP</span>
+              <span className="text-text-secondary">Impact treasury gets</span>
+              <span className="text-success">{impactTokens.toLocaleString()} LOOP</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-400">Governance rewards</span>
-              <span className="text-blue-400">{allocationTokens.toLocaleString()} LOOP</span>
+              <span className="text-text-secondary">Governance rewards</span>
+              <span className="text-primary">{allocationTokens.toLocaleString()} LOOP</span>
             </div>
-            <hr className="border-neutral-800" />
+            <hr className="border-surface-border" />
             <div className="flex justify-between font-medium">
-              <span className="text-neutral-300">Total minted</span>
-              <span className="text-neutral-100">{totalMinted.toLocaleString()} LOOP</span>
+              <span className="text-text-secondary">Total minted</span>
+              <span className="text-text-primary">{totalMinted.toLocaleString()} LOOP</span>
             </div>
           </div>
 
           <button
             onClick={() => setStep("method")}
-            className="w-full rounded-lg bg-amber-500 px-6 py-3.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+            className="w-full rounded-lg px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+            style={{ background: "var(--accent-gradient)" }}
           >
             Buy {amount.toLocaleString()} LOOP for {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </button>
@@ -265,10 +267,10 @@ export function BuyForm() {
 
       {step === "method" && (
         <div>
-          <h3 className="mb-2 text-center text-lg font-semibold text-neutral-100">
+          <h3 className="mb-2 text-center text-lg font-semibold text-text-primary">
             How would you like to pay?
           </h3>
-          <p className="mb-6 text-center text-sm text-neutral-400">
+          <p className="mb-6 text-center text-sm text-text-secondary">
             {amount.toLocaleString()} LOOP for {symbol}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
 
@@ -276,18 +278,18 @@ export function BuyForm() {
             <button
               onClick={handleCardPayment}
               disabled={loading}
-              className="flex w-full items-center gap-4 rounded-lg border border-neutral-700 bg-neutral-950/50 px-5 py-4 text-left transition hover:border-emerald-500/50 hover:bg-emerald-500/5 disabled:opacity-50"
+              className="flex w-full items-center gap-4 rounded-lg border border-surface-border bg-background/50 px-5 py-4 text-left transition-colors hover:border-success/50 hover:bg-success/5 disabled:opacity-50"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
-                <svg className="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
+                <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-neutral-100">
+                <p className="text-sm font-medium text-text-primary">
                   {loading ? "Redirecting to checkout..." : "Pay with card"}
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-text-secondary">
                   Visa, Mastercard, Amex. Secure checkout via Stripe.
                 </p>
               </div>
@@ -303,18 +305,18 @@ export function BuyForm() {
                 setStep("wallet");
                 if (!walletAddress) connectWallet();
               }}
-              className="flex w-full items-center gap-4 rounded-lg border border-neutral-700 bg-neutral-950/50 px-5 py-4 text-left transition hover:border-blue-500/50 hover:bg-blue-500/5"
+              className="flex w-full items-center gap-4 rounded-lg border border-surface-border bg-background/50 px-5 py-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-                <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-neutral-100">
+                <p className="text-sm font-medium text-text-primary">
                   Pay with crypto
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-text-secondary">
                   {ethCost.toFixed(4)} ETH on Base L2
                 </p>
               </div>
@@ -323,7 +325,7 @@ export function BuyForm() {
 
           <button
             onClick={() => setStep("select")}
-            className="mt-4 block w-full text-center text-xs text-neutral-500 hover:text-neutral-300"
+            className="mt-4 block w-full text-center text-xs text-text-secondary hover:text-text-primary"
           >
             Back
           </button>
@@ -332,63 +334,65 @@ export function BuyForm() {
 
       {step === "wallet" && (
         <div className="text-center">
-          <h3 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h3 className="mb-2 text-lg font-semibold text-text-primary">
             {walletAddress ? "Wallet connected" : "Connect your wallet"}
           </h3>
 
           {!walletAddress ? (
             <>
-              <p className="mb-6 text-sm text-neutral-400">
+              <p className="mb-6 text-sm text-text-secondary">
                 Connect MetaMask, Coinbase Wallet, or any Web3 wallet to purchase {amount.toLocaleString()} LOOP for {ethCost.toFixed(4)} ETH on Base L2.
               </p>
-              {txError && <p className="mb-4 text-xs text-red-400">{txError}</p>}
+              {txError && <p className="mb-4 text-xs text-error">{txError}</p>}
               <button
                 onClick={connectWallet}
-                className="w-full rounded-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-500"
+                className="w-full rounded-lg px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+                style={{ background: "var(--accent-gradient)" }}
               >
                 Connect Wallet
               </button>
             </>
           ) : (
             <>
-              <p className="mb-1 text-sm text-neutral-400">
+              <p className="mb-1 text-sm text-text-secondary">
                 {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
               </p>
               <button
                 onClick={() => { setWalletAddress(null); setTxError(null); }}
-                className="mb-4 text-xs text-neutral-500 underline hover:text-neutral-300"
+                className="mb-4 text-xs text-text-secondary underline hover:text-text-primary"
               >
                 Disconnect
               </button>
 
-              <div className="mb-4 space-y-2 rounded-lg border border-neutral-800 bg-neutral-950/50 p-4 text-sm">
+              <div className="mb-4 space-y-2 rounded-lg border border-surface-border bg-background/50 p-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">You pay</span>
-                  <span className="font-medium text-neutral-100">{ethCost.toFixed(4)} ETH</span>
+                  <span className="text-text-secondary">You pay</span>
+                  <span className="font-medium text-text-primary">{ethCost.toFixed(4)} ETH</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">You receive</span>
-                  <span className="text-amber-400">{amount.toLocaleString()} LOOP</span>
+                  <span className="text-text-secondary">You receive</span>
+                  <span className="text-primary">{amount.toLocaleString()} LOOP</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Impact treasury</span>
-                  <span className="text-green-400">{impactTokens.toLocaleString()} LOOP</span>
+                  <span className="text-text-secondary">Impact treasury</span>
+                  <span className="text-success">{impactTokens.toLocaleString()} LOOP</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Governance rewards</span>
-                  <span className="text-blue-400">{allocationTokens.toLocaleString()} LOOP</span>
+                  <span className="text-text-secondary">Governance rewards</span>
+                  <span className="text-primary">{allocationTokens.toLocaleString()} LOOP</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-neutral-500">Network</span>
-                  <span className="text-neutral-400">Base L2</span>
+                  <span className="text-text-secondary">Network</span>
+                  <span className="text-text-secondary">Base L2</span>
                 </div>
               </div>
 
-              {txError && <p className="mb-3 text-xs text-red-400">{txError}</p>}
+              {txError && <p className="mb-3 text-xs text-error">{txError}</p>}
 
               <button
                 onClick={handleCryptoPurchase}
-                className="w-full rounded-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-500"
+                className="w-full rounded-lg px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+                style={{ background: "var(--accent-gradient)" }}
               >
                 Purchase {amount.toLocaleString()} LOOP
               </button>
@@ -397,7 +401,7 @@ export function BuyForm() {
 
           <button
             onClick={() => setStep("method")}
-            className="mt-4 block text-xs text-neutral-500 hover:text-neutral-300"
+            className="mt-4 block text-xs text-text-secondary hover:text-text-primary"
           >
             Back
           </button>
@@ -406,17 +410,17 @@ export function BuyForm() {
 
       {step === "crypto-confirm" && (
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
-            <svg className="h-8 w-8 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-neutral-100">
+          <h3 className="mb-2 text-lg font-semibold text-text-primary">
             {txStatus === "signing" && "Confirm in your wallet"}
             {txStatus === "confirming" && "Transaction confirming..."}
           </h3>
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-text-secondary">
             {txStatus === "signing" && "Please approve the transaction in your wallet."}
             {txStatus === "confirming" && "Waiting for Base network confirmation."}
           </p>
@@ -425,7 +429,7 @@ export function BuyForm() {
               href={`https://basescan.org/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-block text-xs text-blue-400 underline hover:text-blue-300"
+              className="mt-3 inline-block text-xs text-primary underline hover:text-primary/80"
             >
               View on Basescan
             </a>
@@ -435,16 +439,16 @@ export function BuyForm() {
 
       {step === "crypto-success" && (
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
-            <svg className="h-8 w-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+            <svg className="h-8 w-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-neutral-100">Purchase complete</h3>
-          <p className="mb-2 text-sm text-neutral-400">
+          <h3 className="mb-2 text-lg font-semibold text-text-primary">Purchase complete</h3>
+          <p className="mb-2 text-sm text-text-secondary">
             {amount.toLocaleString()} LOOP tokens minted to your wallet.
           </p>
-          <p className="mb-4 text-sm text-neutral-500">
+          <p className="mb-4 text-sm text-text-secondary">
             {impactTokens.toLocaleString()} LOOP to impact treasury. {allocationTokens.toLocaleString()} LOOP to governance rewards.
           </p>
           {txHash && (
@@ -452,7 +456,7 @@ export function BuyForm() {
               href={`https://basescan.org/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mb-4 inline-block text-sm text-blue-400 underline hover:text-blue-300"
+              className="mb-4 inline-block text-sm text-primary underline hover:text-primary/80"
             >
               View transaction on Basescan
             </a>
@@ -460,13 +464,14 @@ export function BuyForm() {
           <div className="mt-4">
             <button
               onClick={() => { setStep("select"); setTxHash(null); setTxError(null); setTxStatus("idle"); }}
-              className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+              className="rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+              style={{ background: "var(--accent-gradient)" }}
             >
               Buy more LOOP
             </button>
           </div>
         </div>
       )}
-    </div>
+    </ConversionCard>
   );
 }

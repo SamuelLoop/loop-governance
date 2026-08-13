@@ -351,7 +351,41 @@ session. Dev server was left running for Samuel to
 review directly (no agent-captured screenshot, per the project's standing
 preference), same sign-off rule as 08/09.
 
-Next up: `sessions/web-11-portal-rollout.md`.
+**Session 11 done (2026-08-13):** `sessions/web-11-portal-rollout-output.md`.
+**Portal's fixed-light decision reversed to fixed-dark before any page was
+touched** — grepping the codebase found 222 hardcoded dark-only colour
+instances (not "90+"), and `docs/continuity/NEXT.md`'s own post-deploy
+correction entry says the light decision itself was never shown to the
+real user. A real side-by-side artifact (actual home-page copy, light vs
+dark) was built and shown to Samuel before the rollout proceeded — dark
+won, portal keeps its existing identity, now formalised through real
+components. `DESIGN.web.md` and `theme.css` §9 updated to match (old
+light spec kept for history, not deleted). Foundation wired for the first
+time (`@loop/ui` added to `apps/portal/package.json` — was zero usage
+before this session; `data-app="portal"`, no toggle). Four new real
+`packages/ui` components (`PortalNavShell`, `StatStrip`, `BadgeHero`,
+`ConversionCard`) — `PortalNavShell`'s `logo` prop is required, not
+defaulted, specifically so it can't reintroduce session 7's unauthorized
+logo-swap mistake. All 10 in-scope pages done, plus `error.tsx` (found
+during the sweep, not in the brief's list, trivial fix). Every page's ad
+hoc `amber-500` primary accent moved to the real brand gradient per
+DESIGN.web.md's actual rule; genuine semantic colours (success/warning/
+error) and per-subject dynamic colours (`subject.accent`) left untouched.
+`admin/admin-panel.tsx` gets `space="admin"` — confirmed via its actual
+code (client-side `platform_role === "platform_admin"` check gating all
+content), not assumed from the route name. Checkout/enrollment logic in
+`buy-form.tsx`/`create-form.tsx`/`enrollment-form.tsx` verified untouched
+via diff-grep for non-styling lines. `pnpm --filter portal run build`
+clean (exit 0, all 17 routes), 0 lint errors, compiled-CSS checks confirm
+the old light background is completely gone (not just overridden) and
+both LESSONS.md #13 and #14 regressions still hold as documented. **Not
+committed, not deployed** — dev server running for Samuel to review, same
+sign-off rule as every session in this chain, with extra weight given the
+prior incident this session's own brief is named after.
+
+This closes the 08-11 chain: Signal Pulse is now applied (pending
+deploy/sign-off) across all three Next.js apps — chat (session 08 +
+earlier ad hoc build), admin (09), console (10), portal (11).
 
 **Post-deploy correction (2026-08-10, same day):** the real user checked
 the live deploy and found gov.loopcmbntr.live "totally broken" and never

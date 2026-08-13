@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type ReactElement } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { Glass } from "@loop/ui";
 
 export function AdminPanel(): ReactElement {
   const [loading, setLoading] = useState(false);
@@ -112,19 +113,19 @@ export function AdminPanel(): ReactElement {
 
   if (isAdmin === null) {
     return (
-      <p className="text-sm text-neutral-500">Checking permissions...</p>
+      <p className="text-sm text-text-secondary">Checking permissions...</p>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-6 text-center">
-        <p className="text-sm text-red-400">
+      <div className="rounded-lg border border-error/20 bg-error/5 p-6 text-center">
+        <p className="text-sm text-error">
           You must be logged in as a platform admin to access this page.
         </p>
         <a
           href="https://console.loopcmbntr.live/login"
-          className="mt-3 inline-block text-xs text-neutral-400 underline hover:text-neutral-200"
+          className="mt-3 inline-block text-xs text-text-secondary underline hover:text-text-primary"
         >
           Sign in
         </a>
@@ -132,44 +133,48 @@ export function AdminPanel(): ReactElement {
     );
   }
 
+  // Everything below is genuinely platform_admin-only (checked above,
+  // not just named like an admin surface) — gets space="admin" per
+  // session 08/10's rule: only tint where a real, already-coded
+  // restriction exists.
   return (
     <div className="space-y-6">
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-center">
-            <p className="text-2xl font-bold text-amber-400">
+          <Glass space="admin" className="p-4 text-center">
+            <p className="text-2xl font-bold text-warning">
               {stats.aiUsers.toLocaleString()}
             </p>
-            <p className="text-xs text-neutral-500">AI experts</p>
-          </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-center">
-            <p className="text-2xl font-bold text-neutral-100">
+            <p className="text-xs text-text-secondary">AI experts</p>
+          </Glass>
+          <Glass space="admin" className="p-4 text-center">
+            <p className="text-2xl font-bold text-text-primary">
               {stats.totalUsers.toLocaleString()}
             </p>
-            <p className="text-xs text-neutral-500">Total users</p>
-          </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-center">
-            <p className="text-2xl font-bold text-blue-400">
+            <p className="text-xs text-text-secondary">Total users</p>
+          </Glass>
+          <Glass space="admin" className="p-4 text-center">
+            <p className="text-2xl font-bold text-primary">
               {stats.totalMessages.toLocaleString()}
             </p>
-            <p className="text-xs text-neutral-500">Messages</p>
-          </div>
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 text-center">
-            <p className="text-2xl font-bold text-green-400">
+            <p className="text-xs text-text-secondary">Messages</p>
+          </Glass>
+          <Glass space="admin" className="p-4 text-center">
+            <p className="text-2xl font-bold text-success">
               {stats.totalDelegations.toLocaleString()}
             </p>
-            <p className="text-xs text-neutral-500">Delegations</p>
-          </div>
+            <p className="text-xs text-text-secondary">Delegations</p>
+          </Glass>
         </div>
       )}
 
       {/* Activate AI */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
-        <h2 className="mb-2 text-lg font-semibold text-neutral-100">
+      <Glass space="admin" className="p-6">
+        <h2 className="mb-2 text-lg font-semibold text-text-primary">
           Activate AI Experts
         </h2>
-        <p className="mb-4 text-sm text-neutral-400">
+        <p className="mb-4 text-sm text-text-secondary">
           Each AI expert posts a message in one of their enrolled communities
           and delegates their vote to a human user in a shared community. Human
           users receive an email notification about the delegation.
@@ -178,36 +183,37 @@ export function AdminPanel(): ReactElement {
         <button
           onClick={activateAI}
           disabled={loading}
-          className="rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:opacity-50"
+          className="rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{ background: "var(--accent-gradient)" }}
         >
           {loading ? "Activating..." : "Activate AI Experts"}
         </button>
 
         {error && (
-          <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-400">
+          <div className="mt-4 rounded-lg border border-error/20 bg-error/5 p-3 text-sm text-error">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="mt-4 space-y-2 rounded-lg border border-green-500/20 bg-green-500/5 p-4">
-            <p className="text-sm font-medium text-green-400">
+          <div className="mt-4 space-y-2 rounded-lg border border-success/20 bg-success/5 p-4">
+            <p className="text-sm font-medium text-success">
               Activation complete
             </p>
-            <p className="text-xs text-neutral-300">{result.summary}</p>
+            <p className="text-xs text-text-secondary">{result.summary}</p>
             {result.humansNotified > 0 && (
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-text-secondary">
                 {result.humansNotified} human users received vote delegations
                 from AI experts.
               </p>
             )}
           </div>
         )}
-      </div>
+      </Glass>
 
       {/* Info */}
-      <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-4 text-xs text-neutral-500">
-        <p className="mb-2 font-medium text-neutral-400">
+      <Glass space="admin" className="p-4 text-xs text-text-secondary">
+        <p className="mb-2 font-medium text-text-primary">
           About AI expert accounts
         </p>
         <ul className="list-inside list-disc space-y-1">
@@ -228,7 +234,7 @@ export function AdminPanel(): ReactElement {
             weight
           </li>
         </ul>
-      </div>
+      </Glass>
     </div>
   );
 }

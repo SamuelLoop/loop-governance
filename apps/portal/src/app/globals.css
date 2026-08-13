@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+/*
+ * Signal Pulse tokens — single source of truth, packages/ui/theme.css.
+ * Do not add colour/type/spacing/radius/motion values here; add them
+ * upstream in theme.css so console/admin/portal never drift from each
+ * other. Portal is fixed-dark, no toggle (reversed from fixed-light
+ * 2026-08-13, session web-11-portal-rollout.md — see theme.css §9's own
+ * comment for the incident and the real sign-off that reversed it) —
+ * <html data-app="portal"> is the only attribute portal's layout needs
+ * to set, no data-theme.
+ */
+@import "../../../../packages/ui/theme.css";
+
+/*
+ * Tailwind v4 does not scan workspace packages by default — without this,
+ * a class used only inside a @loop/ui component (glass.tsx, ...) gets
+ * purged from the production build (works in dev, silently breaks
+ * `pnpm build`). See sessions/web-eng-plan-output.md task T3.6, and
+ * console/admin's globals.css for the same line.
+ */
+@source "../../../../packages/ui/src";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-body;
+  }
+}

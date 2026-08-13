@@ -28,7 +28,7 @@ export default async function JoinPage({ params }: { params: Params }) {
         >
           {subject.name}
         </h1>
-        <p className="mx-auto mt-3 max-w-md text-neutral-400">
+        <p className="mx-auto mt-3 max-w-md text-text-secondary">
           {subject.description}
         </p>
       </div>

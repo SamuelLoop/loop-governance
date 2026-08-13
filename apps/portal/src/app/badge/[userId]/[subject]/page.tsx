@@ -5,6 +5,7 @@ import { getPowerStats } from "./power";
 import { fetchPowerTree, generateTreeSVG } from "@/lib/power-tree";
 import { createServiceClient } from "@/lib/supabase-server";
 import { ShareButtons } from "./share-buttons";
+import { BadgeHero } from "@loop/ui";
 
 type Params = Promise<{ userId: string; subject: string }>;
 
@@ -79,31 +80,17 @@ export default async function BadgePage({ params }: { params: Params }): Promise
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center px-4 py-12">
-      {/* Platform intro */}
-      <div className="mb-8 max-w-lg text-center">
-        <p className="text-xs font-medium uppercase tracking-widest text-amber-400">
-          Global Governance Community
-        </p>
-        <h2 className="mt-2 text-lg font-semibold text-neutral-200">
-          I care about {label}. My {label} power is growing.
-        </h2>
-        <p className="mt-2 text-sm text-neutral-500">
-          Are you tired of poor governance decisions affecting your life?
-          Make a difference. Join the community and bring your knowledge and
-          wisdom to the table.
-        </p>
-      </div>
-
-      {/* Power Tree badge card */}
-      <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl"
-        style={{ boxShadow: `0 0 80px ${stats.tierGlow}, 0 0 30px ${stats.tierGlow}` }}
-        dangerouslySetInnerHTML={{ __html: treeSvg.replace("<svg ", '<svg style="width:100%;height:auto" ') }}
+      <BadgeHero
+        eyebrow="Global Governance Community"
+        heading={`I care about ${label}. My ${label} power is growing.`}
+        description="Are you tired of poor governance decisions affecting your life? Make a difference. Join the community and bring your knowledge and wisdom to the table."
+        treeSvgHtml={treeSvg.replace("<svg ", '<svg style="width:100%;height:auto" ')}
+        glow={stats.tierGlow}
       />
 
       {/* Share section */}
       <div className="mt-8 text-center">
-        <p className="mb-3 text-sm text-neutral-400">Share your badge</p>
+        <p className="mb-3 text-sm text-text-secondary">Share your badge</p>
         <ShareButtons
           url={badgeUrl}
           userName={stats.userName}
@@ -115,12 +102,13 @@ export default async function BadgePage({ params }: { params: Params }): Promise
 
       {/* CTA to join */}
       <div className="mt-8 max-w-md text-center">
-        <p className="mb-3 text-sm text-neutral-400">
+        <p className="mb-3 text-sm text-text-secondary">
           Come and join the new Global Governance Community
         </p>
         <a
           href={`/#${subject}`}
-          className="inline-block rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
+          className="inline-block rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-[var(--accent-glow)] transition-opacity hover:opacity-90"
+          style={{ background: "var(--accent-gradient)" }}
         >
           Explore {label} governance
         </a>

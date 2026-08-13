@@ -303,39 +303,57 @@
 }
 
 /* ────────────────────────────────────────────────────────────────────
- * 9. Colour — portal (fixed light, no toggle, no dark variant)
- *    DESIGN.web.md "Portal — light mode". Marketing-spacious mood, a
- *    different token set from console/admin's light mode above even
- *    though both are "light" — see DESIGN.web.md's explicit note that
- *    conflating the two was considered and rejected.
+ * 9. Colour — portal (fixed DARK, no toggle, no light variant)
  *
- *    Verified this session: portal renders zero tier-colour TEXT outside
- *    the untouched badge component (grepped apps/portal/src — only
- *    badge/* references tier), so unlike console/admin, portal needs no
- *    tier text-contrast override. If a future portal page ever renders
- *    a tier pill as text (not just the badge SVG), it must reuse §8's
- *    tier-*-text values, not invent new ones.
+ *    CORRECTION (2026-08-13, session `web-11-portal-rollout.md`):
+ *    DESIGN.web.md previously specced portal as fixed-LIGHT. That
+ *    decision shipped once (session 7), broke gov.loopcmbntr.live in
+ *    production (90+ hardcoded dark-only content instances never
+ *    retouched to match the light shell), and was fully reverted —
+ *    see docs/continuity/NEXT.md's "Post-deploy correction" entry. The
+ *    light-mode decision itself, not just its execution, had never
+ *    actually been shown to the real user before it shipped. Session 11
+ *    built a real side-by-side comparison (light vs this dark option, both
+ *    using real home-page copy) and the real user picked dark: keep
+ *    portal's existing dark identity, formalise it through real
+ *    `packages/ui` components and the same tokens console/admin's dark
+ *    mode already uses, instead of raw hardcoded hex. `--blur-glass: 8px`
+ *    (vs console/admin's 14px) is unchanged — that's portal's
+ *    marketing-spacious *density* choice, independent of the light/dark
+ *    axis, and still holds.
+ *
+ *    Still portal-specific, not a reuse of §6's console/admin dark block:
+ *    portal keeps its own density/mood (`--blur-glass: 8px`, marketing-
+ *    spacious spacing per DESIGN.web.md) even though the colour values
+ *    below are now identical to §6 — a future session that wants to
+ *    diverge portal's colours from console/admin's dark identity again
+ *    has a real place to do it without touching §6.
+ *
+ *    Verified: portal renders zero tier-colour TEXT outside the untouched
+ *    badge component (grepped apps/portal/src — only badge/* references
+ *    tier), so unlike console/admin, portal needs no tier text-contrast
+ *    override — §7's dark-mode tier fill values apply directly.
  * ──────────────────────────────────────────────────────────────────── */
 
 [data-app="portal"] {
-  --background: #faf9f6;
-  --surface: rgba(255, 255, 255, 0.7);
-  --surface-border: rgba(20, 20, 40, 0.08);
+  --background: #0a0a0a;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-border: rgba(255, 255, 255, 0.08);
   --blur-glass: 8px;
 
-  --text-primary: #15151d;
-  --text-secondary: #5b5b6b;
-  --text-muted: #8d8d9b;
+  --text-primary: #f5f5f4;
+  --text-secondary: #9297ad;
+  --text-muted: #6b6f80;
 
   --card: var(--surface);
   --card-foreground: var(--text-primary);
-  --popover: #ffffff;
+  --popover: #141414;
   --popover-foreground: var(--text-primary);
-  --secondary: rgba(20, 20, 40, 0.045);
+  --secondary: rgba(255, 255, 255, 0.06);
   --secondary-foreground: var(--text-primary);
-  --muted: rgba(20, 20, 40, 0.04);
+  --muted: rgba(255, 255, 255, 0.045);
   --muted-foreground: var(--text-muted);
-  --accent: rgba(79, 107, 255, 0.08);
+  --accent: rgba(139, 92, 246, 0.12);
   --accent-foreground: var(--text-primary);
   --border: var(--surface-border);
   --input: var(--surface-border);

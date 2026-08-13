@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import Link from "next/link";
 import { NavLinks } from "./nav-links";
+import { PortalNavShell } from "@loop/ui";
 
 async function getUser() {
   const cookieStore = await cookies();
@@ -41,21 +42,22 @@ export async function PortalNav() {
   const profile = await getUser();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-neutral-800/50 bg-neutral-950/80 px-6 py-3 backdrop-blur-md">
-      <div className="flex items-center justify-between">
+    <PortalNavShell
+      logo={
         <Link href="/" className="flex items-center gap-2.5">
           <img
             src="/logo.png"
             alt="Loop_cmbntr"
             className="h-8 w-8 rounded-md"
           />
-          <span className="text-sm font-semibold tracking-tight text-neutral-100">
-            Loop<span className="text-neutral-500">_</span>
+          <span className="text-sm font-semibold tracking-tight text-text-primary">
+            Loop<span className="text-text-muted">_</span>
             <span className="text-red-500">cmbntr</span>
           </span>
         </Link>
-        <NavLinks profile={profile} />
-      </div>
-    </nav>
+      }
+    >
+      <NavLinks profile={profile} />
+    </PortalNavShell>
   );
 }

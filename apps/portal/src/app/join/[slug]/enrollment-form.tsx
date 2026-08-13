@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { submitEnrollment, type EnrollmentState } from "./actions";
 import type { SubjectConfig } from "@/lib/subjects";
+import { ConversionCard } from "@loop/ui";
 
 const COUNTRIES = [
   "Argentina", "Australia", "Austria", "Bangladesh", "Belgium", "Brazil",
@@ -55,7 +56,7 @@ function StepIndicator({
           style={{
             width: i + 1 === current ? 32 : 16,
             backgroundColor:
-              i + 1 <= current ? accent : "rgb(64 64 64)",
+              i + 1 <= current ? accent : "rgba(255,255,255,.08)",
             opacity: i + 1 < current ? 0.4 : 1,
           }}
         />
@@ -76,10 +77,10 @@ function StepDetails({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="mb-1 text-xl font-medium text-neutral-100">
+        <h2 className="mb-1 text-xl font-medium text-text-primary">
           Join {subject.name}
         </h2>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-text-secondary">
           Tell us about yourself. Your location determines which
           geographic communities you join within {subject.name}.
         </p>
@@ -91,7 +92,7 @@ function StepDetails({
       <div>
         <label
           htmlFor="displayName"
-          className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary"
         >
           Full name
         </label>
@@ -101,7 +102,7 @@ function StepDetails({
           type="text"
           required
           autoComplete="name"
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-500"
+          className="w-full rounded-md border border-surface-border bg-background px-4 py-2.5 text-text-primary placeholder-text-muted outline-none transition-colors focus:border-text-secondary/60"
           placeholder="Your name"
         />
       </div>
@@ -109,7 +110,7 @@ function StepDetails({
       <div>
         <label
           htmlFor="email"
-          className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary"
         >
           Email
         </label>
@@ -119,7 +120,7 @@ function StepDetails({
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-500"
+          className="w-full rounded-md border border-surface-border bg-background px-4 py-2.5 text-text-primary placeholder-text-muted outline-none transition-colors focus:border-text-secondary/60"
           placeholder="you@example.com"
         />
       </div>
@@ -128,7 +129,7 @@ function StepDetails({
         <div>
           <label
             htmlFor="city"
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400"
+            className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary"
           >
             City
           </label>
@@ -139,14 +140,14 @@ function StepDetails({
             required
             autoComplete="address-level2"
             defaultValue={defaultCity}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 placeholder-neutral-500 outline-none transition focus:border-neutral-500"
+            className="w-full rounded-md border border-surface-border bg-background px-4 py-2.5 text-text-primary placeholder-text-muted outline-none transition-colors focus:border-text-secondary/60"
             placeholder="e.g. Cape Town"
           />
         </div>
         <div>
           <label
             htmlFor="country"
-            className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-neutral-400"
+            className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary"
           >
             Country
           </label>
@@ -155,27 +156,27 @@ function StepDetails({
             name="country"
             required
             defaultValue={defaultCountry}
-            className="w-full rounded-md border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-neutral-500"
+            className="w-full rounded-md border border-surface-border bg-background px-4 py-2.5 text-text-primary outline-none transition-colors focus:border-text-secondary/60"
           >
-            <option value="" disabled className="text-neutral-500">
+            <option value="" disabled className="text-text-secondary">
               Select country
             </option>
             {COUNTRIES.map((c) => (
-              <option key={c} value={c} className="bg-neutral-800">
+              <option key={c} value={c} className="bg-secondary">
                 {c}
               </option>
             ))}
           </select>
         </div>
       </div>
-      <p className="!mt-1 text-[11px] text-neutral-600">
+      <p className="!mt-1 text-[11px] text-text-muted">
         This places you in your local, national, continental, and global
         communities for {subject.name}.
       </p>
 
       <button
         type="submit"
-        className="w-full rounded-md px-4 py-2.5 font-medium text-white transition hover:brightness-110"
+        className="w-full rounded-md px-4 py-2.5 font-medium text-white transition-[filter] hover:brightness-110"
         style={{ backgroundColor: subject.accent }}
       >
         Continue
@@ -194,10 +195,10 @@ function StepConfirm({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="mb-1 text-xl font-medium text-neutral-100">
+        <h2 className="mb-1 text-xl font-medium text-text-primary">
           Confirm membership
         </h2>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-text-secondary">
           You will be placed into all geographic communities for{" "}
           {subject.name} that contain your location, from local up to
           global.
@@ -208,8 +209,8 @@ function StepConfirm({
       <input type="hidden" name="subject" value={subject.slug} />
       <input type="hidden" name="authId" value={authId} />
 
-      <div className="rounded-md border border-neutral-700 bg-neutral-800/30 p-4 text-sm text-neutral-400">
-        <p className="mb-3 font-medium text-neutral-200">
+      <div className="rounded-md border border-surface-border bg-background/50 p-4 text-sm text-text-secondary">
+        <p className="mb-3 font-medium text-text-primary">
           As a {subject.name} member you can:
         </p>
         <ul className="space-y-1.5">
@@ -226,7 +227,7 @@ function StepConfirm({
 
       <button
         type="submit"
-        className="w-full rounded-md px-4 py-2.5 font-medium text-white transition hover:brightness-110"
+        className="w-full rounded-md px-4 py-2.5 font-medium text-white transition-[filter] hover:brightness-110"
         style={{ backgroundColor: subject.accent }}
       >
         Join {subject.name}
@@ -251,10 +252,10 @@ function StepSuccess({
         &#10003;
       </div>
       <div>
-        <h2 className="mb-1 text-xl font-medium text-neutral-100">
+        <h2 className="mb-1 text-xl font-medium text-text-primary">
           Welcome to {subject.name}
         </h2>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-text-secondary">
           You have been placed in {communities.length} communit
           {communities.length === 1 ? "y" : "ies"}:
         </p>
@@ -263,7 +264,7 @@ function StepSuccess({
         {communities.map((name) => (
           <div
             key={name}
-            className="rounded-md border border-neutral-800 bg-neutral-900/50 px-3 py-2 text-sm text-neutral-300"
+            className="rounded-md border border-surface-border bg-background/50 px-3 py-2 text-sm text-text-secondary"
           >
             {name}
           </div>
@@ -271,14 +272,14 @@ function StepSuccess({
       </div>
       <a
         href="https://console.loopcmbntr.live"
-        className="inline-block rounded-md px-6 py-2.5 text-sm font-medium text-white transition hover:brightness-110"
+        className="inline-block rounded-md px-6 py-2.5 text-sm font-medium text-white transition-[filter] hover:brightness-110"
         style={{ backgroundColor: subject.accent }}
       >
         Go to Console
       </a>
       <a
         href="/"
-        className="inline-block rounded-md border border-neutral-700 px-6 py-2.5 text-sm text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100"
+        className="inline-block rounded-md border border-surface-border px-6 py-2.5 text-sm text-text-secondary transition-colors hover:border-text-secondary/50 hover:text-text-primary"
       >
         Join another subject
       </a>
@@ -315,29 +316,31 @@ export function EnrollmentForm({
       />
 
       {state.error && (
-        <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
 
-      <form action={formAction}>
-        {state.step === 1 && (
-          <StepDetails
-            subject={subject}
-            defaultCity={geoCity ?? ""}
-            defaultCountry={defaultCountry}
-          />
-        )}
-        {state.step === 2 && (
-          <StepConfirm subject={subject} authId={state.authId!} />
-        )}
-        {state.step === 3 && (
-          <StepSuccess
-            subject={subject}
-            communities={state.communities ?? []}
-          />
-        )}
-      </form>
+      <ConversionCard>
+        <form action={formAction}>
+          {state.step === 1 && (
+            <StepDetails
+              subject={subject}
+              defaultCity={geoCity ?? ""}
+              defaultCountry={defaultCountry}
+            />
+          )}
+          {state.step === 2 && (
+            <StepConfirm subject={subject} authId={state.authId!} />
+          )}
+          {state.step === 3 && (
+            <StepSuccess
+              subject={subject}
+              communities={state.communities ?? []}
+            />
+          )}
+        </form>
+      </ConversionCard>
     </div>
   );
 }
