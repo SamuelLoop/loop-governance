@@ -95,6 +95,9 @@ export async function submitQuestion(
   if (error) return { error: error.message };
 
   revalidatePath(`/communities/${communityId}/chat`);
+  // See actions.ts's sendMessage for why: this same action now also
+  // runs from the dashboard's embedded full-chat view.
+  revalidatePath("/");
   return { error: "" };
 }
 
@@ -151,6 +154,9 @@ export async function upvoteQuestion(
     .eq("id", questionId);
 
   revalidatePath(`/communities/${communityId}/chat`);
+  // See actions.ts's sendMessage for why: this same action now also
+  // runs from the dashboard's embedded full-chat view.
+  revalidatePath("/");
   return { error: "" };
 }
 
@@ -208,5 +214,8 @@ export async function markQuestionDiscussing(
   });
 
   revalidatePath(`/communities/${communityId}/chat`);
+  // See actions.ts's sendMessage for why: this same action now also
+  // runs from the dashboard's embedded full-chat view.
+  revalidatePath("/");
   return { error: "" };
 }

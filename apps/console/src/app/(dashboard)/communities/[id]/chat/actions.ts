@@ -137,5 +137,12 @@ export async function sendMessage(
   if (error) return { error: error.message };
 
   revalidatePath(`/communities/${communityId}/chat`);
+  // Also revalidate the dashboard home — the full DualChatPanel/
+  // QuestionPanel experience is embedded there too (session: "make the
+  // full chat the default chat view"), reusing this same action. Without
+  // this, a message sent from the dashboard would silently not appear
+  // until a manual refresh, since revalidatePath only invalidates the
+  // path it's given.
+  revalidatePath("/");
   return { error: "" };
 }

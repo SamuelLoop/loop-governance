@@ -104,5 +104,8 @@ export async function toggleReaction(
   }
 
   revalidatePath(`/communities/${communityId}/chat`);
+  // See actions.ts's sendMessage for why: this same action now also
+  // runs from the dashboard's embedded full-chat view.
+  revalidatePath("/");
   return { error: "" };
 }

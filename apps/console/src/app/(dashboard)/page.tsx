@@ -2,8 +2,12 @@ import { createServiceClient, createClient } from "@/lib/supabase-server";
 import { getActiveSubject } from "@/lib/subject";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { DashboardChat } from "./dashboard-chat";
-import { sendMessage } from "./communities/[id]/chat/actions";
+import { getMessages } from "./communities/[id]/chat/actions";
+import { getQuestions } from "./communities/[id]/chat/question-actions";
+import { getReactions } from "./communities/[id]/chat/reaction-actions";
+import { DualChatPanel } from "./communities/[id]/chat/dual-chat-panel";
+import { QuestionPanel } from "./communities/[id]/chat/question-panel";
+import { ChatMobileLayout } from "./communities/[id]/chat/chat-mobile-layout";
 import { Glass, StatTile, StatusChip, type StatusChipVariant } from "@loop/ui";
 
 const PROPOSAL_STATUS_VARIANT: Record<string, StatusChipVariant> = {
@@ -67,27 +71,39 @@ export default async function DashboardPage() {
     );
   }
 
-  // Load messages for user's communities
-  let chatMessages: any[] = [];
+  // Full chat for the user's default (first) community — same
+  // community/leadership/questions experience as
+  // communities/[id]/chat/page.tsx, embedded here as the dashboard's
+  // default chat view instead of a lighter-weight widget.
   const firstCommunityId =
     userCommunities.length > 0 ? userCommunities[0].id : null;
 
-  if (firstCommunityId) {
-    const { data: msgs } = await admin
-      .from("messages")
-      .select(
-        `id, content, channel, created_at,
-        author:users!messages_author_id_fkey(id, display_name)`
-      )
-      .eq("community_id", firstCommunityId)
-      .order("created_at", { ascending: true })
-      .limit(100);
+  let isQuorum = false;
+  let communityMessages: Awaited<ReturnType<typeof getMessages>> = [];
+  let quorumMessages: Awaited<ReturnType<typeof getMessages>> = [];
+  let questions: Awaited<ReturnType<typeof getQuestions>> = [];
+  let communityReactions: Awaited<ReturnType<typeof getReactions>> = {};
+  let quorumReactions: Awaited<ReturnType<typeof getReactions>> = {};
 
-    chatMessages = (msgs ?? []).map((m: any) => ({
-      ...m,
-      community_name: userCommunities.find((c) => c.id === firstCommunityId)
-        ?.name,
-    }));
+  if (firstCommunityId && userId) {
+    const { data: membership } = await admin
+      .from("community_memberships")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("community_id", firstCommunityId)
+      .single();
+    isQuorum = !!membership && ["quorum", "admin"].includes(membership.role);
+
+    [communityMessages, quorumMessages, questions] = await Promise.all([
+      getMessages(firstCommunityId, "community"),
+      getMessages(firstCommunityId, "quorum"),
+      getQuestions(firstCommunityId),
+    ]);
+
+    [communityReactions, quorumReactions] = await Promise.all([
+      getReactions(communityMessages.map((m) => m.id)),
+      getReactions(quorumMessages.map((m) => m.id)),
+    ]);
   }
 
   const [
@@ -147,14 +163,55 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Chat - the main feature */}
-      {userCommunities.length > 0 ? (
-        <div className="mb-6">
-          <DashboardChat
-            communities={userCommunities}
-            initialMessages={chatMessages}
-            initialCommunityId={firstCommunityId}
-            sendMessageAction={sendMessage}
+      {/* Chat - the main feature. Full community/leadership/questions
+          experience for the user's default community, same composition
+          as communities/[id]/chat/page.tsx (not a lighter-weight
+          embedded widget). */}
+      {firstCommunityId ? (
+        <div className="mb-6 flex h-[calc(100vh-16rem)] flex-col overflow-hidden">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-caption text-text-secondary">
+              {userCommunities[0]?.name}
+            </p>
+            {userCommunities.length > 1 && (
+              <Link
+                href="/communities"
+                className="text-caption text-text-secondary hover:text-text-primary hover:underline"
+              >
+                View other communities
+              </Link>
+            )}
+          </div>
+          {/* Desktop: side-by-side panels */}
+          <div className="hidden flex-1 gap-3 overflow-hidden md:flex">
+            <div className="flex flex-[2] overflow-hidden">
+              <DualChatPanel
+                communityId={firstCommunityId}
+                communityMessages={communityMessages}
+                quorumMessages={quorumMessages}
+                isQuorum={isQuorum}
+                communityReactions={communityReactions}
+                quorumReactions={quorumReactions}
+              />
+            </div>
+            <div className="flex w-80 shrink-0 flex-col overflow-hidden">
+              <QuestionPanel
+                communityId={firstCommunityId}
+                questions={questions}
+                isQuorum={isQuorum}
+              />
+            </div>
+          </div>
+
+          {/* Mobile: tabbed layout */}
+          <ChatMobileLayout
+            communityId={firstCommunityId}
+            communityMessages={communityMessages}
+            quorumMessages={quorumMessages}
+            questions={questions}
+            isQuorum={isQuorum}
+            communityReactions={communityReactions}
+            quorumReactions={quorumReactions}
           />
         </div>
       ) : (
