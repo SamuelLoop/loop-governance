@@ -28,7 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-app="console" data-theme="dark">
-      <ThemeInitScript />
       <body
         className={cn(
           generalSans.variable,
@@ -37,6 +36,7 @@ export default function RootLayout({
           "min-h-screen font-body antialiased"
         )}
       >
+        <ThemeInitScript />
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>

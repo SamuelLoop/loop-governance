@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-08-13 — Production hotfix: sitewide hydration error on console + admin
+
+Real user report: "https://console.loopcmbntr.live/earnings - broken" right
+after the web-10/11 deploys went live. Investigated on the live site first
+(logged in via Chrome MCP with seeded creds) — page visually rendered fine
+but `read_console_messages` showed `Uncaught ... Minified React error
+#418` (hydration mismatch). Checked whether it was `/earnings`-specific:
+reproduced on `/treasury` and even the untouched `/login` page too, which
+ruled out sessions 09-11's own page-level work and pointed at something
+shared by every route. Reproduced locally in `next dev` for the full
+unminified diagnostic: `apps/console/src/app/layout.tsx` (and
+`apps/admin`'s identical copy) render `<ThemeInitScript />` as a direct
+child of `<html>`, sibling to `<body>` — `<script>` isn't a valid direct
+child of `<html>` in HTML, so browsers reparent it during parsing, and the
+resulting DOM doesn't match what React's SSR output describes at that
+position. This is session 7 scaffold code (2026-08-10), not something
+sessions 09-11 introduced. Fixed by moving `<ThemeInitScript />` inside
+`<body>` in both apps. Full writeup + the "root layout doesn't hot-reload
+via Fast Refresh, restart next dev to verify" gotcha: `LESSONS.md` #16.
+`portal` was never affected (no theme toggle, never used
+`ThemeInitScript`). Verified: type-check/build clean on both apps, and a
+real logged-in local reload confirmed zero console errors on `/earnings`
+post-fix (closes the "no real screenshot verified" gap sessions 08-10 left
+open, at least for this one page/bug).
+
+---
+
 ## 2026-08-13 — Console dashboard: full chat as the default view (ad hoc, real user request)
 
 Not part of the numbered session chain. Samuel asked directly: "make the
