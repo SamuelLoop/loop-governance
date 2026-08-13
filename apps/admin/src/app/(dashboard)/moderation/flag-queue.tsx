@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { resolveFlag } from "./actions";
+import { Glass, StatusChip, type StatusChipVariant } from "@loop/ui";
 
 type Flag = {
   id: string;
@@ -18,17 +19,10 @@ type Flag = {
   org_name: string | null;
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: "border-amber-500/40 bg-amber-500/15 text-amber-400",
-  actioned: "border-green-500/40 bg-green-500/15 text-green-400",
-  dismissed: "border-border bg-secondary/50 text-muted-foreground",
-};
-
-const TARGET_STYLES: Record<string, string> = {
-  message: "text-blue-400",
-  proposal: "text-purple-400",
-  user: "text-red-400",
-  community: "text-amber-400",
+const STATUS_VARIANT: Record<string, StatusChipVariant> = {
+  pending: "warning",
+  actioned: "success",
+  dismissed: "neutral",
 };
 
 export function FlagQueue({
@@ -57,7 +51,7 @@ export function FlagQueue({
             className={`rounded-md px-3 py-1.5 text-sm capitalize transition-colors ${
               statusFilter === s
                 ? "bg-primary text-primary-foreground"
-                : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                : "border border-surface-border bg-surface text-text-secondary hover:text-text-primary"
             }`}
           >
             {s}
@@ -71,34 +65,34 @@ export function FlagQueue({
       </div>
 
       {state.error && (
-        <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
+        <div className="mb-4 rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
 
       <div className="space-y-3">
         {filtered.map((f) => (
-          <div key={f.id} className="rounded-lg border border-border bg-card p-4">
+          <Glass key={f.id} space="admin" className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[f.status] ?? ""}`}>
+                  <StatusChip variant={STATUS_VARIANT[f.status] ?? "neutral"}>
                     {f.status}
-                  </span>
-                  <span className={`text-xs font-medium capitalize ${TARGET_STYLES[f.target_type] ?? "text-muted-foreground"}`}>
+                  </StatusChip>
+                  <span className="text-caption font-medium capitalize text-text-secondary">
                     {f.target_type}
                   </span>
                   {showOrg && f.org_name && (
-                    <span className="text-xs text-muted-foreground">{f.org_name}</span>
+                    <span className="text-caption text-text-secondary">{f.org_name}</span>
                   )}
                 </div>
-                <p className="text-sm font-medium">{f.reason}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="text-body font-medium">{f.reason}</p>
+                <p className="mt-1 text-caption text-text-secondary">
                   Reported by {f.reporter_name ?? "Unknown"} on{" "}
                   {new Date(f.created_at).toLocaleString()} · Target: {f.target_id.slice(0, 8)}…
                 </p>
                 {f.status !== "pending" && (
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-2 text-caption text-text-secondary">
                     Resolved by {f.resolved_by_name ?? "Unknown"}
                     {f.resolved_at && ` on ${new Date(f.resolved_at).toLocaleString()}`}
                     {f.resolution_note && (
@@ -111,7 +105,7 @@ export function FlagQueue({
               {canResolve && f.status === "pending" && resolvingId !== f.id && (
                 <button
                   onClick={() => { setResolvingId(f.id); setNote(""); }}
-                  className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors"
+                  className="rounded-md border border-surface-border px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors"
                 >
                   Resolve
                 </button>
@@ -119,8 +113,8 @@ export function FlagQueue({
             </div>
 
             {canResolve && resolvingId === f.id && (
-              <div className="mt-3 border-t border-border pt-3">
-                <label className="text-xs text-muted-foreground">Resolution note (optional)</label>
+              <div className="mt-3 border-t border-surface-border pt-3">
+                <label className="text-xs text-text-secondary">Resolution note (optional)</label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -146,27 +140,27 @@ export function FlagQueue({
                     <input type="hidden" name="resolution_note" value={note} />
                     <button
                       type="submit"
-                      className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors"
+                      className="rounded-md border border-surface-border px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors"
                     >
                       Dismiss
                     </button>
                   </form>
                   <button
                     onClick={() => setResolvingId(null)}
-                    className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             )}
-          </div>
+          </Glass>
         ))}
 
         {filtered.length === 0 && (
-          <div className="rounded-lg border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+          <Glass space="admin" className="py-12 text-center text-sm text-text-secondary">
             No {statusFilter === "all" ? "" : statusFilter + " "}flags
-          </div>
+          </Glass>
         )}
       </div>
     </div>

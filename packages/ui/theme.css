@@ -148,12 +148,10 @@
  * Durations/easings only — the `prefers-reduced-motion` fallback is a
  * per-component obligation (DESIGN.web.md: "every glow/pulse animation
  * must have a reduced-motion fallback"), not something a token file can
- * enforce by itself. Pattern for consumers:
- *
- *   .live-dot { animation: pulse var(--duration-live-dot) var(--ease-live) infinite; }
- *   @media (prefers-reduced-motion: reduce) {
- *     .live-dot { animation: none; }
- *   }
+ * enforce by itself. Real consumer: `packages/ui/src/components/
+ * live-dot.tsx` (session `web-08-space-tint-addendum.md`) — uses the
+ * `live-pulse` keyframes below via an arbitrary Tailwind `animate-[...]`
+ * value plus `motion-reduce:animate-none`.
  * ──────────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -166,6 +164,11 @@
   --ease-live: ease-in-out;
   --ease-hover: ease-out;
   --ease-vote-bar: ease-out;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.7); }
 }
 
 /* ────────────────────────────────────────────────────────────────────
@@ -188,6 +191,15 @@
   --accent-end: #8b5cf6;
   --accent-gradient: linear-gradient(90deg, var(--accent-start), var(--accent-end));
   --accent-glow: 0 0 16px rgba(124, 109, 255, 0.4);
+
+  /* Space-tint (DESIGN.web.md "Space-tint — panel ownership") — a third,
+   * narrower colour signal for panel-ownership chrome only (background/
+   * border on a Glass-family panel), never text/button-fill/data-viz. The
+   * leadership tint reuses --accent-end above (blue-violet); admin gets
+   * its own hue since every other saturated colour in the system is
+   * already spoken for. Unchanged between light/dark, same as
+   * --accent-start/-end. */
+  --admin-tint: #2dd4bf;
 
   /* Semantic */
   --success: #22c55e;
@@ -365,6 +377,7 @@
   --color-success: var(--success);
   --color-error: var(--error);
   --color-warning: var(--warning);
+  --color-admin-tint: var(--admin-tint);
 
   --color-tier-diamond: var(--tier-diamond);
   --color-tier-platinum: var(--tier-platinum);

@@ -45,8 +45,8 @@ export default async function AuditPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Audit Log</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Audit Log</h1>
+        <p className="text-body text-text-secondary">
           Append-only trail of admin actions ({events.length} most recent events)
         </p>
       </div>

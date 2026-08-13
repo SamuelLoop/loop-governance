@@ -74,8 +74,8 @@ export default async function SettingsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Settings</h1>
+        <p className="text-body text-text-secondary">
           Organization branding and loyalty token configuration
         </p>
       </div>

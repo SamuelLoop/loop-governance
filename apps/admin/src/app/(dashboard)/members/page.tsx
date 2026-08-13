@@ -2,6 +2,7 @@ import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { MembersTable } from "./members-table";
 import { PageDescription } from "@/components/page-description";
+import { Glass } from "@loop/ui";
 
 export default async function MembersPage() {
   const session = await requireAdminSession();
@@ -72,8 +73,8 @@ export default async function MembersPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Members</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Members</h1>
+        <p className="text-body text-text-secondary">
           {isPlatformAdmin
             ? "Manage users across all organizations"
             : `Manage users for ${session.whiteLabel?.name ?? "your organization"}`}
@@ -86,26 +87,26 @@ export default async function MembersPage() {
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg border border-border bg-card p-3">
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="text-xl font-bold tabular-nums">{roleCounts.total}</p>
-        </div>
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
-          <p className="text-xs text-destructive">Platform Admins</p>
-          <p className="text-xl font-bold tabular-nums text-destructive">{roleCounts.platform_admin}</p>
-        </div>
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-          <p className="text-xs text-amber-400">Org Admins</p>
-          <p className="text-xl font-bold tabular-nums text-amber-400">{roleCounts.org_admin}</p>
-        </div>
-        <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
-          <p className="text-xs text-blue-400">Org Managers</p>
-          <p className="text-xl font-bold tabular-nums text-blue-400">{roleCounts.org_manager}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-3">
-          <p className="text-xs text-muted-foreground">Members</p>
-          <p className="text-xl font-bold tabular-nums">{roleCounts.member}</p>
-        </div>
+        <Glass space="admin" className="p-3">
+          <p className="text-caption text-text-secondary">Total</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-text-primary">{roleCounts.total}</p>
+        </Glass>
+        <Glass space="admin" className="p-3">
+          <p className="text-caption text-error">Platform Admins</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-error">{roleCounts.platform_admin}</p>
+        </Glass>
+        <Glass space="admin" className="p-3">
+          <p className="text-caption text-warning">Org Admins</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-warning">{roleCounts.org_admin}</p>
+        </Glass>
+        <Glass space="admin" className="p-3">
+          <p className="text-caption text-text-secondary">Org Managers</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-text-primary">{roleCounts.org_manager}</p>
+        </Glass>
+        <Glass space="admin" className="p-3">
+          <p className="text-caption text-text-secondary">Members</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-text-primary">{roleCounts.member}</p>
+        </Glass>
       </div>
 
       <MembersTable

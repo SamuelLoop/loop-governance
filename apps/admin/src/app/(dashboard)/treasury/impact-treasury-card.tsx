@@ -2,6 +2,15 @@
 
 import { useActionState, useState } from "react";
 import { transferImpactTreasury, registerCommunityWallet } from "./impact-treasury-actions";
+import {
+  Glass,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+} from "@loop/ui";
 
 type Community = { id: string; name: string; level: string; subject: string };
 type Recent = {
@@ -41,23 +50,23 @@ export function ImpactTreasuryCard({
   const [communityId, setCommunityId] = useState(communities[0]?.id ?? "");
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <Glass space="admin" className="p-5">
       <div className="mb-4 flex items-baseline justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Impact Treasury (on-chain)</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-h2 font-bold">Impact Treasury (on-chain)</h2>
+          <p className="text-body text-text-secondary">
             Move LOOP from the Impact Treasury to a community wallet or grantee,
             and register community wallets so buyers can direct their allocation.
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">On-chain balance</p>
-          <p className="text-2xl font-bold tabular-nums">
+          <p className="text-caption text-text-secondary">On-chain balance</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-text-primary">
             {onChainBalance !== null ? onChainBalance.toLocaleString() : "—"}
-            <span className="ml-1 text-xs font-normal text-muted-foreground">LOOP</span>
+            <span className="ml-1 text-xs font-normal text-text-secondary">LOOP</span>
           </p>
           {treasuryAddress && (
-            <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+            <p className="mt-0.5 font-mono text-[10px] text-text-secondary">
               {treasuryAddress.slice(0, 8)}…{treasuryAddress.slice(-6)}
             </p>
           )}
@@ -65,7 +74,7 @@ export function ImpactTreasuryCard({
       </div>
 
       {!chainConfigured && (
-        <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
+        <div className="mb-4 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
           NEXT_PUBLIC_LOOP_TOKEN_ADDRESS and LOOP_OWNER_PRIVATE_KEY are not set on this
           Vercel project. Add them to enable Impact Treasury actions.
         </div>
@@ -75,12 +84,12 @@ export function ImpactTreasuryCard({
         <div>
           <h3 className="mb-2 text-sm font-medium">Transfer from Impact Treasury</h3>
           {transferState.error && (
-            <div className="mb-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm text-destructive">
+            <div className="mb-2 rounded-md border border-error/30 bg-error/10 px-3 py-1.5 text-sm text-error">
               {transferState.error}
             </div>
           )}
           {transferState.success && (
-            <div className="mb-2 rounded-md border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-sm text-green-400">
+            <div className="mb-2 rounded-md border border-success/30 bg-success/10 px-3 py-1.5 text-sm text-success">
               {transferState.success}
               {transferState.txHash && (
                 <a
@@ -96,7 +105,7 @@ export function ImpactTreasuryCard({
           )}
           <form action={transferAction} className="space-y-3">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Recipient wallet</label>
+              <label className="text-xs text-text-secondary">Recipient wallet</label>
               <input
                 name="recipient"
                 placeholder="0x…"
@@ -107,7 +116,7 @@ export function ImpactTreasuryCard({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Amount (LOOP)</label>
+                <label className="text-xs text-text-secondary">Amount (LOOP)</label>
                 <input
                   name="amount"
                   type="number"
@@ -120,7 +129,7 @@ export function ImpactTreasuryCard({
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Label</label>
+                <label className="text-xs text-text-secondary">Label</label>
                 <input
                   name="label"
                   placeholder="Grantee name / community"
@@ -130,7 +139,7 @@ export function ImpactTreasuryCard({
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Reason (optional)</label>
+              <label className="text-xs text-text-secondary">Reason (optional)</label>
               <input
                 name="reason"
                 placeholder="Why is this being sent"
@@ -150,17 +159,17 @@ export function ImpactTreasuryCard({
 
         <div>
           <h3 className="mb-2 text-sm font-medium">Register community wallet</h3>
-          <p className="mb-3 text-xs text-muted-foreground">
+          <p className="mb-3 text-xs text-text-secondary">
             A community must have an on-chain wallet before buyers can direct
             their allocation to it. This is a one-time registration.
           </p>
           {registerState.error && (
-            <div className="mb-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm text-destructive">
+            <div className="mb-2 rounded-md border border-error/30 bg-error/10 px-3 py-1.5 text-sm text-error">
               {registerState.error}
             </div>
           )}
           {registerState.success && (
-            <div className="mb-2 rounded-md border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-sm text-green-400">
+            <div className="mb-2 rounded-md border border-success/30 bg-success/10 px-3 py-1.5 text-sm text-success">
               {registerState.success}
               {registerState.txHash && (
                 <a
@@ -176,7 +185,7 @@ export function ImpactTreasuryCard({
           )}
           <form action={registerAction} className="space-y-3">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Community</label>
+              <label className="text-xs text-text-secondary">Community</label>
               <select
                 name="community_id"
                 value={communityId}
@@ -193,7 +202,7 @@ export function ImpactTreasuryCard({
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Wallet address</label>
+              <label className="text-xs text-text-secondary">Wallet address</label>
               <input
                 name="wallet"
                 placeholder="0x…"
@@ -216,53 +225,51 @@ export function ImpactTreasuryCard({
       {recent.length > 0 && (
         <div className="mt-6">
           <h3 className="mb-2 text-sm font-medium">Recent Impact Treasury transfers</h3>
-          <div className="overflow-x-auto rounded-md border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/30">
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">When</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Recipient</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Label</th>
-                  <th className="px-3 py-2 text-right font-medium text-muted-foreground">Amount</th>
-                  <th className="hidden px-3 py-2 text-left font-medium text-muted-foreground md:table-cell">Reason</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tx</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((r) => (
-                  <tr key={r.id} className="border-b border-border last:border-0">
-                    <td className="whitespace-nowrap px-3 py-2 text-xs text-muted-foreground">
-                      {new Date(r.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2 font-mono text-xs">
-                      {r.recipient_wallet.slice(0, 6)}…{r.recipient_wallet.slice(-4)}
-                    </td>
-                    <td className="px-3 py-2 text-xs">{r.recipient_label ?? "—"}</td>
-                    <td className="px-3 py-2 text-right font-medium tabular-nums">
-                      {Number(r.amount).toLocaleString()}
-                    </td>
-                    <td className="hidden px-3 py-2 text-xs text-muted-foreground md:table-cell">
-                      {r.reason ?? "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {r.tx_hash && (
-                        <a
-                          href={`https://basescan.org/tx/${r.tx_hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary underline"
-                        >
-                          view
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable>
+            <DataTableHeader>
+              <tr>
+                <DataTableHead>When</DataTableHead>
+                <DataTableHead>Recipient</DataTableHead>
+                <DataTableHead>Label</DataTableHead>
+                <DataTableHead align="right">Amount</DataTableHead>
+                <DataTableHead className="hidden md:table-cell">Reason</DataTableHead>
+                <DataTableHead>Tx</DataTableHead>
+              </tr>
+            </DataTableHeader>
+            <DataTableBody>
+              {recent.map((r) => (
+                <DataTableRow key={r.id}>
+                  <DataTableCell numeric className="whitespace-nowrap text-caption text-text-secondary">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </DataTableCell>
+                  <DataTableCell numeric>
+                    {r.recipient_wallet.slice(0, 6)}…{r.recipient_wallet.slice(-4)}
+                  </DataTableCell>
+                  <DataTableCell className="text-caption">{r.recipient_label ?? "—"}</DataTableCell>
+                  <DataTableCell numeric align="right" className="font-medium">
+                    {Number(r.amount).toLocaleString()}
+                  </DataTableCell>
+                  <DataTableCell className="hidden text-caption text-text-secondary md:table-cell">
+                    {r.reason ?? "—"}
+                  </DataTableCell>
+                  <DataTableCell>
+                    {r.tx_hash && (
+                      <a
+                        href={`https://basescan.org/tx/${r.tx_hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary underline"
+                      >
+                        view
+                      </a>
+                    )}
+                  </DataTableCell>
+                </DataTableRow>
+              ))}
+            </DataTableBody>
+          </DataTable>
         </div>
       )}
-    </div>
+    </Glass>
   );
 }

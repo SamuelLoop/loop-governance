@@ -1,7 +1,55 @@
 # Loop Governance — LESSONS
 
 > Hard-won gotchas. Add a new entry the session it's discovered. Never delete.
-> Last updated: 2026-08-11
+> Last updated: 2026-08-13
+
+## 14. `theme.css`'s font-family and font-weight tokens collide on the `display`/`body` keys
+
+**What happened:** `packages/ui/theme.css` §1 defines font-*family* tokens
+under Tailwind v4's `--font-*` namespace: `--font-display`, `--font-body`,
+`--font-mono` (→ utilities `font-display`/`font-body`/`font-mono` for
+`font-family`). §2 separately defines font-*weight* tokens under the
+`--font-weight-*` namespace: `--font-weight-display`, `--font-weight-h1`,
+`--font-weight-h2`, `--font-weight-body`, `--font-weight-caption`,
+`--font-weight-data-lg`, `--font-weight-data-sm` (→ utilities
+`font-display`/`font-h1`/`font-h2`/`font-body`/`font-caption`/`font-
+data-lg`/`font-data-sm` for `font-weight`). Two keys — `display` and
+`body` — exist under *both* namespaces, so `font-display` and `font-body`
+are two different CSS declarations racing for the same generated Tailwind
+utility class name. Same category of bug as lesson #13 (a named `@theme`
+key silently colliding with a different reserved utility family), but
+self-inflicted between `theme.css`'s own two sections rather than against
+a Tailwind built-in.
+
+**Effect:** confirmed via the compiled production CSS (session
+`web-09-admin-rollout.md`, first session to actually consume any of these
+tokens — zero prior usages anywhere in the repo before this session):
+`.font-body{font-family:var(--font-geist),...}` is the *only* declaration
+emitted for `.font-body` — the family declaration from `--font-body` (§1)
+wins; the weight declaration from `--font-weight-body` (§2) never makes it
+into the compiled CSS at all. `font-display`/`font-h1`/`font-caption`/
+`font-data-lg`/`font-data-sm` are untested (no session has used them yet)
+but the same collision risk applies to `font-display` specifically (also
+double-defined); the other four (`h1`, `h2`, `caption`, `data-lg`,
+`data-sm`) don't collide with any `--font-*` family key today, so they may
+work as weight utilities — not verified either way.
+
+**Correct pattern:** do not use the custom `--font-weight-*`-derived
+`font-{name}` utilities for `display` or `body` — use Tailwind's built-in
+`font-bold`/`font-semibold`/`font-medium`/`font-normal` instead, which
+don't touch the contested namespace (verified working, session 9). For
+font *size*, the paired `text-{name}` utilities (`text-h1`, `text-body`,
+etc.) are unaffected by this collision and confirmed correct via compiled
+CSS. The real fix belongs in `theme.css` itself: rename the
+`--font-weight-*` keys to something that can't collide with `--font-*`
+family keys (they already don't share a prefix conceptually, but Tailwind
+resolves both down to a `font-*` utility class name — the fix has to
+either drop the weight tokens for `display`/`body` specifically, since
+`theme.css`'s own comment already says the two are visually distinguished
+by size alone, or emit them via inline `style`/arbitrary values instead of
+a named `@theme` token). Not fixed as of session 9 — flagged for whoever
+next needs a heading in General Sans rather than the inherited Geist body
+face.
 
 ---
 

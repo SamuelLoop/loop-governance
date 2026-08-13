@@ -1,6 +1,17 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  DataTableEmpty,
+  StatusChip,
+  type StatusChipVariant,
+} from "@loop/ui";
 
 type AuditEvent = {
   id: string;
@@ -13,11 +24,15 @@ type AuditEvent = {
   org_name: string | null;
 };
 
-const EVENT_CATEGORY_STYLES: Record<string, string> = {
-  role: "border-red-500/40 bg-red-500/15 text-red-400",
-  treasury: "border-amber-500/40 bg-amber-500/15 text-amber-400",
-  moderation: "border-blue-500/40 bg-blue-500/15 text-blue-400",
-  settings: "border-purple-500/40 bg-purple-500/15 text-purple-400",
+// See packages/ui/src/components/status-chip.tsx: only the semantic
+// palette (success/warning/error/neutral) is available, so categories
+// that aren't a severity signal map to "neutral" — the event_type label
+// text itself still carries the specific category.
+const EVENT_CATEGORY_VARIANT: Record<string, StatusChipVariant> = {
+  role: "warning",
+  treasury: "warning",
+  moderation: "neutral",
+  settings: "neutral",
 };
 
 function categoryOf(eventType: string): string {
@@ -62,7 +77,7 @@ export function AuditTable({ events, showOrg }: { events: AuditEvent[]; showOrg:
               className={`rounded-md px-3 py-1.5 text-xs capitalize transition-colors ${
                 category === c
                   ? "bg-primary text-primary-foreground"
-                  : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                  : "border border-surface-border bg-surface text-text-secondary hover:text-text-primary"
               }`}
             >
               {c}
@@ -71,73 +86,63 @@ export function AuditTable({ events, showOrg }: { events: AuditEvent[]; showOrg:
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-secondary/30">
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Time</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Event</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Actor</th>
-              {showOrg && (
-                <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground md:table-cell">Org</th>
-              )}
-              <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground lg:table-cell">Target</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((e) => {
-              const cat = categoryOf(e.event_type);
-              const isExpanded = expandedId === e.id;
-              return (
-                <Fragment key={e.id}>
-                  <tr
-                    onClick={() => setExpandedId(isExpanded ? null : e.id)}
-                    className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/20"
-                  >
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
-                      {new Date(e.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
-                        EVENT_CATEGORY_STYLES[cat] ?? "border-border bg-secondary/50 text-muted-foreground"
-                      }`}>
-                        {e.event_type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{e.actor_name ?? "Unknown"}</td>
-                    {showOrg && (
-                      <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                        {e.org_name ?? "—"}
-                      </td>
-                    )}
-                    <td className="hidden px-4 py-3 lg:table-cell">
-                      <span className="text-xs text-muted-foreground">
-                        {e.target_type} · {e.target_id.slice(0, 8)}…
-                      </span>
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr className="border-b border-border last:border-0 bg-secondary/10">
-                      <td colSpan={showOrg ? 5 : 4} className="px-4 py-3">
-                        <pre className="overflow-x-auto rounded-md bg-background p-3 text-xs text-muted-foreground">
-                          {JSON.stringify(e.detail ?? {}, null, 2)}
-                        </pre>
-                      </td>
-                    </tr>
+      <DataTable>
+        <DataTableHeader>
+          <tr>
+            <DataTableHead>Time</DataTableHead>
+            <DataTableHead>Event</DataTableHead>
+            <DataTableHead>Actor</DataTableHead>
+            {showOrg && <DataTableHead className="hidden md:table-cell">Org</DataTableHead>}
+            <DataTableHead className="hidden lg:table-cell">Target</DataTableHead>
+          </tr>
+        </DataTableHeader>
+        <DataTableBody>
+          {filtered.map((e) => {
+            const cat = categoryOf(e.event_type);
+            const isExpanded = expandedId === e.id;
+            return (
+              <Fragment key={e.id}>
+                <DataTableRow
+                  onClick={() => setExpandedId(isExpanded ? null : e.id)}
+                  className="cursor-pointer"
+                >
+                  <DataTableCell numeric className="whitespace-nowrap text-caption text-text-secondary">
+                    {new Date(e.created_at).toLocaleString()}
+                  </DataTableCell>
+                  <DataTableCell>
+                    <StatusChip variant={EVENT_CATEGORY_VARIANT[cat] ?? "neutral"}>
+                      {e.event_type}
+                    </StatusChip>
+                  </DataTableCell>
+                  <DataTableCell>{e.actor_name ?? "Unknown"}</DataTableCell>
+                  {showOrg && (
+                    <DataTableCell className="hidden text-text-secondary md:table-cell">
+                      {e.org_name ?? "—"}
+                    </DataTableCell>
                   )}
-                </Fragment>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={showOrg ? 5 : 4} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No audit events found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  <DataTableCell className="hidden lg:table-cell">
+                    <span className="text-caption text-text-secondary">
+                      {e.target_type} · {e.target_id.slice(0, 8)}…
+                    </span>
+                  </DataTableCell>
+                </DataTableRow>
+                {isExpanded && (
+                  <DataTableRow className="bg-surface/40 hover:bg-surface/40">
+                    <DataTableCell colSpan={showOrg ? 5 : 4}>
+                      <pre className="overflow-x-auto rounded-md bg-background p-3 text-caption text-text-secondary">
+                        {JSON.stringify(e.detail ?? {}, null, 2)}
+                      </pre>
+                    </DataTableCell>
+                  </DataTableRow>
+                )}
+              </Fragment>
+            );
+          })}
+          {filtered.length === 0 && (
+            <DataTableEmpty colSpan={showOrg ? 5 : 4}>No audit events found</DataTableEmpty>
+          )}
+        </DataTableBody>
+      </DataTable>
     </div>
   );
 }

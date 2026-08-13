@@ -1,7 +1,7 @@
 # Loop Governance — NEXT
 
 > Current state and priorities. Update at every session end.
-> Last updated: 2026-08-10
+> Last updated: 2026-08-13
 
 ## Deployed state
 
@@ -257,6 +257,74 @@ decision (admin tint proposed as teal, needs real sign-off in session 08
 itself before 09 depends on it). **All four carry forward the "Post-deploy
 correction" standing rule below: explicit visual sign-off before
 deploying, every session, not just portal's.**
+
+**Session 8 done (2026-08-13):** `sessions/web-08-space-tint-output.md`.
+Admin tint confirmed as `#2dd4bf` (the brief's own proposal) — mocked up
+as a real artifact against 2 alternates, both on the actual Glass-panel
+treatment, not a swatch; user picked the original proposal as-is.
+`DESIGN.web.md` got a new "Space-tint — panel ownership" section;
+`packages/ui/theme.css` got `--admin-tint` plus the `live-pulse` keyframes
+(moved from console-only `globals.css` since `LiveDot` isn't console-only
+anymore); two new real components, `Glass` (space=`"community"|
+"leadership"|"admin"`) and `LiveDot`, in `packages/ui/src/components/`.
+Console chat (`DualChatPanel`, and `ChatMobileLayout` via the shared
+`ThreadPanel`) retrofitted onto both — dead `.live-dot`/`.leadership-glow`/
+`.community-shade` CSS removed from `apps/console/src/app/globals.css`
+after confirming via grep nothing else referenced it.
+`pnpm --filter console run build` clean (exit 0), 0 lint errors (only
+pre-existing warnings). Visual parity verified by grepping the actual
+compiled production CSS chunk for every token/class this change touches
+(admin-tint value, live-pulse keyframes, rounded-panel, bg-surface,
+backdrop-blur var, and the community light/dark hex pair) — all present,
+matching the session's own proven method for catching silent Tailwind
+purge bugs (see LESSONS.md #13). **Not done:** a real logged-in
+screenshot — starting the console dev server was blocked by this
+session's tool-permission classifier, not a code issue. Real seeded test
+credentials exist for next time (`scripts/seed-users.mjs`:
+`diana@looptest.dev` / `LoopTest2026!`, seeded `quorum` role). Nothing in
+this session deployed anything — only local build/CSS verification: see
+web-08's own "Left open" for the screenshot gap, which should close
+before whichever of 09/10/11 deploys first, per the standing rule above.
+Also flagged (not fixed, out of scope): `apps/console/.../communities/
+[id]/chat/chat-panel.tsx` (`ChatPanel`) is dead code, nothing imports it.
+
+**Session 9 done (2026-08-13):** `sessions/web-09-admin-rollout-output.md`.
+All 8 real admin dashboard pages rebuilt on `Glass space="admin"` (brief's
+title said "7 pages," its own file list and the real filesystem both say
+8 — noted as a discrepancy, not silently corrected). Two new real
+`packages/ui` components, `DataTable` (denser table wrapper, presentational
+only — pages keep their own filter/search/expand logic) and `StatusChip`
+(4 semantic variants only: success/warning/error/neutral), used across
+audit/communities/governance/members/moderation/treasury. Several
+pre-existing admin tables had ad hoc categorical hues (blue/purple/second-
+blue) that don't map to the locked semantic palette — deliberately
+collapsed onto the 4-value `StatusChip` set rather than reinventing hues,
+full old→new mapping table in the output doc; flagged as a real, visible
+simplification worth a look once seen live, not silently done.
+`LiveDot` checked and correctly **not** added anywhere — grepped
+`apps/admin/src` for Realtime usage, zero matches, admin has no live
+subscriptions today. **Real bug found and documented, not fixed:**
+`packages/ui/theme.css`'s `--font-*` (family) and `--font-weight-*`
+(weight) namespaces both define `display` and `body` keys, so
+`font-display`/`font-body` utility classes collide — confirmed via
+compiled CSS that `.font-body` only ever emits the family declaration,
+never the weight one. This session's new code avoids the collision
+entirely (built-in `font-bold`/`font-medium`/`font-normal` for weight,
+the safe `text-{name}` tokens for size); LESSONS.md #14 added, real fix
+still open. `pnpm --filter admin run build` clean (exit 0, 105s), 0 lint
+errors (28 pre-existing warnings, none new), `@loop/ui` and `admin`
+type-check clean. Compiled-CSS grep confirmed every new token/class
+present and correct, including a regression check that lesson #13's
+`max-w-*` fix is still holding. **Not done:** a real logged-in screenshot
+— no browser/dev-server tool access this session at all (worse than
+session 8, which at least attempted and hit a permission block);
+verification is 100% static (token tracing + compiled CSS). Also found:
+session 8's own changes (`Glass`/`LiveDot`, `theme.css`/`DESIGN.web.md`
+edits) were still uncommitted when this session started — folded into
+this session's commit since they're a hard prerequisite, flagged as a
+likely process gap in session 8's own closeout.
+
+Next up: `sessions/web-10-console-rollout.md`.
 
 **Post-deploy correction (2026-08-10, same day):** the real user checked
 the live deploy and found gov.loopcmbntr.live "totally broken" and never

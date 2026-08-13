@@ -5,6 +5,97 @@
 
 ---
 
+## 2026-08-13 — Web session 09: admin rollout (Signal Pulse)
+
+Full detail: `sessions/web-09-admin-rollout-output.md`. Summary:
+
+Rebuilt all 8 real `apps/admin/src/app/(dashboard)/*/page.tsx` dashboard
+pages (audit, communities, governance, members, moderation, home/`page.tsx`,
+settings, treasury — the brief's title said "7 pages," its file list and
+the real filesystem both say 8, flagged as a discrepancy not silently
+fixed) on `<Glass space="admin">`, replacing every ad hoc
+`rounded-lg border border-border bg-card` panel, including the shared
+`PageDescription` component all 8 pages use. Two new real `packages/ui`
+components: `DataTable` (denser, presentational-only table wrapper — pages
+keep their own filter/search/expand-row logic) and `StatusChip` (4
+semantic variants only: success/warning/error/neutral), used across
+audit/communities/governance/members/moderation/treasury. Several
+pre-existing admin tables had ad hoc categorical hues (blue for
+"moderation" events, purple for "settings" events, a second blue for
+"org_manager," etc.) that don't map to Signal Pulse's locked palette —
+deliberately collapsed onto `StatusChip`'s 4-value set with the label text
+carrying the rest of the identity (full old→new mapping table in the
+output doc). `LiveDot` checked and correctly left out entirely — grepped
+`apps/admin/src` for Realtime usage first, zero matches, nothing to attach
+liveness to.
+
+**Real bug found and documented (LESSONS.md #14), not fixed:**
+`packages/ui/theme.css`'s `--font-*` (family) and `--font-weight-*`
+(weight) token namespaces both define `display` and `body` keys, so
+`font-display`/`font-body` utility classes collide — confirmed via
+compiled CSS that `.font-body` only ever emits the family declaration.
+Nobody had used any of `theme.css`'s type-scale tokens before this
+session (verified via grep), so this was untested territory until now.
+This session's own code sidesteps it (built-in `font-bold`/`font-medium`/
+`font-normal` for weight, the unaffected `text-{name}` tokens for size) —
+headings render in the inherited Geist face, not General Sans, until a
+future session resolves the collision properly in `theme.css`.
+
+**Verification:** clean `type-check` (`@loop/ui` and `admin`), clean
+`pnpm --filter admin run lint` (0 errors, 28 pre-existing warnings, none
+new), clean `pnpm --filter admin run build` (exit 0, 105s, all 13 routes
+including all 8 rebuilt pages). Compiled-CSS grep (LESSONS.md #13's
+method) confirmed every new token/class present and correct, plus a
+regression check that lesson #13's own `max-w-*` fix is still holding.
+**Left open:** a real logged-in screenshot, light and dark — no
+browser/dev-server tool access at all this session (worse off than
+session 8, which at least attempted one). Also found: session 8's own
+changes (`Glass`/`LiveDot`, `theme.css`/`DESIGN.web.md` edits) were still
+uncommitted when this session started (`git status` showed them modified/
+untracked) — folded into this session's commit as a hard prerequisite,
+flagged as a likely gap in session 8's own closeout rather than corrected
+silently. Nothing deployed or pushed this session — the standing
+"visual sign-off before deploy" rule (sessions 08-11) still applies,
+unresolved by this session, and gates whichever of 10/11 ships first.
+
+---
+
+## 2026-08-13 — Web session 08: space-tint addendum + real Glass/LiveDot components
+
+Full detail: `sessions/web-08-space-tint-output.md`. Summary:
+
+Formalized the panel-ownership tint pattern discovered live during the
+2026-08-11 chat build (community/leadership tints shipped that day as
+one-off CSS) into a real `DESIGN.web.md` section, picked the admin colour
+(`#2dd4bf`, confirmed via a real 3-candidate Glass-panel artifact mockup,
+not a prose swatch — user picked the brief's own proposal), and built the
+first two real cross-app components in `packages/ui/src/components/`:
+`Glass` (`space="community"|"leadership"|"admin"`) and `LiveDot`.
+Retrofitted console's community chat (`DualChatPanel` + `ChatMobileLayout`
+via the shared `ThreadPanel`) onto both, deleting the dead ad hoc CSS
+(`.live-dot`, `.leadership-glow`, `.community-shade`) from `apps/console/
+src/app/globals.css` after confirming nothing else referenced it. The
+`live-pulse` keyframes moved into `packages/ui/theme.css` since `LiveDot`
+is a shared component now, not console-only.
+
+**Verification:** clean `type-check` (both `@loop/ui` and `console`),
+clean `pnpm --filter console run build` (exit 0, chat route compiles, 0
+lint errors), and a compiled-production-CSS grep confirming every touched
+token/utility survived Tailwind's purge (the repo's own proven method for
+this exact failure class — LESSONS.md #13). **Left open:** a real
+logged-in screenshot of the retrofitted page — the console dev server
+wouldn't start under this session's tool-permission classifier, unrelated
+to the code. Real seeded credentials for next time:
+`diana@looptest.dev` / `LoopTest2026!` (`scripts/seed-users.mjs`,
+`quorum` role). Nothing deployed this session — the "visual sign-off
+before deploy" standing rule (sessions 08-11) still gates whichever of
+09/10/11 ships first, and the screenshot gap should close before that.
+Also flagged, not touched: `chat-panel.tsx`'s `ChatPanel` export is dead
+code (confirmed via grep, nothing imports it), spun off as a separate
+background task rather than folded into this session's diff.
+
+---
+
 ## 2026-08-10 — Web redesign: post-deploy revert (portal dark, logo everywhere)
 
 **Trigger:** real user checked the live deploy right after session 7 shipped

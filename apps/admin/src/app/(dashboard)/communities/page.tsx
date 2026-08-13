@@ -1,6 +1,15 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { PageDescription } from "@/components/page-description";
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  StatusChip,
+} from "@loop/ui";
 
 export default async function CommunitiesPage() {
   const session = await requireAdminSession();
@@ -33,8 +42,8 @@ export default async function CommunitiesPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Communities</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Communities</h1>
+        <p className="text-body text-text-secondary">
           {communities?.length ?? 0} communities across {subjects.length} subjects
         </p>
       </div>
@@ -48,66 +57,64 @@ export default async function CommunitiesPage() {
         const subjectCommunities = (communities ?? []).filter((c) => c.subject === subject);
         return (
           <div key={subject} className="mb-8">
-            <h2 className="mb-3 text-lg font-semibold capitalize">{subject}</h2>
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/30">
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Name</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Level</th>
-                    <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground md:table-cell">Members</th>
-                    <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground md:table-cell">Quorum</th>
-                    <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground lg:table-cell">Proposal Cap</th>
-                    <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground lg:table-cell">Visibility</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjectCommunities.map((c) => {
-                    const members = memberCounts?.get(c.id) ?? 0;
-                    const depth = (c.path?.split(".").length ?? 1) - 1;
-                    return (
-                      <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/20">
-                        <td className="px-4 py-3">
-                          <div style={{ paddingLeft: `${depth * 16}px` }}>
-                            <p className="font-medium">{c.name}</p>
-                            <p className="text-xs text-muted-foreground">{c.slug}</p>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${
-                            c.level === "global"
-                              ? "border-amber-500/40 bg-amber-500/15 text-amber-400"
-                              : c.level === "continental" || c.level === "national"
-                                ? "border-blue-500/40 bg-blue-500/15 text-blue-400"
-                                : "border-border bg-secondary/50 text-muted-foreground"
-                          }`}>
-                            {c.level}
-                          </span>
-                        </td>
-                        <td className="hidden px-4 py-3 text-right tabular-nums md:table-cell">
-                          {members}
-                        </td>
-                        <td className="hidden px-4 py-3 text-right tabular-nums md:table-cell">
-                          {c.quorum_size}
-                        </td>
-                        <td className="hidden px-4 py-3 text-right tabular-nums lg:table-cell">
-                          {c.proposal_cap_cents != null
-                            ? `$${(c.proposal_cap_cents / 100).toLocaleString()}`
-                            : <span className="text-muted-foreground">None</span>}
-                        </td>
-                        <td className="hidden px-4 py-3 lg:table-cell">
-                          <span className={`text-xs ${
-                            c.visibility === "public" ? "text-green-400" : "text-muted-foreground"
-                          }`}>
-                            {c.visibility ?? "public"}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <h2 className="mb-3 text-h2 font-bold capitalize">{subject}</h2>
+            <DataTable>
+              <DataTableHeader>
+                <tr>
+                  <DataTableHead>Name</DataTableHead>
+                  <DataTableHead>Level</DataTableHead>
+                  <DataTableHead align="right" className="hidden md:table-cell">
+                    Members
+                  </DataTableHead>
+                  <DataTableHead align="right" className="hidden md:table-cell">
+                    Quorum
+                  </DataTableHead>
+                  <DataTableHead align="right" className="hidden lg:table-cell">
+                    Proposal Cap
+                  </DataTableHead>
+                  <DataTableHead className="hidden lg:table-cell">Visibility</DataTableHead>
+                </tr>
+              </DataTableHeader>
+              <DataTableBody>
+                {subjectCommunities.map((c) => {
+                  const members = memberCounts?.get(c.id) ?? 0;
+                  const depth = (c.path?.split(".").length ?? 1) - 1;
+                  return (
+                    <DataTableRow key={c.id}>
+                      <DataTableCell>
+                        <div style={{ paddingLeft: `${depth * 16}px` }}>
+                          <p className="font-medium">{c.name}</p>
+                          <p className="text-caption text-text-secondary">{c.slug}</p>
+                        </div>
+                      </DataTableCell>
+                      <DataTableCell>
+                        <StatusChip variant={c.level === "global" ? "warning" : "neutral"}>
+                          {c.level}
+                        </StatusChip>
+                      </DataTableCell>
+                      <DataTableCell numeric align="right" className="hidden md:table-cell">
+                        {members}
+                      </DataTableCell>
+                      <DataTableCell numeric align="right" className="hidden md:table-cell">
+                        {c.quorum_size}
+                      </DataTableCell>
+                      <DataTableCell numeric align="right" className="hidden lg:table-cell">
+                        {c.proposal_cap_cents != null ? (
+                          `$${(c.proposal_cap_cents / 100).toLocaleString()}`
+                        ) : (
+                          <span className="text-text-muted">None</span>
+                        )}
+                      </DataTableCell>
+                      <DataTableCell className="hidden lg:table-cell">
+                        <StatusChip variant={c.visibility === "public" ? "success" : "neutral"}>
+                          {c.visibility ?? "public"}
+                        </StatusChip>
+                      </DataTableCell>
+                    </DataTableRow>
+                  );
+                })}
+              </DataTableBody>
+            </DataTable>
           </div>
         );
       })}

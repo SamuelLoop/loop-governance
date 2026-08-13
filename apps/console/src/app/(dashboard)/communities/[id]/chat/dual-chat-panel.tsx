@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquareQuote, Send, X, Shield, Users, Link2, FileText, Vote, Megaphone, Coins, Star, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Glass, LiveDot } from "@loop/ui";
 
 const QUICK_EMOJI = [
   "👍", "👎", "❤️", "🎉", "😂", "😮", "😢", "🙏",
@@ -232,7 +233,7 @@ export function ThreadPanel({
         <span className="text-[10px] text-muted-foreground">
           ({messages.length})
         </span>
-        <span className="live-dot ml-auto" aria-hidden="true" title="Live" />
+        <LiveDot className="ml-auto" title="Live" />
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-1">
@@ -365,7 +366,7 @@ export function DualChatPanel({
 
   return (
     <div className="flex flex-1 gap-3 overflow-hidden">
-      <div className="community-shade flex flex-1 flex-col overflow-hidden rounded-panel border border-surface-border backdrop-blur-[var(--blur-glass)]">
+      <Glass space="community" className="flex flex-1 flex-col overflow-hidden">
         <ThreadPanel
           title="Community"
           icon={<Users className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -378,23 +379,21 @@ export function DualChatPanel({
           clearReference={() => setReferencedMsg(null)}
           reactionsByMessage={communityReactions}
         />
-      </div>
-      <div className="leadership-glow flex flex-1 flex-col overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-hidden rounded-panel bg-surface backdrop-blur-[var(--blur-glass)]">
-          <ThreadPanel
-            title="Leadership group"
-            icon={<Shield className="h-3.5 w-3.5 text-primary" />}
-            messages={quorumMessages}
-            communityId={communityId}
-            channel="quorum"
-            canPost={isQuorum}
-            onReference={setReferencedMsg}
-            referencedMsg={referencedMsg}
-            clearReference={() => setReferencedMsg(null)}
-            reactionsByMessage={quorumReactions}
-          />
-        </div>
-      </div>
+      </Glass>
+      <Glass space="leadership" className="flex flex-1 flex-col overflow-hidden">
+        <ThreadPanel
+          title="Leadership group"
+          icon={<Shield className="h-3.5 w-3.5 text-primary" />}
+          messages={quorumMessages}
+          communityId={communityId}
+          channel="quorum"
+          canPost={isQuorum}
+          onReference={setReferencedMsg}
+          referencedMsg={referencedMsg}
+          clearReference={() => setReferencedMsg(null)}
+          reactionsByMessage={quorumReactions}
+        />
+      </Glass>
     </div>
   );
 }

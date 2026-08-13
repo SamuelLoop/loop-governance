@@ -63,8 +63,8 @@ export default async function GovernancePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Governance Settings</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Governance Settings</h1>
+        <p className="text-body text-text-secondary">
           Cascading rules that shape how communities elect leaders, delegate
           votes and spend from treasuries
         </p>

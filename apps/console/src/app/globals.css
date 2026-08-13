@@ -39,62 +39,12 @@
 }
 
 /*
- * Live-dot — the consumer pattern theme.css's Motion section (§5) already
- * specs but nothing implemented yet: "a small glowing dot on genuinely
- * live elements". First real usage is the community/leadership chat
- * headers (session: three-column chat redesign). Kept here, not per
- * component, so any future live-state indicator reuses the same class.
+ * Live-dot, leadership-glow, and community-shade used to live here as
+ * one-off classes (first real usage: the community/leadership chat
+ * headers, three-column chat redesign, 2026-08-11). Retrofitted onto real
+ * `packages/ui` components — `Glass` (space="community"|"leadership") and
+ * `LiveDot` — per session `web-08-space-tint-addendum.md`, so this repo
+ * doesn't grow a second copy of the pattern next time a page needs it.
+ * The `live-pulse` keyframes moved to `packages/ui/theme.css` (Motion
+ * section) since `LiveDot` isn't console-only anymore.
  */
-@keyframes live-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .45; transform: scale(.7); }
-}
-
-.live-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--success);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--success) 70%, transparent);
-  animation: live-pulse var(--duration-live-dot) var(--ease-live) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .live-dot {
-    animation: none;
-  }
-}
-
-/*
- * Leadership panel glow — static (non-animated) gradient border marking
- * a community's quorum/leadership room as a distinct "glass room", per
- * the chat page's own subtitle copy. An earlier version of this rotated
- * continuously; reverted to static per explicit feedback that the motion
- * was distracting, not just the color.
- */
-.leadership-glow {
-  padding: 1px;
-  border-radius: calc(var(--radius-panel) + 1px);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent-end) 32%, transparent),
-    color-mix(in srgb, var(--accent-end) 6%, transparent)
-  );
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-end) 6%, transparent);
-}
-
-/*
- * Community panel shade — a flat, clearly-visible tint distinguishing
- * Community from the plain page background, deliberately neutral (no
- * brand-accent hue) so it doesn't compete with Leadership's gradient
- * border for attention. Requested directly, not a token-driven value —
- * doesn't warrant a theme.css entry on its own.
- */
-.community-shade {
-  background: #17171b;
-}
-
-[data-theme="light"] .community-shade {
-  background: #e9eaee;
-}

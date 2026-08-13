@@ -46,6 +46,34 @@ This was flagged as an open item after the shotgun round and is now resolved:
 
 ---
 
+## Space-tint — panel ownership (added 2026-08-13, session `web-08-space-tint-addendum.md`)
+
+Tier colour (status) and brand accent (action) never mix — see above. This adds a **third, narrower signal**: which audience a panel belongs to. It's scoped tightly enough that it can't collide with either existing rule.
+
+Discovered live during the community chat build (`apps/console/.../communities/[id]/chat/`), shipped that day as one-off CSS (`.live-dot`, `.leadership-glow`, `.community-shade` in `apps/console/src/app/globals.css`), formalised here and retrofitted onto real `Glass`/`LiveDot` components in `packages/ui` so sessions 09-11 have something to import instead of re-deriving the CSS.
+
+| Space | Tint | Where it means something |
+|---|---|---|
+| Community / general | Flat neutral shade — `#17171b` dark / `#e9eaee` light | Any panel open to all members |
+| Leadership / restricted | Static blue-violet gradient border (`color-mix` off `--accent-end`) + a "Members only" pill | Any panel restricted to quorum/leadership roles |
+| Admin | Static teal gradient border (`color-mix` off `--admin-tint`, `#2dd4bf`) + an "Admin only" pill | Any panel that's `apps/admin`-only, or an admin-only control embedded in console |
+
+**Admin colour, confirmed 2026-08-13:** every other saturated hue in the system was already spoken for (blue-violet = brand, gold = warning + Gold tier, green = success, red = error, plus Diamond/Platinum/Silver/Bronze). Teal (`#2dd4bf`) reads as "oversight/verified" rather than alarm or celebration, and is distinct from all of those. Two alternates (a deeper `#14b8a6`, and cyan `#06b6d4`) were mocked up side by side against the real Glass-panel treatment for comparison — teal, the original proposal, was picked as-is.
+
+**Explicit rule, matching the tier/brand-accent discipline above:** space-tint only ever appears as background/border treatment on a `Glass`-family panel. It never appears on body text, on a button's fill, or as a data-viz colour — those stay governed by the rules above, untouched.
+
+**Motion:** the leadership tint was originally a rotating conic-gradient border; reverted same-day to static after direct feedback that continuous motion was distracting. Keep it static — admin's tint follows the same rule from day one. `LiveDot` (small pulsing status dot, 1.6s, `prefers-reduced-motion`-gated) is the only thing in this pattern allowed to move, and only when it reflects a real Realtime subscription, never decoratively.
+
+### Decisions Log (space-tint)
+
+| Date | Decision | Rationale |
+|---|---|---|
+| 2026-08-13 | Space-tint formalised as a third colour signal, narrower than tier/brand accent | Discovered live during the chat build; needed a real spec before sessions 09-11 (Admin/Console/Portal rollout) reuse the pattern |
+| 2026-08-13 | Admin tint = teal `#2dd4bf` (`--admin-tint`) | Only unclaimed saturated hue left in the system; reads as oversight/verified, not alarm or celebration; confirmed against 2 alternates via a real Glass-panel mockup, not a swatch |
+| 2026-08-13 | Space-tint never appears on text, button fills, or data-viz — chrome only | Keeps it structurally incapable of colliding with the tier-colour/brand-accent rule above |
+
+---
+
 ## Typography
 
 - **Display / headings / large numerals (treasury balance, hero stat tiles):** General Sans — confident geometric sans, open license, distinct from Inter/Roboto/Arial/system defaults and from what mobile uses for display (Cabinet Grotesk), avoiding a licensing dependency while still reading as deliberate, not default.

@@ -8,6 +8,17 @@ import {
   displayFieldValue,
   type Scope,
 } from "@/lib/governance-settings";
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  StatusChip,
+  Glass,
+  type StatusChipVariant,
+} from "@loop/ui";
 
 type Org = { id: string; name: string };
 type CommunityRow = {
@@ -33,11 +44,17 @@ function lockedKeysOf(row: SettingsRow | null | undefined): Set<string> {
 
 type ScopeType = "platform" | "white_label" | "subject" | "community";
 
-const SOURCE_STYLES: Record<string, string> = {
-  community: "border-red-500/40 bg-red-500/15 text-red-400",
-  subject: "border-amber-500/40 bg-amber-500/15 text-amber-400",
-  white_label: "border-blue-500/40 bg-blue-500/15 text-blue-400",
-  platform: "border-border bg-secondary/50 text-muted-foreground",
+// See packages/ui/src/components/status-chip.tsx: only the semantic
+// palette is available. "community" (most specific, silently overrides
+// every level above it) gets "warning" as a genuine "pay attention here"
+// signal; the other three cascade levels are informational, not a
+// severity, so they render neutral — the source label text itself still
+// says which level it came from.
+const SOURCE_VARIANT: Record<string, StatusChipVariant> = {
+  community: "warning",
+  subject: "neutral",
+  white_label: "neutral",
+  platform: "neutral",
 };
 
 const inputCls =
@@ -239,7 +256,7 @@ export function GovernanceEditor({
             className={`rounded-md px-3 py-1.5 text-sm capitalize transition-colors ${
               scopeType === s
                 ? "bg-primary text-primary-foreground"
-                : "border border-border bg-card text-muted-foreground hover:text-foreground"
+                : "border border-surface-border bg-surface text-text-secondary hover:text-text-primary"
             }`}
           >
             {s.replace("_", " ")}
@@ -301,19 +318,19 @@ export function GovernanceEditor({
         )}
       </div>
 
-      <p className="mb-4 text-xs text-muted-foreground">
-        Editing <span className="font-medium text-foreground">{scopeLabel[scopeType]}</span>.
+      <p className="mb-4 text-caption text-text-secondary">
+        Editing <span className="font-medium text-text-primary">{scopeLabel[scopeType]}</span>.
         Values you leave blank inherit from a higher level. The effective column
         on the right shows what a community using this scope would actually see.
       </p>
 
       {state.error && (
-        <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
+        <div className="mb-4 rounded-md border border-error/30 bg-error/10 px-4 py-2.5 text-sm text-error">
           {state.error}
         </div>
       )}
       {state.success && (
-        <div className="mb-4 rounded-md border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm text-green-400">
+        <div className="mb-4 rounded-md border border-success/30 bg-success/10 px-4 py-2.5 text-sm text-success">
           {state.success}
         </div>
       )}
@@ -321,104 +338,94 @@ export function GovernanceEditor({
       {scope && (
         <form key={formKey} action={formAction} className="space-y-5">
           <input type="hidden" name="scope" value={JSON.stringify(scope)} />
-          <div className="rounded-lg border border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/30">
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Setting</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
-                    Value at this scope
-                  </th>
-                  <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground md:table-cell">
-                    Effective
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {SETTING_FIELDS.map((field) => {
-                  const currentValue = currentRow?.settings?.[field.key];
-                  const effValue = effective.values[field.key];
-                  const effSource = effective.sources[field.key];
-                  const inheritedLockedBy = inheritedLocks.get(field.key);
-                  const disabled = Boolean(inheritedLockedBy);
-                  const isOwnLocked = ownLocks.has(field.key);
-                  return (
-                    <tr key={field.key} className="border-b border-border last:border-0">
-                      <td className="px-4 py-3 align-top">
-                        <p className="font-medium">{field.label}</p>
-                        {field.helper && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">{field.helper}</p>
+          <DataTable>
+            <DataTableHeader>
+              <tr>
+                <DataTableHead>Setting</DataTableHead>
+                <DataTableHead>Value at this scope</DataTableHead>
+                <DataTableHead className="hidden md:table-cell">Effective</DataTableHead>
+              </tr>
+            </DataTableHeader>
+            <DataTableBody>
+              {SETTING_FIELDS.map((field) => {
+                const currentValue = currentRow?.settings?.[field.key];
+                const effValue = effective.values[field.key];
+                const effSource = effective.sources[field.key];
+                const inheritedLockedBy = inheritedLocks.get(field.key);
+                const disabled = Boolean(inheritedLockedBy);
+                const isOwnLocked = ownLocks.has(field.key);
+                return (
+                  <DataTableRow key={field.key}>
+                    <DataTableCell className="align-top">
+                      <p className="font-medium">{field.label}</p>
+                      {field.helper && (
+                        <p className="mt-0.5 text-caption text-text-secondary">{field.helper}</p>
+                      )}
+                      {inheritedLockedBy && (
+                        <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-warning">
+                          🔒 Locked by {inheritedLockedBy.replace("_", " ")}
+                        </p>
+                      )}
+                    </DataTableCell>
+                    <DataTableCell className="align-top">
+                      {field.type === "boolean" ? (
+                        <select
+                          name={field.key}
+                          defaultValue={formatFieldValue(field, currentValue)}
+                          disabled={disabled}
+                          className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
+                        >
+                          <option value="">inherit</option>
+                          <option value="true">on</option>
+                          <option value="false">off</option>
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type === "text" ? "text" : "number"}
+                          name={field.key}
+                          defaultValue={formatFieldValue(field, currentValue)}
+                          placeholder={disabled ? "locked above" : (field.placeholder ?? "inherit")}
+                          min={field.min}
+                          max={field.max}
+                          step={field.step}
+                          disabled={disabled}
+                          className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
+                        />
+                      )}
+                      {scopeType !== "community" && !disabled && (
+                        <label className="mt-2 flex items-center gap-1.5 text-[11px] text-text-secondary">
+                          <input
+                            type="checkbox"
+                            name={`__lock__${field.key}`}
+                            defaultChecked={isOwnLocked}
+                            className="h-3 w-3 rounded border-surface-border"
+                          />
+                          Lock this value — no lower scope may override
+                        </label>
+                      )}
+                    </DataTableCell>
+                    <DataTableCell className="hidden align-top md:table-cell">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono tabular-nums">
+                          {displayFieldValue(field, effValue)}
+                        </span>
+                        {effSource && (
+                          <StatusChip variant={SOURCE_VARIANT[effSource] ?? "neutral"}>
+                            {effSource.replace("_", " ")}
+                          </StatusChip>
                         )}
                         {inheritedLockedBy && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-amber-400">
-                            🔒 Locked by {inheritedLockedBy.replace("_", " ")}
-                          </p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 align-top">
-                        {field.type === "boolean" ? (
-                          <select
-                            name={field.key}
-                            defaultValue={formatFieldValue(field, currentValue)}
-                            disabled={disabled}
-                            className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
-                          >
-                            <option value="">inherit</option>
-                            <option value="true">on</option>
-                            <option value="false">off</option>
-                          </select>
-                        ) : (
-                          <input
-                            type={field.type === "text" ? "text" : "number"}
-                            name={field.key}
-                            defaultValue={formatFieldValue(field, currentValue)}
-                            placeholder={disabled ? "locked above" : (field.placeholder ?? "inherit")}
-                            min={field.min}
-                            max={field.max}
-                            step={field.step}
-                            disabled={disabled}
-                            className={`${inputCls} ${disabled ? "opacity-50" : ""}`}
-                          />
-                        )}
-                        {scopeType !== "community" && !disabled && (
-                          <label className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <input
-                              type="checkbox"
-                              name={`__lock__${field.key}`}
-                              defaultChecked={isOwnLocked}
-                              className="h-3 w-3 rounded border-border"
-                            />
-                            Lock this value — no lower scope may override
-                          </label>
-                        )}
-                      </td>
-                      <td className="hidden px-4 py-3 align-top md:table-cell">
-                        <div className="flex items-center gap-2">
-                          <span className="tabular-nums">
-                            {displayFieldValue(field, effValue)}
+                          <span className="text-[11px]" title={`Locked by ${inheritedLockedBy}`}>
+                            🔒
                           </span>
-                          {effSource && (
-                            <span
-                              className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${
-                                SOURCE_STYLES[effSource] ?? ""
-                              }`}
-                            >
-                              {effSource.replace("_", " ")}
-                            </span>
-                          )}
-                          {inheritedLockedBy && (
-                            <span className="text-[11px]" title={`Locked by ${inheritedLockedBy}`}>
-                              🔒
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        )}
+                      </div>
+                    </DataTableCell>
+                  </DataTableRow>
+                );
+              })}
+            </DataTableBody>
+          </DataTable>
 
           <div className="flex justify-end">
             <button
@@ -432,9 +439,9 @@ export function GovernanceEditor({
       )}
 
       {!scope && (
-        <div className="rounded-lg border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+        <Glass space="admin" className="py-12 text-center text-sm text-text-secondary">
           Choose a {scopeType.replace("_", " ")} above to edit its settings.
-        </div>
+        </Glass>
       )}
     </div>
   );

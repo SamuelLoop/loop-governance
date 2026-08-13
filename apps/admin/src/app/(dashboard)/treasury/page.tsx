@@ -4,6 +4,16 @@ import { PageDescription } from "@/components/page-description";
 import { ImpactTreasuryCard } from "./impact-treasury-card";
 import { publicClient, chainConfig, LOOP_TOKEN_ABI, isConfigured, fromTokenUnits } from "@/lib/loop-token";
 import type { Address } from "viem";
+import {
+  Glass,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableRow,
+  DataTableHead,
+  DataTableCell,
+  DataTableEmpty,
+} from "@loop/ui";
 
 function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -81,8 +91,8 @@ export default async function TreasuryPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Treasury</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Treasury</h1>
+        <p className="text-body text-text-secondary">
           Token balances and flows across {rows.length} community treasuries
         </p>
       </div>
@@ -109,113 +119,103 @@ export default async function TreasuryPage() {
       )}
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Total Balance</p>
-          <p className="text-2xl font-bold tabular-nums">{fmt(totals.balance)}</p>
-          <p className="text-xs text-muted-foreground">LOOP_TKN</p>
-        </div>
-        <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-4">
-          <p className="text-xs text-green-400">Total Inflows</p>
-          <p className="text-2xl font-bold tabular-nums text-green-400">{fmt(totals.inflow)}</p>
-        </div>
-        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
-          <p className="text-xs text-red-400">Total Outflows</p>
-          <p className="text-2xl font-bold tabular-nums text-red-400">{fmt(totals.outflow)}</p>
-        </div>
+        <Glass space="admin" className="p-4">
+          <p className="text-caption text-text-secondary">Total Balance</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-text-primary">{fmt(totals.balance)}</p>
+          <p className="text-caption text-text-secondary">LOOP_TKN</p>
+        </Glass>
+        <Glass space="admin" className="p-4">
+          <p className="text-caption text-success">Total Inflows</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-success">{fmt(totals.inflow)}</p>
+        </Glass>
+        <Glass space="admin" className="p-4">
+          <p className="text-caption text-error">Total Outflows</p>
+          <p className="font-mono text-data-lg font-bold tabular-nums text-error">{fmt(totals.outflow)}</p>
+        </Glass>
       </div>
 
-      <h2 className="mb-3 text-lg font-semibold">Balances by Community</h2>
-      <div className="mb-8 overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-secondary/30">
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Community</th>
-              <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground md:table-cell">Subject</th>
-              <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Balance</th>
-              <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground md:table-cell">Inflow</th>
-              <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground md:table-cell">Outflow</th>
-              <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground lg:table-cell">Transactions</th>
+      <h2 className="mb-3 text-h2 font-bold">Balances by Community</h2>
+      <div className="mb-8">
+        <DataTable>
+          <DataTableHeader>
+            <tr>
+              <DataTableHead>Community</DataTableHead>
+              <DataTableHead className="hidden md:table-cell">Subject</DataTableHead>
+              <DataTableHead align="right">Balance</DataTableHead>
+              <DataTableHead align="right" className="hidden md:table-cell">Inflow</DataTableHead>
+              <DataTableHead align="right" className="hidden md:table-cell">Outflow</DataTableHead>
+              <DataTableHead align="right" className="hidden lg:table-cell">Transactions</DataTableHead>
             </tr>
-          </thead>
-          <tbody>
+          </DataTableHeader>
+          <DataTableBody>
             {rows.map((r) => (
-              <tr key={`${r.community_id}-${r.token_type}`} className="border-b border-border last:border-0 hover:bg-secondary/20">
-                <td className="px-4 py-3">
+              <DataTableRow key={`${r.community_id}-${r.token_type}`}>
+                <DataTableCell>
                   <p className="font-medium">{r.community!.name}</p>
-                  <p className="text-xs text-muted-foreground">{r.community!.level}</p>
-                </td>
-                <td className="hidden px-4 py-3 capitalize text-muted-foreground md:table-cell">
+                  <p className="text-caption text-text-secondary">{r.community!.level}</p>
+                </DataTableCell>
+                <DataTableCell className="hidden capitalize text-text-secondary md:table-cell">
                   {r.community!.subject}
-                </td>
-                <td className="px-4 py-3 text-right font-medium tabular-nums">
+                </DataTableCell>
+                <DataTableCell numeric align="right" className="font-medium">
                   {fmt(Number(r.balance))}
-                </td>
-                <td className="hidden px-4 py-3 text-right tabular-nums text-green-400 md:table-cell">
+                </DataTableCell>
+                <DataTableCell numeric align="right" className="hidden text-success md:table-cell">
                   +{fmt(Number(r.total_inflow))}
-                </td>
-                <td className="hidden px-4 py-3 text-right tabular-nums text-red-400 md:table-cell">
+                </DataTableCell>
+                <DataTableCell numeric align="right" className="hidden text-error md:table-cell">
                   -{fmt(Number(r.total_outflow))}
-                </td>
-                <td className="hidden px-4 py-3 text-right tabular-nums text-muted-foreground lg:table-cell">
+                </DataTableCell>
+                <DataTableCell numeric align="right" className="hidden text-text-secondary lg:table-cell">
                   {Number(r.inflow_count) + Number(r.outflow_count)}
-                </td>
-              </tr>
+                </DataTableCell>
+              </DataTableRow>
             ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No treasury activity yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            {rows.length === 0 && <DataTableEmpty colSpan={6}>No treasury activity yet</DataTableEmpty>}
+          </DataTableBody>
+        </DataTable>
       </div>
 
-      <h2 className="mb-3 text-lg font-semibold">Recent Transactions</h2>
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-secondary/30">
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Time</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Community</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Type</th>
-              <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Amount</th>
-              <th className="hidden px-4 py-2.5 text-left font-medium text-muted-foreground lg:table-cell">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(recentTx ?? []).map((tx) => (
-              <tr key={tx.id} className="border-b border-border last:border-0 hover:bg-secondary/20">
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
-                  {new Date(tx.created_at).toLocaleString()}
-                </td>
-                <td className="px-4 py-3">
-                  {communityMap.get(tx.community_id)?.name ?? "Unknown"}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-xs text-muted-foreground">{tx.type.replace(/_/g, " ")}</span>
-                </td>
-                <td className={`px-4 py-3 text-right tabular-nums ${
-                  tx.direction === "inflow" ? "text-green-400" : "text-red-400"
-                }`}>
-                  {tx.direction === "inflow" ? "+" : "-"}{fmt(Number(tx.amount))}
-                </td>
-                <td className="hidden max-w-xs truncate px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                  {tx.description ?? "—"}
-                </td>
-              </tr>
-            ))}
-            {(recentTx ?? []).length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No transactions yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <h2 className="mb-3 text-h2 font-bold">Recent Transactions</h2>
+      <DataTable>
+        <DataTableHeader>
+          <tr>
+            <DataTableHead>Time</DataTableHead>
+            <DataTableHead>Community</DataTableHead>
+            <DataTableHead>Type</DataTableHead>
+            <DataTableHead align="right">Amount</DataTableHead>
+            <DataTableHead className="hidden lg:table-cell">Description</DataTableHead>
+          </tr>
+        </DataTableHeader>
+        <DataTableBody>
+          {(recentTx ?? []).map((tx) => (
+            <DataTableRow key={tx.id}>
+              <DataTableCell numeric className="whitespace-nowrap text-caption text-text-secondary">
+                {new Date(tx.created_at).toLocaleString()}
+              </DataTableCell>
+              <DataTableCell>
+                {communityMap.get(tx.community_id)?.name ?? "Unknown"}
+              </DataTableCell>
+              <DataTableCell className="text-caption text-text-secondary">
+                {tx.type.replace(/_/g, " ")}
+              </DataTableCell>
+              <DataTableCell
+                numeric
+                align="right"
+                className={tx.direction === "inflow" ? "text-success" : "text-error"}
+              >
+                {tx.direction === "inflow" ? "+" : "-"}{fmt(Number(tx.amount))}
+              </DataTableCell>
+              <DataTableCell className="hidden max-w-xs truncate text-caption text-text-secondary lg:table-cell">
+                {tx.description ?? "—"}
+              </DataTableCell>
+            </DataTableRow>
+          ))}
+          {(recentTx ?? []).length === 0 && (
+            <DataTableEmpty colSpan={5}>No transactions yet</DataTableEmpty>
+          )}
+        </DataTableBody>
+      </DataTable>
     </div>
   );
 }

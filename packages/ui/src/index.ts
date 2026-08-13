@@ -16,6 +16,11 @@ export * from "./theme/theme-init-script";
 export * from "./theme/theme-toggle";
 export * from "./theme/fonts";
 
+export * from "./components/glass";
+export * from "./components/live-dot";
+export * from "./components/data-table";
+export * from "./components/status-chip";
+
 export * from "./components/ui/avatar";
 export * from "./components/ui/badge";
 export * from "./components/ui/breadcrumb";

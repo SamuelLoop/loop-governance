@@ -1,6 +1,7 @@
 import { requireAdminSession } from "@/lib/admin-auth";
 import { createServiceClient } from "@/lib/supabase-server";
 import { PageDescription } from "@/components/page-description";
+import { Glass } from "@loop/ui";
 
 export default async function AdminDashboard() {
   const session = await requireAdminSession();
@@ -45,8 +46,8 @@ export default async function AdminDashboard() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-h1 font-bold tracking-tight">Dashboard</h1>
+        <p className="text-body text-text-secondary">
           {isPlatformAdmin
             ? "Platform overview across all organizations"
             : `Managing ${session.whiteLabel?.name ?? "organization"}`}
@@ -60,51 +61,50 @@ export default async function AdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-lg border border-border bg-card p-4"
-          >
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-            <p className="mt-1 text-2xl font-bold tabular-nums">{stat.value}</p>
-          </div>
+          <Glass key={stat.label} space="admin" className="p-4">
+            <p className="text-caption text-text-secondary">{stat.label}</p>
+            <p className="mt-1 font-mono text-data-lg font-bold tabular-nums text-text-primary">
+              {stat.value}
+            </p>
+          </Glass>
         ))}
       </div>
 
-      <div className="mt-8 rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">Quick Actions</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <Glass space="admin" className="mt-8 p-6">
+        <h2 className="text-h2 font-bold">Quick Actions</h2>
+        <p className="mt-1 text-body text-text-secondary">
           Use the sidebar to navigate to specific management areas.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <a
             href="/members"
-            className="rounded-md border border-border bg-secondary/30 p-3 text-sm transition-colors hover:bg-secondary"
+            className="rounded-md border border-surface-border bg-secondary/30 p-3 text-body transition-colors hover:bg-secondary"
           >
             <span className="font-medium">Manage Members</span>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-caption text-text-secondary">
               View and manage platform users
             </p>
           </a>
           <a
             href="/moderation"
-            className="rounded-md border border-border bg-secondary/30 p-3 text-sm transition-colors hover:bg-secondary"
+            className="rounded-md border border-surface-border bg-secondary/30 p-3 text-body transition-colors hover:bg-secondary"
           >
             <span className="font-medium">Review Flags</span>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-caption text-text-secondary">
               {flagCount} pending moderation flags
             </p>
           </a>
           <a
             href="/allocations"
-            className="rounded-md border border-border bg-secondary/30 p-3 text-sm transition-colors hover:bg-secondary"
+            className="rounded-md border border-surface-border bg-secondary/30 p-3 text-body transition-colors hover:bg-secondary"
           >
             <span className="font-medium">Treasury Allocations</span>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-caption text-text-secondary">
               Configure subject budget splits
             </p>
           </a>
         </div>
-      </div>
+      </Glass>
     </div>
   );
 }

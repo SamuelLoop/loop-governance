@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { updateOrgSettings, updateLoyaltyConfig } from "./actions";
+import { Glass, StatusChip } from "@loop/ui";
 
 type Org = {
   id: string;
@@ -53,9 +54,9 @@ export function SettingsForm({
 
   if (!org) {
     return (
-      <div className="rounded-lg border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+      <Glass space="admin" className="py-12 text-center text-sm text-text-secondary">
         No organizations configured
-      </div>
+      </Glass>
     );
   }
 
@@ -76,19 +77,19 @@ export function SettingsForm({
         </div>
       )}
 
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h2 className="mb-1 text-lg font-semibold">Branding</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
+      <Glass space="admin" className="p-5">
+        <h2 className="mb-1 text-h2 font-bold">Branding</h2>
+        <p className="mb-4 text-body text-text-secondary">
           {org.name} · {org.domain}
         </p>
 
         {orgState.error && (
-          <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="mb-3 rounded-md border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
             {orgState.error}
           </div>
         )}
         {orgState.success && (
-          <div className="mb-3 rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-400">
+          <div className="mb-3 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
             {orgState.success}
           </div>
         )}
@@ -152,14 +153,14 @@ export function SettingsForm({
             </button>
           )}
         </form>
-      </div>
+      </Glass>
 
-      <div className="rounded-lg border border-border bg-card p-5">
+      <Glass space="admin" className="p-5">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="mb-1 text-lg font-semibold">Loyalty Tokens</h2>
-            <p className="text-sm text-muted-foreground">
-              Loyalty rules for <span className="text-foreground">{org.name}</span>.
+            <h2 className="mb-1 text-h2 font-bold">Loyalty Tokens</h2>
+            <p className="text-body text-text-secondary">
+              Loyalty rules for <span className="text-text-primary">{org.name}</span>.
               Values shown are effective values (per-org override if set, otherwise
               the platform default). Editing here saves a per-org override in the
               governance cascade. For subject or community overrides use the{" "}
@@ -168,19 +169,19 @@ export function SettingsForm({
             </p>
           </div>
           {loyalty?.has_override && (
-            <span className="inline-flex shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+            <StatusChip variant="warning" className="shrink-0">
               Override active
-            </span>
+            </StatusChip>
           )}
         </div>
 
         {loyaltyState.error && (
-          <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="mb-3 rounded-md border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
             {loyaltyState.error}
           </div>
         )}
         {loyaltyState.success && (
-          <div className="mb-3 rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-400">
+          <div className="mb-3 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
             {loyaltyState.success}
           </div>
         )}
@@ -326,7 +327,7 @@ export function SettingsForm({
             </button>
           )}
         </form>
-      </div>
+      </Glass>
     </div>
   );
 }
